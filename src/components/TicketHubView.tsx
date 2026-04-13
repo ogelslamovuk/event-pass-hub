@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import type { AppState } from "@/lib/store";
 import { publishEvent, issueMarks } from "@/lib/store";
 import { toast } from "sonner";
@@ -18,6 +18,10 @@ const opResultBadge: Record<string, string> = { ok: "bg-role-channel", error: "b
 export default function TicketHubView({ state, onUpdate, initialTab }: Props) {
   const [tab, setTab] = useState<"events" | "tickets" | "ops">(initialTab || "events");
   const [confirmIssue, setConfirmIssue] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
   const [tktFilter, setTktFilter] = useState({ event: "", status: "", tier: "" });
   const [opFilter, setOpFilter] = useState({ channel: "", type: "", result: "" });
 
