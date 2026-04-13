@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import type { AppState } from "@/lib/store";
 import { publishEvent, issueMarks } from "@/lib/store";
 import { toast } from "sonner";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface Props {
   state: AppState;
   onUpdate: (s: AppState) => void;
+  initialTab?: "events" | "tickets" | "ops";
 }
 
 const evtStatusLabel: Record<string, string> = { approved: "Одобрено", published: "Опубликовано" };
@@ -14,9 +15,13 @@ const tktStatusLabel: Record<string, string> = { issued: "Выпущен", sold:
 const tktStatusBadge: Record<string, string> = { issued: "bg-role-tickethub", sold: "bg-role-channel", refunded: "bg-role-regulator", redeemed: "bg-role-b2c" };
 const opResultBadge: Record<string, string> = { ok: "bg-role-channel", error: "bg-role-regulator" };
 
-export default function TicketHubView({ state, onUpdate }: Props) {
-  const [tab, setTab] = useState<"events" | "tickets" | "ops">("events");
+export default function TicketHubView({ state, onUpdate, initialTab }: Props) {
+  const [tab, setTab] = useState<"events" | "tickets" | "ops">(initialTab || "events");
   const [confirmIssue, setConfirmIssue] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
   const [tktFilter, setTktFilter] = useState({ event: "", status: "", tier: "" });
   const [opFilter, setOpFilter] = useState({ channel: "", type: "", result: "" });
 
@@ -65,14 +70,16 @@ export default function TicketHubView({ state, onUpdate }: Props) {
   return (
     <div className="space-y-6">
       <div className="bg-card rounded-lg p-6 shadow-card border border-border">
-        <div className="flex gap-1 mb-4 bg-muted rounded-lg p-1 w-fit">
-          {tabs.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === t.key ? "bg-card shadow-sm" : "hover:bg-card/50"}`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {!initialTab && (
+          <div className="flex gap-1 mb-4 bg-muted rounded-lg p-1 w-fit">
+            {tabs.map((t) => (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === t.key ? "bg-card shadow-sm" : "hover:bg-card/50"}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {tab === "events" && (
           <>
