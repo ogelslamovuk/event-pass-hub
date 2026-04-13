@@ -61,3 +61,25 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
+
+/* Channel dark theme overrides */
+.channel-theme .bg-card {
+  background: #111827;
+  color: #E5E7EB;
+  border-color: rgba(255,255,255,0.1);
+}
+.channel-theme .border-border {
+  border-color: rgba(255,255,255,0.1);
+}
+.channel-theme select,
+.channel-theme input {
+  background: #0F172A;
+  color: #E5E7EB;
+  border-color: rgba(255,255,255,0.15);
+}
+.channel-theme .bg-muted {
+  background: rgba(255,255,255,0.06);
+}
+.channel-theme .hover\:bg-card\/50:hover {
+  background: rgba(255,255,255,0.04);
+}

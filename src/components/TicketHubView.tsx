@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface Props {
   state: AppState;
   onUpdate: (s: AppState) => void;
+  initialTab?: "events" | "tickets" | "ops";
 }
 
 const evtStatusLabel: Record<string, string> = { approved: "Одобрено", published: "Опубликовано" };
@@ -14,8 +15,8 @@ const tktStatusLabel: Record<string, string> = { issued: "Выпущен", sold:
 const tktStatusBadge: Record<string, string> = { issued: "bg-role-tickethub", sold: "bg-role-channel", refunded: "bg-role-regulator", redeemed: "bg-role-b2c" };
 const opResultBadge: Record<string, string> = { ok: "bg-role-channel", error: "bg-role-regulator" };
 
-export default function TicketHubView({ state, onUpdate }: Props) {
-  const [tab, setTab] = useState<"events" | "tickets" | "ops">("events");
+export default function TicketHubView({ state, onUpdate, initialTab }: Props) {
+  const [tab, setTab] = useState<"events" | "tickets" | "ops">(initialTab || "events");
   const [confirmIssue, setConfirmIssue] = useState<string | null>(null);
   const [tktFilter, setTktFilter] = useState({ event: "", status: "", tier: "" });
   const [opFilter, setOpFilter] = useState({ channel: "", type: "", result: "" });
