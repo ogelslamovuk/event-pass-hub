@@ -70,14 +70,16 @@ export default function TicketHubView({ state, onUpdate, initialTab }: Props) {
   return (
     <div className="space-y-6">
       <div className="bg-card rounded-lg p-6 shadow-card border border-border">
-        <div className="flex gap-1 mb-4 bg-muted rounded-lg p-1 w-fit">
-          {tabs.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === t.key ? "bg-card shadow-sm" : "hover:bg-card/50"}`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {!initialTab && (
+          <div className="flex gap-1 mb-4 bg-muted rounded-lg p-1 w-fit">
+            {tabs.map((t) => (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === t.key ? "bg-card shadow-sm" : "hover:bg-card/50"}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {tab === "events" && (
           <>
