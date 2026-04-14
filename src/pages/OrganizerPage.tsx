@@ -23,6 +23,11 @@ const sidebarItems: { id: Section; label: string; icon: React.ElementType; demo?
   { id: "support", label: "Поддержка", icon: HelpCircle, demo: true },
 ];
 
+const CITY_WHITELIST = ["Минск", "Брест", "Витебск", "Гомель", "Гродно", "Могилёв"] as const;
+const CATEGORY_WHITELIST = ["Концерты", "Театр", "Шоу", "Детям", "Фестивали"] as const;
+const POSTER_PLACEHOLDER = "/placeholder.svg";
+const MAX_POSTER_SIZE_BYTES = 1_500_000;
+
 // Dark theme status badges
 const statusBadge: Record<string, string> = {
   draft: "",
@@ -74,6 +79,10 @@ export default function OrganizerPage() {
   const [venue, setVenue] = useState("");
   const [dateTime, setDateTime] = useState("");
   const [capacity, setCapacity] = useState("");
+  const [city, setCity] = useState<(typeof CITY_WHITELIST)[number] | "">("");
+  const [category, setCategory] = useState<(typeof CATEGORY_WHITELIST)[number] | "">("");
+  const [description, setDescription] = useState("");
+  const [poster, setPoster] = useState("");
   const [tiers, setTiers] = useState([
     { name: "Партер", price: "" },
     { name: "Балкон", price: "" },
@@ -84,7 +93,28 @@ export default function OrganizerPage() {
   const removeTier = (i: number) => { if (tiers.length > 2) setTiers(tiers.filter((_, idx) => idx !== i)); };
 
   const isValid = title.trim() && venue.trim() && dateTime && Number(capacity) > 0 && Number(capacity) <= 5000 &&
+    city && category && description.trim() &&
     tiers.every((t) => t.name.trim() && Number(t.price) > 0);
+
+  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Постер должен быть изображением");
+      return;
+    }
+    if (file.size > MAX_POSTER_SIZE_BYTES) {
+      toast.error("Файл слишком большой. Выберите изображение до 1.5MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setPoster(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = (submit: boolean) => {
     if (!isValid) { toast.error("Заполните все поля корректно"); return; }
@@ -92,10 +122,15 @@ export default function OrganizerPage() {
       title: title.trim(), venue: venue.trim(), dateTime,
       capacity: Number(capacity),
       tiers: tiers.map((t) => ({ name: t.name.trim(), price: Number(t.price) })),
+      city,
+      category,
+      description: description.trim(),
+      poster,
     }, submit);
     toast.success(submit ? `Заявка ${app.appId} отправлена` : `Черновик ${app.appId} сохранён`);
     update({ ...state });
     setTitle(""); setVenue(""); setDateTime(""); setCapacity("");
+    setCity(""); setCategory(""); setDescription(""); setPoster("");
     setTiers([{ name: "Партер", price: "" }, { name: "Балкон", price: "" }]);
     setDrawerOpen(false);
   };
@@ -452,6 +487,48 @@ export default function OrganizerPage() {
                   style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
                   value={capacity} onChange={(e) => setCapacity(e.target.value)} />
               </Field>
+              <Field label="Город *">
+                <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]"
+                  style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
+                  value={city} onChange={(e) => setCity(e.target.value as (typeof CITY_WHITELIST)[number] | "")}>
+                  <option value="">Выберите город</option>
+                  {CITY_WHITELIST.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Категория *">
+                <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]"
+                  style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
+                  value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORY_WHITELIST)[number] | "")}>
+                  <option value="">Выберите категорию</option>
+                  {CATEGORY_WHITELIST.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Описание *">
+                <textarea
+                  className="w-full border rounded-xl px-3 py-2.5 text-[14px] min-h-[96px]"
+                  style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={500}
+                  placeholder="Кратко опишите событие..."
+                />
+              </Field>
+              <Field label="Постер">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/*"
+                  className="w-full border rounded-xl px-3 py-2 text-[13px]"
+                  style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
+                  onChange={handlePosterChange}
+                />
+                <p className="mt-1 text-[11px]" style={{ color: T.textMuted }}>1 файл, до 1.5MB, формат изображения</p>
+                <img src={poster || POSTER_PLACEHOLDER} alt="Постер" className="mt-3 h-36 w-full object-cover rounded-xl border"
+                  style={{ borderColor: T.btnSecondaryBorder }} />
+              </Field>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[13px] font-semibold" style={{ color: T.textPrimary }}>Ценовые категории</span>
@@ -526,6 +603,8 @@ export default function OrganizerPage() {
                   ["APP ID", drawerApp.appId],
                   ["Название", drawerApp.title],
                   ["Площадка", drawerApp.venue],
+                  ["Город", drawerApp.city || "—"],
+                  ["Категория", drawerApp.category || "—"],
                   ["Дата/время", drawerApp.dateTime?.replace("T", " ")],
                   ["Вместимость", String(drawerApp.capacity)],
                   ...(drawerApp.licenseId ? [["LicenseID", drawerApp.licenseId]] : []),
@@ -537,10 +616,19 @@ export default function OrganizerPage() {
                   </div>
                 ))}
                 <div>
+                  <dt className="mb-1" style={{ color: T.textSecondary }}>Описание</dt>
+                  <dd className="font-medium" style={{ color: T.textPrimary }}>{drawerApp.description || "—"}</dd>
+                </div>
+                <div>
                   <dt className="mb-1" style={{ color: T.textSecondary }}>Категории</dt>
                   <dd className="font-medium" style={{ color: T.textPrimary }}>
                     {drawerApp.tiers.map((t) => `${t.name}: ${t.price}₽`).join(", ")}
                   </dd>
+                </div>
+                <div>
+                  <dt className="mb-1" style={{ color: T.textSecondary }}>Постер</dt>
+                  <img src={drawerApp.poster || POSTER_PLACEHOLDER} alt={drawerApp.title} className="h-40 w-full object-cover rounded-xl border"
+                    style={{ borderColor: T.btnSecondaryBorder }} />
                 </div>
               </dl>
             </div>
@@ -632,6 +720,8 @@ function ApplicationsTable({ filtered, search, setSearch, onOpen, onSubmit, onCr
                 <th className="py-2.5 px-3 text-left font-semibold rounded-l-lg" style={{ color: T.textSecondary }}>APP ID</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Название</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Площадка</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Город</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Категория</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Дата/время</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Вместимость</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textSecondary }}>Статус</th>
@@ -646,6 +736,8 @@ function ApplicationsTable({ filtered, search, setSearch, onOpen, onSubmit, onCr
                   <td className="py-2.5 px-3 font-mono text-xs" style={{ color: T.textSecondary }}>{a.appId}</td>
                   <td className="py-2.5 px-3 font-medium" style={{ color: T.textPrimary }}>{a.title}</td>
                   <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.venue}</td>
+                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.city || "—"}</td>
+                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.category || "—"}</td>
                   <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.dateTime?.replace("T", " ")}</td>
                   <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.capacity}</td>
                   <td className="py-2.5 px-3">

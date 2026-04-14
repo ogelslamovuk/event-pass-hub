@@ -20,6 +20,10 @@ export interface Application {
   dateTime: string;
   capacity: number;
   tiers: PriceTier[];
+  city: string;
+  category: string;
+  description: string;
+  poster: string;
   status: AppStatus;
   licenseId?: string;
   eventId?: string;
@@ -36,6 +40,10 @@ export interface EventRecord {
   dateTime: string;
   capacity: number;
   tiers: PriceTier[];
+  city: string;
+  category: string;
+  description: string;
+  poster: string;
   status: EventStatus;
   remaining: number;
   createdAt: string;
@@ -69,12 +77,28 @@ export interface DemoUser {
   name: string;
 }
 
+export interface DemoPurchaseTicket {
+  ticketId: string;
+  eventId: string;
+  eventTitle: string;
+  date: string;
+  time: string;
+  city: string;
+  venue: string;
+  buyerName: string;
+  selectedPriceCategory: string;
+  quantity: number;
+  purchasedAt: string;
+  status: "confirmed";
+}
+
 export interface AppState {
   meta: { version: string; updatedAt: string };
   counters: { app: number; lic: number; evt: number; tck: number; op: number };
   applications: Application[];
   events: EventRecord[];
   tickets: Ticket[];
+  demoPurchases: DemoPurchaseTicket[];
   ops: OpRecord[];
   users: DemoUser[];
   ui: { selectedRole: Role; selectedChannel: Channel };
@@ -98,6 +122,7 @@ export function defaultState(): AppState {
     applications: [],
     events: [],
     tickets: [],
+    demoPurchases: [],
     ops: [],
     users: [{ userId: "demo_user_1", name: "Демо пользователь" }],
     ui: { selectedRole: "organizer", selectedChannel: "ByCard" },
@@ -107,7 +132,19 @@ export function defaultState(): AppState {
 export function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as AppState;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AppState>;
+      return {
+        ...defaultState(),
+        ...parsed,
+        applications: Array.isArray(parsed.applications) ? parsed.applications : [],
+        events: Array.isArray(parsed.events) ? parsed.events : [],
+        tickets: Array.isArray(parsed.tickets) ? parsed.tickets : [],
+        demoPurchases: Array.isArray(parsed.demoPurchases) ? parsed.demoPurchases : [],
+        ops: Array.isArray(parsed.ops) ? parsed.ops : [],
+        users: Array.isArray(parsed.users) ? parsed.users : [{ userId: "demo_user_1", name: "Демо пользователь" }],
+      };
+    }
   } catch {}
   return defaultState();
 }
@@ -143,12 +180,26 @@ function recalcRemaining(state: AppState, eventId: string) {
 
 export function createApplication(
   state: AppState,
-  data: { title: string; venue: string; dateTime: string; capacity: number; tiers: PriceTier[] },
+  data: {
+    title: string;
+    venue: string;
+    dateTime: string;
+    capacity: number;
+    tiers: PriceTier[];
+    city?: string;
+    category?: string;
+    description?: string;
+    poster?: string;
+  },
   submit: boolean
 ): Application {
   const app: Application = {
     appId: nextId(state, "app", "APP"),
     ...data,
+    city: data.city || "",
+    category: data.category || "",
+    description: data.description || "",
+    poster: data.poster || "",
     status: submit ? "submitted" : "draft",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -185,6 +236,10 @@ export function approveApplication(state: AppState, appId: string): { licenseId:
     dateTime: app.dateTime,
     capacity: app.capacity,
     tiers: [...app.tiers],
+    city: app.city,
+    category: app.category,
+    description: app.description,
+    poster: app.poster,
     status: "approved",
     remaining: 0,
     createdAt: new Date().toISOString(),
@@ -335,6 +390,35 @@ export function verify(state: AppState, ticketId: string, channel: string): OpOu
   return { ok: true, ticketId, status: ticket.status, op };
 }
 
+export function createDemoPurchaseTicket(
+  state: AppState,
+  data: { eventId: string; selectedPriceCategory: string; quantity: number; buyerName: string }
+): DemoPurchaseTicket | null {
+  const event = state.events.find((e) => e.eventId === data.eventId && e.status === "published");
+  if (!event) return null;
+  const safeQty = Math.max(1, Math.min(6, Math.floor(data.quantity)));
+  const [date = "", timeRaw = ""] = event.dateTime.split("T");
+  const time = timeRaw ? timeRaw.slice(0, 5) : "";
+  const now = new Date().toISOString();
+  const rec: DemoPurchaseTicket = {
+    ticketId: nextId(state, "tck", "TCK"),
+    eventId: event.eventId,
+    eventTitle: event.title,
+    date,
+    time,
+    city: event.city || "",
+    venue: event.venue,
+    buyerName: data.buyerName.trim(),
+    selectedPriceCategory: data.selectedPriceCategory,
+    quantity: safeQty,
+    purchasedAt: now,
+    status: "confirmed",
+  };
+  state.demoPurchases.push(rec);
+  saveState(state);
+  return rec;
+}
+
 // ===== Demo helpers =====
 
 export function generateDemoData(state: AppState): void {
@@ -349,6 +433,10 @@ export function generateDemoData(state: AppState): void {
       { name: "Балкон", price: 1500 },
       { name: "Галёрка", price: 800 },
     ],
+    city: "Минск",
+    category: "Концерты",
+    description: "Вечер классической музыки в атмосферном зале.",
+    poster: "",
   }, true);
   // approve
   approveApplication(state, app.appId);
@@ -376,6 +464,10 @@ export function runDemoScenario(): AppState {
       { name: "Балкон", price: 1500 },
       { name: "Галёрка", price: 800 },
     ],
+    city: "Минск",
+    category: "Концерты",
+    description: "Вечер классической музыки в атмосферном зале.",
+    poster: "",
   }, true);
   // approve
   approveApplication(state, app.appId);
