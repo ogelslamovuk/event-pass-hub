@@ -1,25 +1,23 @@
 import React, { useMemo, useState } from "react";
-import type { AppState, Channel, OpOutcome, Ticket } from "@/lib/store";
-import { sell, refund, redeem, verify } from "@/lib/store";
 import { toast } from "sonner";
+import type { AppState, Channel } from "@/lib/store";
+import PartnerModuleDrawer, { ModuleDrawerContent } from "@/components/channel/PartnerModuleDrawer";
 
 interface Props {
   state: AppState;
   onUpdate: (s: AppState) => void;
 }
 
-type OperationTab = "sell" | "refund" | "redeem" | "verify";
 type EventStatusFilter = "all" | "published" | "approved";
+type WebhookStatus = "Доставлено" | "Ошибка" | "В очереди";
 
-const channels: Channel[] = ["ByCard", "TicketPro", "SellerPOS"];
-const capabilities: OperationTab[] = ["sell", "refund", "verify", "redeem"];
+interface PartnerModule {
+  key: string;
+  title: string;
+  group: string;
+}
 
-const opTitles: Record<OperationTab, string> = {
-  sell: "Продажа",
-  refund: "Возврат",
-  redeem: "Погашение",
-  verify: "Проверка",
-};
+const partnerChannel: Channel = "ByCard";
 
 function formatDate(value?: string) {
   if (!value) return "—";
@@ -36,533 +34,345 @@ function channelId(channel: Channel) {
   return `CH-${channel.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8)}`;
 }
 
-export default function ChannelView({ state, onUpdate }: Props) {
-  const [channel, setChannel] = useState<Channel>(state.ui.selectedChannel);
-  const [opTab, setOpTab] = useState<OperationTab>("sell");
+function buildModuleContent(module: PartnerModule, updatedAt: string): ModuleDrawerContent {
+  const base = {
+    key: module.key,
+    title: module.title,
+    status: "Доступен",
+    badges: [module.group, "B2B"],
+    updatedAt,
+    footer: "Предварительный модуль: часть данных пока работает в MOC-режиме.",
+  };
+
+  const tableByModule: Record<string, ModuleDrawerContent> = {
+    commissions: {
+      ...base,
+      summary: [
+        { label: "Ставка", value: "8%" },
+        { label: "Начислено", value: "142 800 ₽" },
+        { label: "К выплате", value: "24 600 ₽" },
+        { label: "Период", value: "Апрель 2026" },
+      ],
+      rows: [
+        { left: "01–07 апреля", right: "37 200 ₽", status: "ok" },
+        { left: "08–14 апреля", right: "52 400 ₽", status: "ok" },
+        { left: "Корректировки", right: "0", status: "info" },
+      ],
+      actions: [{ label: "Экспорт сверки" }, { label: "Открыть отчёт", kind: "primary" }],
+    },
+    payouts: {
+      ...base,
+      summary: [
+        { label: "Следующая выплата", value: "18.04.2026" },
+        { label: "Статус", value: "Подтверждена" },
+        { label: "Сумма", value: "24 600 ₽" },
+        { label: "Последняя выплата", value: "04.04.2026" },
+      ],
+      rows: [
+        { left: "Платёж #P-9201", right: "Исполнен", status: "ok" },
+        { left: "Платёж #P-9188", right: "Исполнен", status: "ok" },
+        { left: "Платёж #P-9176", right: "Проверка", status: "warn" },
+      ],
+      actions: [{ label: "Скачать ведомость" }, { label: "Запросить детализацию", kind: "primary" }],
+    },
+    reconciliation: {
+      ...base,
+      summary: [
+        { label: "Последняя сверка", value: "14.04.2026 09:40" },
+        { label: "Записей", value: "1 248" },
+        { label: "Расхождения", value: "3" },
+        { label: "Критичных", value: "0" },
+      ],
+      rows: [
+        { left: "Продажи", right: "Совпадает", status: "ok" },
+        { left: "Возвраты", right: "2 расхождения", status: "warn" },
+        { left: "Комиссии", right: "1 расхождение", status: "warn" },
+      ],
+      actions: [{ label: "Сформировать акт" }, { label: "Запустить повторную сверку", kind: "primary" }],
+    },
+    default: {
+      ...base,
+      summary: [
+        { label: "Статус", value: "Активен" },
+        { label: "Доступ", value: "Разрешён" },
+        { label: "Обновлено", value: updatedAt },
+        { label: "Среда", value: "Sandbox" },
+      ],
+      rows: [
+        { left: "Рабочий профиль", right: "Готов", status: "ok" },
+        { left: "Данные", right: "Синхронизированы", status: "ok" },
+        { left: "Примечание", right: "MOC контент", status: "info" },
+      ],
+      actions: [{ label: "Открыть журнал" }, { label: "Перейти к настройке", kind: "primary" }],
+    },
+  };
+
+  return tableByModule[module.key] || tableByModule.default;
+}
+
+const partnerModules: PartnerModule[] = [
+  { key: "commerce", title: "Коммерция", group: "Коммерция" },
+  { key: "commissions", title: "Комиссии", group: "Коммерция" },
+  { key: "payouts", title: "Выплаты", group: "Коммерция" },
+  { key: "reconciliation", title: "Сверка", group: "Коммерция" },
+  { key: "tariff", title: "Тарифный план", group: "Коммерция" },
+  { key: "documents", title: "Документы", group: "Коммерция" },
+  { key: "ops-audit", title: "Операции и аудит", group: "Операции" },
+  { key: "api-history", title: "История API-запросов", group: "Операции" },
+  { key: "ops-history", title: "История операций", group: "Операции" },
+  { key: "tickets", title: "Реестр билетов", group: "Операции" },
+  { key: "incidents", title: "Инциденты", group: "Операции" },
+  { key: "integration-errors", title: "Ошибки интеграции", group: "Операции" },
+  { key: "integration", title: "Интеграция", group: "Интеграция" },
+  { key: "mapping", title: "Сопоставление данных", group: "Интеграция" },
+  { key: "stock-sync", title: "Синхронизация остатков", group: "Интеграция" },
+  { key: "credentials", title: "Учетные данные", group: "Интеграция" },
+  { key: "security", title: "Безопасность", group: "Интеграция" },
+  { key: "sandbox-tools", title: "Инструменты Sandbox", group: "Интеграция" },
+  { key: "partnership", title: "Партнёрство", group: "Партнёрство" },
+  { key: "contract", title: "Условия договора", group: "Партнёрство" },
+  { key: "organizers", title: "Подключенные организаторы", group: "Партнёрство" },
+  { key: "operations", title: "Доступные операции", group: "Партнёрство" },
+  { key: "limits", title: "Лимиты канала", group: "Партнёрство" },
+  { key: "manager", title: "Менеджер партнёра", group: "Партнёрство" },
+  { key: "analytics", title: "Аналитика", group: "Аналитика" },
+  { key: "sales-analytics", title: "Аналитика продаж", group: "Аналитика" },
+  { key: "refund-analytics", title: "Аналитика возвратов", group: "Аналитика" },
+  { key: "organizer-summary", title: "Сводка по организаторам", group: "Аналитика" },
+  { key: "event-summary", title: "Сводка по событиям", group: "Аналитика" },
+  { key: "finance-summary", title: "Финансовая сводка", group: "Аналитика" },
+];
+
+export default function ChannelView({ state }: Props) {
   const [selectedEventId, setSelectedEventId] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<EventStatusFilter>("all");
   const [dateFilter, setDateFilter] = useState("");
+  const [organizerFilter, setOrganizerFilter] = useState("all");
+  const [activeModule, setActiveModule] = useState<PartnerModule | null>(null);
 
-  const [sellTier, setSellTier] = useState("");
-  const [sellQty, setSellQty] = useState(1);
+  const channelOps = useMemo(
+    () => state.ops.filter((op) => op.channel === partnerChannel).sort((a, b) => b.ts.localeCompare(a.ts)),
+    [state.ops],
+  );
 
-  const [ticketIdInput, setTicketIdInput] = useState("");
-  const [ticketLookup, setTicketLookup] = useState<Ticket | null>(null);
-  const [lastResult, setLastResult] = useState<OpOutcome | null>(null);
-
-  const activeEvents = useMemo(() => state.events.filter((e) => e.status === "published"), [state.events]);
+  const appMap = useMemo(() => new Map(state.applications.map((app) => [app.appId, app.title])), [state.applications]);
 
   const events = useMemo(() => {
     return state.events
       .filter((e) => (statusFilter === "all" ? true : e.status === statusFilter))
+      .filter((e) => (dateFilter ? e.dateTime.startsWith(dateFilter) : true))
       .filter((e) => {
-        if (!dateFilter) return true;
-        return e.dateTime.startsWith(dateFilter);
+        if (organizerFilter === "all") return true;
+        const organizer = appMap.get(e.appId) || `Организатор ${e.appId}`;
+        return organizer === organizerFilter;
       })
       .filter((e) => {
         if (!search.trim()) return true;
         const q = search.toLowerCase();
-        return [e.eventId, e.title, e.venue].some((field) => field.toLowerCase().includes(q));
+        return [e.eventId, e.title, e.venue, appMap.get(e.appId) || ""].some((value) => value.toLowerCase().includes(q));
       })
       .sort((a, b) => a.dateTime.localeCompare(b.dateTime));
-  }, [state.events, statusFilter, dateFilter, search]);
+  }, [appMap, dateFilter, organizerFilter, search, state.events, statusFilter]);
+
+  const organizerOptions = useMemo(() => {
+    const set = new Set<string>();
+    state.events.forEach((event) => set.add(appMap.get(event.appId) || `Организатор ${event.appId}`));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [appMap, state.events]);
 
   const selectedEvent = useMemo(
     () => state.events.find((e) => e.eventId === selectedEventId) || null,
-    [state.events, selectedEventId],
-  );
-
-  const selectedTier = useMemo(
-    () => selectedEvent?.tiers.find((tier) => tier.name === sellTier) || null,
-    [selectedEvent, sellTier],
-  );
-
-  const channelOps = useMemo(
-    () => state.ops.filter((op) => op.channel === channel).sort((a, b) => b.ts.localeCompare(a.ts)),
-    [state.ops, channel],
+    [selectedEventId, state.events],
   );
 
   const today = new Date().toISOString().slice(0, 10);
-  const soldToday = channelOps.filter((op) => op.type === "sell" && op.result === "ok" && op.ts.startsWith(today)).length;
-  const refundsToday = channelOps.filter((op) => op.type === "refund" && op.result === "ok" && op.ts.startsWith(today)).length;
-  const lastOperation = channelOps[0] || null;
+  const todayOps = channelOps.filter((op) => op.ts.startsWith(today));
+  const activeEvents = state.events.filter((e) => e.status === "published");
+  const ticketsAvailable = activeEvents.reduce((acc, event) => acc + event.remaining, 0);
+  const failedRequests = todayOps.filter((op) => op.result === "error").length;
+  const webhookDeliveries = todayOps.length;
+
+  const commissionAccrued = state.tickets
+    .filter((ticket) => ticket.soldByChannel === partnerChannel && ticket.status !== "issued")
+    .reduce((acc, ticket) => {
+      const event = state.events.find((e) => e.eventId === ticket.eventId);
+      const tier = event?.tiers.find((item) => item.name === ticket.tier);
+      return acc + (tier?.price || 0) * 0.08;
+    }, 0);
+
+  const webhookRows = useMemo(() => {
+    const statuses: WebhookStatus[] = ["Доставлено", "Ошибка", "В очереди"];
+    const eventsFeed = ["sale.created", "ticket.refunded", "inventory.updated", "ticket.redeemed"];
+
+    return channelOps.slice(0, 12).map((op, idx) => {
+      const webhookStatus = op.result === "error" ? "Ошибка" : idx % 5 === 0 ? "В очереди" : statuses[0];
+      return {
+        id: op.opId,
+        time: formatDate(op.ts),
+        event: eventsFeed[idx % eventsFeed.length],
+        endpoint: `https://api.bycard.example/webhooks/${idx % 2 === 0 ? "events" : "tickets"}`,
+        status: webhookStatus,
+        code: webhookStatus === "Доставлено" ? "200" : webhookStatus === "В очереди" ? "202" : "500",
+        retries: webhookStatus === "Ошибка" ? "2" : "0",
+      };
+    });
+  }, [channelOps]);
 
   const kpi = [
-    { label: "Активные события", value: activeEvents.length.toString(), hint: "published" },
-    {
-      label: "Доступно билетов",
-      value: activeEvents.reduce((acc, e) => acc + e.remaining, 0).toString(),
-      hint: "для продажи",
-    },
-    { label: "Продано сегодня", value: soldToday.toString(), hint: channel },
-    { label: "Возвратов сегодня", value: refundsToday.toString(), hint: channel },
-    {
-      label: "Последняя операция",
-      value: lastOperation ? opTitles[lastOperation.type] : "—",
-      hint: lastOperation ? formatDate(lastOperation.ts) : "нет операций",
-    },
+    { label: "Активные события", value: activeEvents.length.toString(), hint: "в публикации" },
+    { label: "Доступно билетов", value: ticketsAvailable.toString(), hint: "активный остаток" },
+    { label: "API requests today", value: todayOps.length.toString(), hint: "по каналу BYCARD" },
+    { label: "Failed requests", value: failedRequests.toString(), hint: "требуют проверки" },
+    { label: "Webhook deliveries", value: webhookDeliveries.toString(), hint: "за сегодня" },
+    { label: "Начислено комиссии", value: `${Math.round(commissionAccrued).toLocaleString("ru-RU")} ₽`, hint: "ставка 8%" },
+    { label: "Последняя синхронизация", value: formatDate(state.meta.updatedAt), hint: "состояние TicketHub" },
   ];
 
-  const persistChannel = (next: Channel) => {
-    setChannel(next);
-    const nextState = { ...state, ui: { ...state.ui, selectedChannel: next } };
-    onUpdate(nextState);
-  };
+  const apiCardRows = [
+    { left: "Environment", right: "Sandbox" },
+    { left: "Auth type", right: "API Key" },
+    { left: "API key status", right: "Активен" },
+    { left: "API version", right: "v2.1" },
+    { left: "Signature validation", right: "Включена" },
+    { left: "Rate limit", right: "1200 req/мин" },
+    { left: "Allowed operations", right: "sell, refund, redeem, verify" },
+    { left: "Last successful request", right: formatDate(todayOps.find((op) => op.result === "ok")?.ts || state.meta.updatedAt) },
+    { left: "Last successful sync", right: formatDate(state.meta.updatedAt) },
+  ];
 
-  const selectEvent = (eventId: string) => {
-    setSelectedEventId(eventId);
-    setSellTier("");
-    setLastResult(null);
-  };
-
-  const lookupTicket = () => {
-    const ticketId = ticketIdInput.trim();
-    if (!ticketId) {
-      toast.error("Введите TicketID");
-      setTicketLookup(null);
-      return;
-    }
-    const ticket = state.tickets.find((t) => t.ticketId === ticketId) || null;
-    setTicketLookup(ticket);
-    if (!ticket) {
-      toast.error("Билет не найден");
-      return;
-    }
-    toast.success(`Найден ${ticket.ticketId}`);
-  };
-
-  const doSell = () => {
-    if (!selectedEvent) {
-      toast.error("Сначала выберите событие");
-      return;
-    }
-    if (!sellTier) {
-      toast.error("Выберите категорию");
-      return;
-    }
-
-    let successCount = 0;
-    let failed: OpOutcome | null = null;
-
-    for (let i = 0; i < sellQty; i++) {
-      const res = sell(state, selectedEvent.eventId, sellTier, channel);
-      if (res.ok) {
-        successCount += 1;
-        setLastResult(res);
-      } else {
-        failed = res;
-        setLastResult(res);
-        break;
-      }
-    }
-
-    onUpdate({ ...state });
-
-    if (successCount > 0 && !failed) {
-      toast.success(`Продано билетов: ${successCount}`);
-      return;
-    }
-
-    if (successCount > 0 && failed) {
-      toast.warning(`Частично выполнено: ${successCount}/${sellQty}`);
-      return;
-    }
-
-    toast.error(failed?.reason || "Ошибка продажи");
-  };
-
-  const doTicketOperation = (type: Exclude<OperationTab, "sell">) => {
-    const ticketId = ticketIdInput.trim();
-    if (!ticketId) {
-      toast.error("Введите TicketID");
-      return;
-    }
-
-    const fn = type === "refund" ? refund : type === "redeem" ? redeem : verify;
-    const res = fn(state, ticketId, channel);
-    setLastResult(res);
-    onUpdate({ ...state });
-
-    const refreshed = state.tickets.find((t) => t.ticketId === ticketId) || null;
-    setTicketLookup(refreshed);
-
-    if (res.ok) {
-      toast.success(`${opTitles[type]}: OK`);
-      return;
-    }
-    toast.error(res.reason || "Операция отклонена");
-  };
-
-  const relatedOps = useMemo(() => {
-    if (!ticketLookup) return [];
-    return state.ops
-      .filter((op) => op.ticketId === ticketLookup.ticketId)
-      .sort((a, b) => b.ts.localeCompare(a.ts))
-      .slice(0, 5);
-  }, [state.ops, ticketLookup]);
-
-  const canRefund = ticketLookup?.status === "sold";
-  const canRedeem = ticketLookup?.status === "sold";
+  const activeModuleContent = activeModule ? buildModuleContent(activeModule, formatDate(state.meta.updatedAt)) : null;
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-900 to-indigo-950/40 p-5 shadow-[0_20px_60px_rgba(1,8,30,0.35)]">
+    <div className="relative space-y-5 pb-6">
+      <section className="rounded-2xl border border-white/15 bg-slate-900/85 p-5 shadow-[0_18px_46px_rgba(2,8,23,0.5)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Sales Channel</p>
-            <h1 className="mt-2 text-2xl font-semibold text-white">{channel}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Канал продаж / BYCARD</p>
+            <h1 className="mt-2 text-2xl font-semibold text-white">Seller Partnership Console</h1>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
               <span className="rounded-full border border-emerald-300/40 bg-emerald-500/10 px-2 py-1 text-emerald-200">Подключён</span>
               <span className="rounded-full border border-cyan-300/40 bg-cyan-500/10 px-2 py-1 text-cyan-100">Sandbox</span>
-              <span className="rounded-full border border-violet-300/40 bg-violet-500/10 px-2 py-1 text-violet-100">Connected to TicketHub: Да</span>
+              <span className="rounded-full border border-indigo-300/40 bg-indigo-500/10 px-2 py-1 text-indigo-100">Connected to TicketHub: Да</span>
+              <span className="rounded-full border border-violet-300/40 bg-violet-500/10 px-2 py-1 text-violet-100">Договор: Active</span>
             </div>
           </div>
 
-          <div className="grid w-full gap-3 text-sm text-slate-200 lg:w-auto lg:min-w-[360px] lg:grid-cols-2">
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">Канал</span>
-              <select
-                value={channel}
-                onChange={(e) => persistChannel(e.target.value as Channel)}
-                className="h-10 rounded-lg border border-white/15 bg-slate-950/70 px-3 text-sm outline-none ring-cyan-400/40 focus:ring-2"
-              >
-                {channels.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="rounded-lg border border-white/10 bg-slate-950/50 px-3 py-2">
-              <p className="text-xs text-slate-400">Channel ID</p>
-              <p className="mt-1 font-mono text-sm text-slate-100">{channelId(channel)}</p>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-slate-950/50 px-3 py-2 lg:col-span-2">
-              <p className="text-xs text-slate-400">Последняя синхронизация</p>
-              <p className="mt-1 text-sm text-slate-100">{formatDate(state.meta.updatedAt)}</p>
-            </div>
+          <div className="grid w-full gap-2 text-sm text-slate-200 lg:w-auto lg:min-w-[420px] lg:grid-cols-2">
+            <div className="rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2"><p className="text-xs text-slate-400">Channel ID</p><p className="mt-1 font-mono">{channelId(partnerChannel)}</p></div>
+            <div className="rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2"><p className="text-xs text-slate-400">Статус API key</p><p className="mt-1">Активен</p></div>
+            <div className="rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2"><p className="text-xs text-slate-400">Комиссия</p><p className="mt-1">8%</p></div>
+            <div className="rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2"><p className="text-xs text-slate-400">Следующая выплата</p><p className="mt-1">18.04.2026</p></div>
+            <div className="rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2 lg:col-span-2"><p className="text-xs text-slate-400">Менеджер партнёра</p><p className="mt-1">Ирина Ковалева · partner@tickethub.example</p></div>
           </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {capabilities.map((capability) => (
-            <span
-              key={capability}
-              className="rounded-md border border-white/15 bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-slate-100"
-            >
-              {capability}
-            </span>
-          ))}
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-7">
         {kpi.map((item) => (
-          <article key={item.label} className="rounded-xl border border-white/10 bg-slate-900/75 px-4 py-3">
-            <p className="text-xs text-slate-400">{item.label}</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{item.value}</p>
-            <p className="mt-1 text-xs text-slate-500">{item.hint}</p>
+          <article key={item.label} className="rounded-xl border border-white/10 bg-slate-900/80 px-3 py-3">
+            <p className="text-[11px] text-slate-400">{item.label}</p>
+            <p className="mt-1 text-xl font-semibold text-white">{item.value}</p>
+            <p className="mt-1 text-[11px] text-slate-500">{item.hint}</p>
           </article>
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <article className="xl:col-span-3 rounded-xl border border-white/10 bg-slate-950/75 p-4">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <article className="xl:col-span-7 rounded-xl border border-white/10 bg-slate-950/85 p-4">
           <div className="mb-3 flex flex-wrap gap-2">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск по EventID, названию, площадке"
-              className="h-10 min-w-[220px] flex-1 rounded-lg border border-white/15 bg-slate-900/70 px-3 text-sm text-slate-100 outline-none ring-cyan-400/40 focus:ring-2"
+              placeholder="Поиск по EventID, событию, площадке"
+              className="h-10 min-w-[200px] flex-1 rounded-lg border border-white/15 bg-slate-900 px-3 text-sm text-slate-100 outline-none ring-cyan-400/40 focus:ring-2"
             />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as EventStatusFilter)}
-              className="h-10 rounded-lg border border-white/15 bg-slate-900/70 px-3 text-sm text-slate-100"
-            >
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as EventStatusFilter)} className="h-10 rounded-lg border border-white/15 bg-slate-900 px-3 text-sm">
               <option value="all">Все статусы</option>
               <option value="published">published</option>
               <option value="approved">approved</option>
             </select>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="h-10 rounded-lg border border-white/15 bg-slate-900/70 px-3 text-sm text-slate-100"
-            />
+            <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border border-white/15 bg-slate-900 px-3 text-sm" />
+            <select value={organizerFilter} onChange={(e) => setOrganizerFilter(e.target.value)} className="h-10 rounded-lg border border-white/15 bg-slate-900 px-3 text-sm">
+              <option value="all">Все организаторы</option>
+              {organizerOptions.map((organizer) => (
+                <option key={organizer} value={organizer}>{organizer}</option>
+              ))}
+            </select>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[780px] text-left text-sm">
+            <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="text-xs uppercase tracking-wide text-slate-400">
                 <tr className="border-b border-white/10">
-                  <th className="px-2 py-2">EventID</th>
-                  <th className="px-2 py-2">Событие</th>
-                  <th className="px-2 py-2">Дата/время</th>
-                  <th className="px-2 py-2">Площадка</th>
-                  <th className="px-2 py-2">Остаток</th>
-                  <th className="px-2 py-2">Категории</th>
-                  <th className="px-2 py-2">Статус</th>
+                  <th className="px-2 py-2">EventID</th><th className="px-2 py-2">Событие</th><th className="px-2 py-2">Организатор</th><th className="px-2 py-2">Дата/время</th><th className="px-2 py-2">Площадка</th><th className="px-2 py-2">Остаток</th><th className="px-2 py-2">Статус синхронизации</th>
                 </tr>
               </thead>
               <tbody>
                 {events.length === 0 && (
-                  <tr>
-                    <td className="px-2 py-8 text-center text-slate-500" colSpan={7}>
-                      События не найдены по выбранным фильтрам.
-                    </td>
-                  </tr>
+                  <tr><td className="px-2 py-8 text-center text-slate-500" colSpan={7}>События не найдены по выбранным фильтрам.</td></tr>
                 )}
                 {events.map((event) => {
                   const isSelected = selectedEventId === event.eventId;
+                  const organizer = appMap.get(event.appId) || `Организатор ${event.appId}`;
                   return (
-                    <tr
-                      key={event.eventId}
-                      onClick={() => selectEvent(event.eventId)}
-                      className={`cursor-pointer border-b border-white/5 transition-colors ${
-                        isSelected ? "bg-cyan-500/15" : "hover:bg-slate-800/55"
-                      }`}
-                    >
+                    <tr key={event.eventId} onClick={() => setSelectedEventId(event.eventId)} className={`cursor-pointer border-b border-white/5 transition-colors ${isSelected ? "bg-cyan-500/15" : "hover:bg-slate-800/55"}`}>
                       <td className="px-2 py-2 font-mono text-xs text-slate-200">{event.eventId}</td>
                       <td className="px-2 py-2 text-slate-100">{event.title}</td>
+                      <td className="px-2 py-2 text-xs text-slate-300">{organizer}</td>
                       <td className="px-2 py-2 text-xs text-slate-300">{formatDate(event.dateTime)}</td>
                       <td className="px-2 py-2 text-xs text-slate-300">{event.venue}</td>
                       <td className="px-2 py-2 font-semibold text-white">{event.remaining}</td>
-                      <td className="px-2 py-2 text-xs text-slate-300">{event.tiers.map((tier) => `${tier.name} (${tier.price}₽)`).join(", ")}</td>
-                      <td className="px-2 py-2">
-                        <span className="rounded-md border border-white/10 bg-slate-900/70 px-2 py-1 text-xs text-slate-200">
-                          {event.status}
-                        </span>
-                      </td>
+                      <td className="px-2 py-2"><span className={`rounded-md border px-2 py-1 text-xs ${event.status === "published" ? "border-emerald-300/40 bg-emerald-500/10 text-emerald-100" : "border-amber-300/40 bg-amber-500/10 text-amber-100"}`}>{event.status === "published" ? "Синхронизировано" : "Ожидает публикации"}</span></td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
+          {selectedEvent && (
+            <div className="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-500/5 p-3 text-xs text-slate-200">
+              Выбрано событие: <span className="font-semibold">{selectedEvent.title}</span> · EventID: {selectedEvent.eventId}
+            </div>
+          )}
         </article>
 
-        <article className="xl:col-span-2 rounded-xl border border-white/10 bg-slate-900/80 p-4">
-          <div className="grid grid-cols-4 gap-1 rounded-lg bg-slate-950/70 p-1">
-            {(Object.keys(opTitles) as OperationTab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setOpTab(tab);
-                  setLastResult(null);
-                }}
-                className={`h-9 rounded-md text-xs font-medium transition-colors ${
-                  opTab === tab ? "bg-cyan-500/20 text-cyan-100" : "text-slate-400 hover:bg-slate-800/80"
-                }`}
-              >
-                {opTitles[tab]}
-              </button>
+        <article className="xl:col-span-5 rounded-xl border border-white/10 bg-slate-900/85 p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-200">API интеграция</h2>
+          <div className="mt-3 space-y-2 text-sm">
+            {apiCardRows.map((row) => (
+              <div key={row.left} className="flex items-center justify-between rounded-lg border border-white/10 bg-slate-950/75 px-3 py-2">
+                <span className="text-slate-400">{row.left}</span>
+                <span className="text-slate-100">{row.right}</span>
+              </div>
             ))}
           </div>
-
-          {selectedEvent ? (
-            <div className="mt-3 rounded-lg border border-white/10 bg-slate-950/70 p-3 text-sm">
-              <p className="text-xs text-slate-400">Выбранное событие</p>
-              <p className="mt-1 font-semibold text-white">{selectedEvent.title}</p>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-300">
-                <p>EventID: {selectedEvent.eventId}</p>
-                <p>Остаток: {selectedEvent.remaining}</p>
-                <p>{formatDate(selectedEvent.dateTime)}</p>
-                <p>{selectedEvent.venue}</p>
-              </div>
-              <p className="mt-2 text-xs text-slate-400">Категории: {selectedEvent.tiers.map((t) => t.name).join(", ")}</p>
-            </div>
-          ) : (
-            <div className="mt-3 rounded-lg border border-dashed border-white/15 bg-slate-950/40 p-4 text-sm text-slate-400">
-              Выберите событие в каталоге, чтобы выполнить операцию продажи.
-            </div>
-          )}
-
-          {opTab === "sell" && (
-            <div className="mt-4 space-y-3 text-sm">
-              <div>
-                <p className="mb-1 text-xs text-slate-400">Событие</p>
-                <input
-                  disabled
-                  value={selectedEvent ? `${selectedEvent.eventId} — ${selectedEvent.title}` : "Событие не выбрано"}
-                  className="h-10 w-full rounded-lg border border-white/10 bg-slate-950/70 px-3 text-slate-300"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">Категория</span>
-                  <select
-                    value={sellTier}
-                    onChange={(e) => setSellTier(e.target.value)}
-                    disabled={!selectedEvent}
-                    className="h-10 rounded-lg border border-white/15 bg-slate-950/70 px-3 text-sm"
-                  >
-                    <option value="">Выберите категорию</option>
-                    {selectedEvent?.tiers.map((tier) => (
-                      <option key={tier.name} value={tier.name}>
-                        {tier.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">Количество</span>
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={sellQty}
-                    onChange={(e) => setSellQty(Math.max(1, Number(e.target.value) || 1))}
-                    className="h-10 rounded-lg border border-white/15 bg-slate-950/70 px-3 text-sm"
-                  />
-                </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-white/10 bg-slate-950/60 p-2">
-                  <p className="text-slate-400">Цена за билет</p>
-                  <p className="mt-1 text-sm font-semibold text-white">{selectedTier ? `${selectedTier.price} ₽` : "—"}</p>
-                </div>
-                <div className="rounded-lg border border-white/10 bg-slate-950/60 p-2">
-                  <p className="text-slate-400">Итоговая сумма</p>
-                  <p className="mt-1 text-sm font-semibold text-white">{selectedTier ? `${selectedTier.price * sellQty} ₽` : "—"}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={doSell}
-                disabled={!selectedEvent || !sellTier}
-                className="h-11 w-full rounded-lg bg-cyan-500/90 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-              >
-                Создать продажу
-              </button>
-            </div>
-          )}
-
-          {opTab !== "sell" && (
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="grid grid-cols-[1fr_auto] gap-2">
-                <input
-                  value={ticketIdInput}
-                  onChange={(e) => setTicketIdInput(e.target.value)}
-                  placeholder="TicketID"
-                  className="h-10 rounded-lg border border-white/15 bg-slate-950/70 px-3"
-                />
-                <button
-                  onClick={lookupTicket}
-                  className="h-10 rounded-lg border border-white/20 bg-slate-800 px-3 text-xs font-semibold text-slate-100"
-                >
-                  Найти
-                </button>
-              </div>
-
-              <div className="rounded-lg border border-white/10 bg-slate-950/70 p-3 text-xs text-slate-300">
-                {!ticketLookup ? (
-                  <p className="text-slate-400">Введите TicketID и выполните поиск.</p>
-                ) : (
-                  <div className="space-y-1">
-                    <p>TicketID: {ticketLookup.ticketId}</p>
-                    <p>EventID: {ticketLookup.eventId}</p>
-                    <p>Статус: {ticketLookup.status}</p>
-                    <p>Канал: {ticketLookup.soldByChannel || "—"}</p>
-                    <p>Последняя операция: {relatedOps[0] ? `${opTitles[relatedOps[0].type]} (${formatDate(relatedOps[0].ts)})` : "—"}</p>
-                  </div>
-                )}
-              </div>
-
-              {opTab === "verify" && ticketLookup && (
-                <div className="rounded-lg border border-white/10 bg-slate-950/70 p-3 text-xs text-slate-300">
-                  <p className="mb-2 text-slate-400">Краткая история</p>
-                  <ul className="space-y-1">
-                    {relatedOps.length === 0 && <li className="text-slate-500">Операции не найдены.</li>}
-                    {relatedOps.map((op) => (
-                      <li key={op.opId}>{formatDate(op.ts)} · {opTitles[op.type]} · {op.result}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <button
-                onClick={() => doTicketOperation(opTab as Exclude<OperationTab, "sell">)}
-                disabled={
-                  !ticketIdInput.trim() ||
-                  (opTab === "refund" && !canRefund) ||
-                  (opTab === "redeem" && !canRedeem)
-                }
-                className="h-11 w-full rounded-lg bg-cyan-500/90 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-              >
-                {opTab === "refund" ? "Оформить возврат" : opTab === "redeem" ? "Погасить билет" : "Проверить билет"}
-              </button>
-
-              {opTab === "refund" && ticketLookup && !canRefund && (
-                <p className="text-xs text-amber-300">Возврат доступен только для статуса sold.</p>
-              )}
-              {opTab === "redeem" && ticketLookup && !canRedeem && (
-                <p className="text-xs text-amber-300">Погашение доступно только для статуса sold.</p>
-              )}
-              {opTab === "verify" && <p className="text-xs text-slate-500">Проверка не меняет статус билета.</p>}
-            </div>
-          )}
-
-          {lastResult && (
-            <div
-              className={`mt-4 rounded-lg border p-3 text-xs ${
-                lastResult.ok
-                  ? "border-emerald-300/30 bg-emerald-500/10 text-emerald-100"
-                  : "border-rose-300/30 bg-rose-500/10 text-rose-100"
-              }`}
-            >
-              <p className="font-semibold">{lastResult.ok ? "Операция выполнена" : "Операция отклонена"}</p>
-              <p className="mt-1">op_id: {lastResult.op.opId}</p>
-              {lastResult.ticketId && <p>TicketID: {lastResult.ticketId}</p>}
-              {lastResult.status && <p>Статус: {lastResult.status}</p>}
-              {lastResult.reason && <p>Причина: {lastResult.reason}</p>}
-            </div>
-          )}
+          <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <button onClick={() => toast.info("API ключ: ********-sandbox")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Показать ключ</button>
+            <button onClick={() => toast.info("Открываем документацию партнёра")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Документация</button>
+            <button onClick={() => toast.info("Открываем OpenAPI")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">OpenAPI</button>
+            <button onClick={() => toast.info("Настройки webhook")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Webhook</button>
+            <button onClick={() => toast.info("Учетные данные обновлены")} className="col-span-2 h-10 rounded-lg bg-cyan-400 font-medium text-slate-950 hover:bg-cyan-300">Учетные данные</button>
+          </div>
         </article>
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-slate-950/80 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Журнал операций канала</h2>
-          <span className="text-xs text-slate-500">{channel}</span>
-        </div>
+      <section className="rounded-xl border border-white/10 bg-slate-950/85 p-4">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-200">Webhook Deliveries</h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[840px] text-left text-sm">
+          <table className="w-full min-w-[920px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-slate-400">
-              <tr className="border-b border-white/10">
-                <th className="px-2 py-2">Время</th>
-                <th className="px-2 py-2">op_id</th>
-                <th className="px-2 py-2">Тип</th>
-                <th className="px-2 py-2">TicketID</th>
-                <th className="px-2 py-2">EventID</th>
-                <th className="px-2 py-2">Результат</th>
-                <th className="px-2 py-2">Примечание</th>
-              </tr>
+              <tr className="border-b border-white/10"><th className="px-2 py-2">Время</th><th className="px-2 py-2">Event</th><th className="px-2 py-2">Endpoint</th><th className="px-2 py-2">Status</th><th className="px-2 py-2">Code</th><th className="px-2 py-2">Retries</th></tr>
             </thead>
             <tbody>
-              {channelOps.length === 0 && (
-                <tr>
-                  <td className="px-2 py-6 text-center text-slate-500" colSpan={7}>
-                    У выбранного канала пока нет операций.
-                  </td>
-                </tr>
-              )}
-              {channelOps.slice(0, 50).map((op) => (
-                <tr key={op.opId} className="border-b border-white/5 text-xs text-slate-200">
-                  <td className="px-2 py-2">{formatDate(op.ts)}</td>
-                  <td className="px-2 py-2 font-mono">{op.opId}</td>
-                  <td className="px-2 py-2">{op.type}</td>
-                  <td className="px-2 py-2 font-mono">{op.ticketId || "—"}</td>
-                  <td className="px-2 py-2 font-mono">{op.eventId || "—"}</td>
-                  <td className="px-2 py-2">
-                    <span className={`rounded px-1.5 py-0.5 ${op.result === "ok" ? "bg-emerald-500/15 text-emerald-200" : "bg-rose-500/15 text-rose-200"}`}>
-                      {op.result}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2 text-slate-400">{op.reason || "—"}</td>
+              {webhookRows.map((row) => (
+                <tr key={row.id} className="border-b border-white/5 text-xs">
+                  <td className="px-2 py-2 text-slate-200">{row.time}</td>
+                  <td className="px-2 py-2 font-mono text-cyan-100">{row.event}</td>
+                  <td className="px-2 py-2 text-slate-300">{row.endpoint}</td>
+                  <td className="px-2 py-2"><span className={`rounded px-1.5 py-0.5 ${row.status === "Доставлено" ? "bg-emerald-500/15 text-emerald-200" : row.status === "Ошибка" ? "bg-rose-500/15 text-rose-200" : "bg-amber-500/15 text-amber-200"}`}>{row.status}</span></td>
+                  <td className="px-2 py-2 text-slate-200">{row.code}</td>
+                  <td className="px-2 py-2 text-slate-200">{row.retries}</td>
                 </tr>
               ))}
             </tbody>
@@ -570,15 +380,23 @@ export default function ChannelView({ state, onUpdate }: Props) {
         </div>
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-slate-900/70 p-3 text-xs text-slate-400">
-        <p className="font-medium text-slate-300">Правила операций</p>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Возврат доступен только для билетов в статусе sold.</li>
-          <li>Погашение недоступно для refunded/redeemed.</li>
-          <li>Проверка фиксируется в журнале, но не меняет статус билета.</li>
-          <li>Продажа уменьшает остаток билетов события.</li>
-        </ul>
+      <section className="rounded-xl border border-white/10 bg-slate-900/85 p-4">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-200">Модули партнёра</h2>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
+          {partnerModules.map((module) => (
+            <button key={module.key} onClick={() => setActiveModule(module)} className="rounded-lg border border-white/10 bg-slate-950/80 p-3 text-left transition hover:border-cyan-300/30 hover:bg-slate-900">
+              <p className="text-sm font-medium text-white">{module.title}</p>
+              <p className="mt-1 text-xs text-slate-400">{module.group}</p>
+            </button>
+          ))}
+        </div>
       </section>
+
+      <PartnerModuleDrawer
+        module={activeModuleContent}
+        onClose={() => setActiveModule(null)}
+        onAction={(_, actionLabel) => toast.info(`Действие: ${actionLabel}`)}
+      />
     </div>
   );
 }
