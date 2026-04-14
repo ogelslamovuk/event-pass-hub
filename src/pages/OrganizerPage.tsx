@@ -13,7 +13,7 @@ import {
 type Section = "dashboard" | "applications" | "events" | "sales" | "reports" | "marketing" | "documents" | "support";
 
 const sidebarItems: { id: Section; label: string; icon: React.ElementType; demo?: boolean }[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "dashboard", label: "Дашборд", icon: LayoutDashboard },
   { id: "applications", label: "Заявки", icon: FileText },
   { id: "events", label: "Мероприятия", icon: Calendar },
   { id: "sales", label: "Продажи и билеты", icon: BarChart3 },
@@ -199,7 +199,7 @@ export default function OrganizerPage() {
         <header className="sticky top-0 z-40 border-b flex items-center justify-between px-6 h-14"
           style={{ background: T.sidebarBg, borderColor: T.border }}>
           <h1 className="text-lg font-semibold" style={{ color: T.textPrimary, letterSpacing: "-0.2px" }}>
-            {sidebarItems.find(s => s.id === activeSection)?.label || "Dashboard"}
+            {sidebarItems.find(s => s.id === activeSection)?.label || "Дашборд"}
           </h1>
           <div className="flex items-center gap-3">
             <button onClick={() => {}} className="h-9 px-4 rounded-xl border text-[13px] font-semibold flex items-center gap-2 transition-colors"
