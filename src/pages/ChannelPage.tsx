@@ -7,15 +7,16 @@ export default function ChannelPage() {
   const { state, update } = useStorageSync();
 
   return (
-    <div className="min-h-screen" style={{ background: "#0B0F19", color: "#E5E7EB" }}>
+    <div
+      className="min-h-screen"
+      style={{
+        background:
+          "radial-gradient(1200px 500px at 10% -20%, rgba(56,189,248,0.16), transparent 55%), radial-gradient(900px 500px at 90% -10%, rgba(129,140,248,0.18), transparent 55%), #070B14",
+        color: "#E5E7EB",
+      }}
+    >
       <Sonner />
-      <header className="sticky top-0 z-40 border-b" style={{ background: "#111827", borderColor: "rgba(255,255,255,0.08)" }}>
-        <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center">
-          <span className="font-bold text-base tracking-tight text-white">Sales Channel</span>
-          <div className="ml-3 w-2 h-2 rounded-full" style={{ background: "#22C55E" }} />
-        </div>
-      </header>
-      <main className="max-w-[1200px] mx-auto px-6 py-6 channel-theme">
+      <main className="mx-auto max-w-[1300px] px-4 py-5 md:px-6">
         <ChannelView state={state} onUpdate={update} />
       </main>
     </div>
