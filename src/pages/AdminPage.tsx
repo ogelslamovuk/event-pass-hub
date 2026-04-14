@@ -16,7 +16,7 @@ import { AdminOrgRegistry, AdminVenueRegistry } from "@/components/admin/AdminRe
 import AdminReports from "@/components/admin/AdminReports";
 import {
   LayoutDashboard, FileText, Calendar, ShieldAlert, BookOpen, Building2, MapPin,
-  Globe, Ticket, Activity, BarChart3, Search, Bell, Zap, X, RefreshCw, Trash2, Database,
+  Globe, Ticket, Activity, BarChart3, Bell, Zap, X, RefreshCw, Trash2, Database,
 } from "lucide-react";
 
 type AdminTab =

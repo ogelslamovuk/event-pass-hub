@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, Calendar, Ticket, AlertTriangle, Activity,
 } from "lucide-react";
 
-interface Props { state: AppState; onNavigate: (tab: string) => void; }
+interface Props { state: AppState; onNavigate: (tab: any) => void; }
 
 const statusLabel: Record<string, string> = {
   draft: "Черновик", submitted: "Отправлена", approved: "Одобрена", rejected: "Отклонена",
