@@ -74,8 +74,8 @@ const T = {
   cardBg: "#111A24",
   border: "rgba(255,255,255,0.06)",
   textPrimary: "#F5F7FA",
-  textSecondary: "rgba(245,247,250,0.70)",
-  textMuted: "rgba(245,247,250,0.40)",
+  textSecondary: "rgba(245,247,250,0.84)",
+  textMuted: "rgba(245,247,250,0.62)",
   gold: "#F2C94C",
   goldBg: "rgba(242,201,76,0.14)",
   goldBgHover: "rgba(242,201,76,0.08)",
@@ -283,7 +283,7 @@ export default function OrganizerPage() {
   ];
 
   return (
-    <div className="min-h-screen flex" style={{ background: T.pageBg }}>
+    <div className="min-h-screen flex" style={{ background: T.pageBg, color: T.textPrimary }}>
       <Sonner
         theme="dark"
         toastOptions={{
