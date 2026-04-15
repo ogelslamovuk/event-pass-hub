@@ -15,6 +15,7 @@ export interface PriceTier {
 
 export interface Application {
   appId: string;
+  organizerId: string;
   title: string;
   venue: string;
   dateTime: string;
@@ -33,6 +34,7 @@ export interface Application {
 
 export interface EventRecord {
   eventId: string;
+  organizerId: string;
   licenseId: string;
   appId: string;
   title: string;
@@ -92,6 +94,31 @@ export interface DemoPurchaseTicket {
   status: "confirmed";
 }
 
+export interface OrganizerAccount {
+  organizerId: string;
+  login: string;
+  password: string;
+  name: string;
+  fullName: string;
+  unp: string;
+  registryStatus: "зарегистрирован в реестре";
+  registryRegisteredAt: string;
+  director: string;
+  email: string;
+  phone: string;
+  accountStatus: "активен";
+  feesStatus: "оплачены";
+}
+
+export interface OrganizerDocument {
+  documentId: string;
+  organizerId: string;
+  title: string;
+  type: string;
+  updatedAt: string;
+  status: "доступен";
+}
+
 export interface AppState {
   meta: { version: string; updatedAt: string };
   counters: { app: number; lic: number; evt: number; tck: number; op: number };
@@ -101,10 +128,58 @@ export interface AppState {
   demoPurchases: DemoPurchaseTicket[];
   ops: OpRecord[];
   users: DemoUser[];
+  organizers: OrganizerAccount[];
+  organizerDocuments: OrganizerDocument[];
+  currentOrganizerId: string | null;
   ui: { selectedRole: Role; selectedChannel: Channel };
 }
 
 const STORAGE_KEY = "ticket_hub_state_v1";
+const LEGACY_DEFAULT_ORGANIZER_ID = "org_demo_1";
+let suppressPersistence = false;
+
+function organizerSeedList(): OrganizerAccount[] {
+  return [
+    {
+      organizerId: "org_demo_1",
+      login: "organizer.a",
+      password: "demo123",
+      name: "ООО «Альфа Сцена»",
+      fullName: "Общество с ограниченной ответственностью «Альфа Сцена»",
+      unp: "192837465",
+      registryStatus: "зарегистрирован в реестре",
+      registryRegisteredAt: "2024-02-12",
+      director: "Иванов Иван Петрович",
+      email: "alpha@demo.by",
+      phone: "+375 (29) 111-11-11",
+      accountStatus: "активен",
+      feesStatus: "оплачены",
+    },
+    {
+      organizerId: "org_demo_2",
+      login: "organizer.b",
+      password: "demo123",
+      name: "ЧУП «Бета Ивент»",
+      fullName: "Частное унитарное предприятие «Бета Ивент»",
+      unp: "102938475",
+      registryStatus: "зарегистрирован в реестре",
+      registryRegisteredAt: "2024-06-03",
+      director: "Петрова Мария Сергеевна",
+      email: "beta@demo.by",
+      phone: "+375 (33) 222-22-22",
+      accountStatus: "активен",
+      feesStatus: "оплачены",
+    },
+  ];
+}
+
+const ORGANIZER_DOCUMENT_TEMPLATES: Omit<OrganizerDocument, "organizerId" | "updatedAt">[] = [
+  { documentId: "DOC-001", title: "Выписка из реестра организаторов", type: "реестр", status: "доступен" },
+  { documentId: "DOC-002", title: "Устав организации", type: "устав", status: "доступен" },
+  { documentId: "DOC-003", title: "Договор с платформой TicketHub", type: "договор", status: "доступен" },
+  { documentId: "DOC-004", title: "Регистрационные данные", type: "регистрация", status: "доступен" },
+  { documentId: "DOC-005", title: "Реквизиты", type: "реквизиты", status: "доступен" },
+];
 
 function pad(n: number, len: number): string {
   return String(n).padStart(len, "0");
@@ -116,8 +191,8 @@ export function genId(prefix: string, counter: number): string {
 }
 
 export function defaultState(): AppState {
-  return {
-    meta: { version: "v1", updatedAt: new Date().toISOString() },
+  const state: AppState = {
+    meta: { version: "v2", updatedAt: new Date().toISOString() },
     counters: { app: 1, lic: 1, evt: 1, tck: 1, op: 1 },
     applications: [],
     events: [],
@@ -125,8 +200,160 @@ export function defaultState(): AppState {
     demoPurchases: [],
     ops: [],
     users: [{ userId: "demo_user_1", name: "Демо пользователь" }],
+    organizers: organizerSeedList(),
+    organizerDocuments: [],
+    currentOrganizerId: null,
     ui: { selectedRole: "organizer", selectedChannel: "ByCard" },
   };
+  ensureOrganizerDocuments(state);
+  seedOrganizerDemoData(state);
+  return state;
+}
+
+function ensureOrganizerDocuments(state: AppState): void {
+  if (!Array.isArray(state.organizerDocuments)) state.organizerDocuments = [];
+  const now = new Date().toISOString();
+  for (const organizer of state.organizers) {
+    for (const tpl of ORGANIZER_DOCUMENT_TEMPLATES) {
+      const docId = `${organizer.organizerId}-${tpl.documentId}`;
+      if (!state.organizerDocuments.some((d) => d.documentId === docId)) {
+        state.organizerDocuments.push({
+          ...tpl,
+          documentId: docId,
+          organizerId: organizer.organizerId,
+          updatedAt: now,
+        });
+      }
+    }
+  }
+}
+
+function seedOrganizerDemoData(state: AppState): void {
+  const hasOrg1Data = state.applications.some((a) => a.organizerId === "org_demo_1");
+  const hasOrg2Data = state.applications.some((a) => a.organizerId === "org_demo_2");
+  if (hasOrg1Data && hasOrg2Data) return;
+
+  if (!hasOrg1Data) {
+    createApplication(state, {
+      title: "Концерт «Классика под звёздами»",
+      venue: "Большой зал филармонии",
+      dateTime: "2026-05-15T19:00",
+      capacity: 1200,
+      tiers: [{ name: "Партер", price: 120 }, { name: "Балкон", price: 80 }],
+      city: "Минск",
+      category: "Концерты",
+      description: "Вечер классической музыки в атмосферном зале.",
+      poster: "",
+    }, true, "org_demo_1");
+
+    createApplication(state, {
+      title: "Фестиваль «Городской ритм»",
+      venue: "Парк Победы",
+      dateTime: "2026-07-02T18:00",
+      capacity: 5000,
+      tiers: [{ name: "Стандарт", price: 45 }, { name: "Фан-зона", price: 90 }],
+      city: "Минск",
+      category: "Фестивали",
+      description: "Открытый музыкальный фестиваль на набережной.",
+      poster: "",
+    }, false, "org_demo_1");
+
+    const submittedForReject = createApplication(state, {
+      title: "Шоу «Свет и звук»",
+      venue: "Культурный центр «Сфера»",
+      dateTime: "2026-06-11T20:00",
+      capacity: 700,
+      tiers: [{ name: "Стандарт", price: 60 }, { name: "VIP", price: 110 }],
+      city: "Брест",
+      category: "Шоу",
+      description: "Иммерсивное мультимедийное шоу.",
+      poster: "",
+    }, true, "org_demo_1");
+    rejectApplication(state, submittedForReject.appId);
+
+    const submittedForApprove = state.applications.find((a) => a.organizerId === "org_demo_1" && a.status === "submitted");
+    if (submittedForApprove) {
+      approveApplication(state, submittedForApprove.appId);
+      const event = state.events.find((e) => e.appId === submittedForApprove.appId);
+      if (event) {
+        publishEvent(state, event.eventId);
+        createDemoPurchaseTicket(state, {
+          eventId: event.eventId,
+          selectedPriceCategory: event.tiers[0]?.name || "Партер",
+          quantity: 2,
+          buyerName: "Покупатель A",
+        });
+      }
+    }
+  }
+
+  if (!hasOrg2Data) {
+    const approvedCandidate = createApplication(state, {
+      title: "Спектакль «Вечер в театре»",
+      venue: "Театр драмы",
+      dateTime: "2026-06-21T18:30",
+      capacity: 450,
+      tiers: [{ name: "Партер", price: 55 }, { name: "Амфитеатр", price: 35 }],
+      city: "Гродно",
+      category: "Театр",
+      description: "Классическая постановка в двух актах.",
+      poster: "",
+    }, true, "org_demo_2");
+    approveApplication(state, approvedCandidate.appId);
+
+    createApplication(state, {
+      title: "Детское шоу «Планета игр»",
+      venue: "Дом культуры",
+      dateTime: "2026-08-10T12:00",
+      capacity: 600,
+      tiers: [{ name: "Семейный", price: 30 }, { name: "Премиум", price: 50 }],
+      city: "Витебск",
+      category: "Детям",
+      description: "Интерактивное шоу для всей семьи.",
+      poster: "",
+    }, false, "org_demo_2");
+  }
+}
+
+function migrateState(parsed: Partial<AppState>): AppState {
+  suppressPersistence = true;
+  try {
+    const state: AppState = {
+      ...defaultState(),
+      ...parsed,
+      applications: Array.isArray(parsed.applications) ? parsed.applications : [],
+      events: Array.isArray(parsed.events) ? parsed.events : [],
+      tickets: Array.isArray(parsed.tickets) ? parsed.tickets : [],
+      demoPurchases: Array.isArray(parsed.demoPurchases) ? parsed.demoPurchases : [],
+      ops: Array.isArray(parsed.ops) ? parsed.ops : [],
+      users: Array.isArray(parsed.users) ? parsed.users : [{ userId: "demo_user_1", name: "Демо пользователь" }],
+      organizers: Array.isArray(parsed.organizers) && parsed.organizers.length > 0 ? parsed.organizers : organizerSeedList(),
+      organizerDocuments: Array.isArray(parsed.organizerDocuments) ? parsed.organizerDocuments : [],
+      currentOrganizerId: typeof parsed.currentOrganizerId === "string" ? parsed.currentOrganizerId : null,
+    };
+
+    const knownOrganizerIds = new Set(state.organizers.map((o) => o.organizerId));
+    for (const app of state.applications) {
+      if (!app.organizerId || !knownOrganizerIds.has(app.organizerId)) {
+        app.organizerId = LEGACY_DEFAULT_ORGANIZER_ID;
+      }
+    }
+    for (const event of state.events) {
+      if (!event.organizerId || !knownOrganizerIds.has(event.organizerId)) {
+        const fromApp = state.applications.find((a) => a.appId === event.appId)?.organizerId;
+        event.organizerId = fromApp && knownOrganizerIds.has(fromApp) ? fromApp : LEGACY_DEFAULT_ORGANIZER_ID;
+      }
+    }
+    if (state.currentOrganizerId && !knownOrganizerIds.has(state.currentOrganizerId)) {
+      state.currentOrganizerId = null;
+    }
+    ensureOrganizerDocuments(state);
+    seedOrganizerDemoData(state);
+    state.meta.version = "v2";
+    return state;
+  } finally {
+    suppressPersistence = false;
+  }
 }
 
 export function loadState(): AppState {
@@ -134,22 +361,14 @@ export function loadState(): AppState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<AppState>;
-      return {
-        ...defaultState(),
-        ...parsed,
-        applications: Array.isArray(parsed.applications) ? parsed.applications : [],
-        events: Array.isArray(parsed.events) ? parsed.events : [],
-        tickets: Array.isArray(parsed.tickets) ? parsed.tickets : [],
-        demoPurchases: Array.isArray(parsed.demoPurchases) ? parsed.demoPurchases : [],
-        ops: Array.isArray(parsed.ops) ? parsed.ops : [],
-        users: Array.isArray(parsed.users) ? parsed.users : [{ userId: "demo_user_1", name: "Демо пользователь" }],
-      };
+      return migrateState(parsed);
     }
   } catch {}
-  return defaultState();
+  return migrateState(defaultState());
 }
 
 export function saveState(state: AppState): void {
+  if (suppressPersistence) return;
   state.meta.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -191,10 +410,13 @@ export function createApplication(
     description?: string;
     poster?: string;
   },
-  submit: boolean
+  submit: boolean,
+  organizerId?: string
 ): Application {
+  const effectiveOrganizerId = organizerId || state.currentOrganizerId || LEGACY_DEFAULT_ORGANIZER_ID;
   const app: Application = {
     appId: nextId(state, "app", "APP"),
+    organizerId: effectiveOrganizerId,
     ...data,
     city: data.city || "",
     category: data.category || "",
@@ -229,6 +451,7 @@ export function approveApplication(state: AppState, appId: string): { licenseId:
   app.updatedAt = new Date().toISOString();
   const evt: EventRecord = {
     eventId,
+    organizerId: app.organizerId,
     licenseId,
     appId,
     title: app.title,
@@ -417,6 +640,87 @@ export function createDemoPurchaseTicket(
   state.demoPurchases.push(rec);
   saveState(state);
   return rec;
+}
+
+// ===== Organizer auth + selectors =====
+
+export function loginOrganizer(state: AppState, login: string, password: string): OrganizerAccount | null {
+  const normalized = login.trim().toLowerCase();
+  const organizer = state.organizers.find(
+    (o) => o.login.toLowerCase() === normalized && o.password === password
+  );
+  if (!organizer) return null;
+  state.currentOrganizerId = organizer.organizerId;
+  saveState(state);
+  return organizer;
+}
+
+export function logoutOrganizer(state: AppState): void {
+  state.currentOrganizerId = null;
+  saveState(state);
+}
+
+export function getCurrentOrganizer(state: AppState): OrganizerAccount | null {
+  if (!state.currentOrganizerId) return null;
+  return state.organizers.find((o) => o.organizerId === state.currentOrganizerId) || null;
+}
+
+export function getMyApplications(state: AppState): Application[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return state.applications.filter((a) => a.organizerId === organizer.organizerId);
+}
+
+export function getMyEvents(state: AppState): EventRecord[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return state.events.filter((e) => e.organizerId === organizer.organizerId);
+}
+
+export interface OrganizerSaleRecord {
+  saleId: string;
+  eventId: string;
+  organizerId: string;
+  eventTitle: string;
+  soldAt: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+  channel: "B2C";
+  status: "подтверждена";
+  priceCategory: string;
+}
+
+export function getMySales(state: AppState): OrganizerSaleRecord[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return state.demoPurchases
+    .map((purchase) => {
+      const event = state.events.find((e) => e.eventId === purchase.eventId);
+      if (!event || event.organizerId !== organizer.organizerId) return null;
+      const tierPrice = event.tiers.find((tier) => tier.name === purchase.selectedPriceCategory)?.price ?? 0;
+      return {
+        saleId: purchase.ticketId,
+        eventId: event.eventId,
+        organizerId: organizer.organizerId,
+        eventTitle: purchase.eventTitle || event.title,
+        soldAt: purchase.purchasedAt,
+        quantity: purchase.quantity,
+        unitPrice: tierPrice,
+        amount: tierPrice * purchase.quantity,
+        channel: "B2C",
+        status: "подтверждена" as const,
+        priceCategory: purchase.selectedPriceCategory,
+      };
+    })
+    .filter((row): row is OrganizerSaleRecord => row !== null)
+    .sort((a, b) => b.soldAt.localeCompare(a.soldAt));
+}
+
+export function getMyOrganizerDocuments(state: AppState): OrganizerDocument[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return state.organizerDocuments.filter((d) => d.organizerId === organizer.organizerId);
 }
 
 // ===== Demo helpers =====

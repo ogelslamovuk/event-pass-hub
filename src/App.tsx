@@ -6,8 +6,19 @@ import ChannelPage from "./pages/ChannelPage";
 import DemoPage from "./pages/DemoPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import OrganizerLoginPage from "./pages/OrganizerLoginPage";
+import OrganizerRegistrationStubPage from "./pages/OrganizerRegistrationStubPage";
+import { useStorageSync } from "./hooks/useStorageSync";
 
 const queryClient = new QueryClient();
+
+function OrganizerRouteGuard() {
+  const { state } = useStorageSync();
+  if (!state.currentOrganizerId) {
+    return <Navigate to="/organizer/login" replace />;
+  }
+  return <OrganizerPage />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -15,7 +26,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/admin" replace />} />
-          <Route path="/organizer" element={<OrganizerPage />} />
+          <Route path="/organizer" element={<OrganizerRouteGuard />} />
+          <Route path="/organizer/login" element={<OrganizerLoginPage />} />
+          <Route path="/organizer/register" element={<OrganizerRegistrationStubPage />} />
           <Route path="/channel" element={<ChannelPage />} />
           <Route path="/demo" element={<DemoPage />} />
           <Route path="/admin" element={<AdminPage />} />
