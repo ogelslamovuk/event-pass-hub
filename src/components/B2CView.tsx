@@ -387,7 +387,7 @@ export default function B2CView({ state, onUpdate }: Props) {
       </section>
 
       {/* ===== CATEGORY CHIPS ===== */}
-      <section className="mt-8 flex flex-wrap gap-2">
+      <section className="mt-8 flex flex-wrap justify-center gap-2">
         {CATEGORY_WHITELIST.map((item) => {
           const active = category === item;
           return (
