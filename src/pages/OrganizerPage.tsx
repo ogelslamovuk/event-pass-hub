@@ -412,7 +412,7 @@ export default function OrganizerPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-                    <h2 className="text-lg font-semibold mb-4">Статус организатора</h2>
+                    <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Статус организатора</h2>
                     <dl className="space-y-3 text-[13px]">
                       <Row dt="УНП" dd={organizer.unp} />
                       <Row dt="Статус" dd={organizer.registryStatus} />
@@ -423,7 +423,7 @@ export default function OrganizerPage() {
                   </div>
 
                   <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-                    <h2 className="text-lg font-semibold mb-4">Последние действия</h2>
+                    <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Последние действия</h2>
                     {recentOps.length === 0 ? (
                       <p className="text-[13px]" style={{ color: T.textSecondary }}>Пока нет действий.</p>
                     ) : (
@@ -444,12 +444,12 @@ export default function OrganizerPage() {
                 </div>
 
                 <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-                  <h2 className="text-lg font-semibold mb-4">Ближайшие мероприятия</h2>
+                  <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Ближайшие мероприятия</h2>
                   <EventsTable rows={upcomingEvents} compact />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-semibold mb-4">Разделы</h2>
+                  <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Разделы</h2>
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     {sectionTiles.map((tile) => (
                       <button
@@ -575,7 +575,7 @@ function Row({ dt, dd }: { dt: string; dd: string }) {
 
 function SortableHeader({ label, active, direction, onClick }: { label: string; active: boolean; direction: SortDirection | null; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="inline-flex items-center gap-1">
+    <button onClick={onClick} className="inline-flex items-center gap-1" style={{ color: T.textPrimary }}>
       <span>{label}</span>
       <ChevronDown size={12} style={{ opacity: active ? 1 : 0.3, transform: direction === "asc" ? "rotate(180deg)" : "rotate(0deg)" }} />
     </button>
@@ -616,7 +616,7 @@ function ApplicationsTable({
   return (
     <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold">Мои заявки</h2>
+        <h2 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Мои заявки</h2>
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: T.textMuted }} />
@@ -653,15 +653,15 @@ function ApplicationsTable({
           <table className="w-full text-[13px]">
             <thead>
               <tr style={{ background: T.tableHeaderBg }}>
-                <th className="py-2.5 px-3 text-left font-semibold">ID заявки</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Название" active={sort?.key === "title"} direction={sort?.key === "title" ? sort.dir : null} onClick={() => setColumnSort("title")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold">Площадка</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Город" active={sort?.key === "city"} direction={sort?.key === "city" ? sort.dir : null} onClick={() => setColumnSort("city")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold">Категория</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Дата и время" active={sort?.key === "dateTime"} direction={sort?.key === "dateTime" ? sort.dir : null} onClick={() => setColumnSort("dateTime")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Вместимость" active={sort?.key === "capacity"} direction={sort?.key === "capacity" ? sort.dir : null} onClick={() => setColumnSort("capacity")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Статус" active={sort?.key === "status"} direction={sort?.key === "status" ? sort.dir : null} onClick={() => setColumnSort("status")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold">Действия</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>ID заявки</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Название" active={sort?.key === "title"} direction={sort?.key === "title" ? sort.dir : null} onClick={() => setColumnSort("title")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Площадка</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Город" active={sort?.key === "city"} direction={sort?.key === "city" ? sort.dir : null} onClick={() => setColumnSort("city")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Категория</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Дата и время" active={sort?.key === "dateTime"} direction={sort?.key === "dateTime" ? sort.dir : null} onClick={() => setColumnSort("dateTime")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Вместимость" active={sort?.key === "capacity"} direction={sort?.key === "capacity" ? sort.dir : null} onClick={() => setColumnSort("capacity")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Статус" active={sort?.key === "status"} direction={sort?.key === "status" ? sort.dir : null} onClick={() => setColumnSort("status")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -708,7 +708,7 @@ function EventsSection({ rows, sort, setSort }: {
 
   return (
     <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-      <h2 className="text-lg font-semibold mb-4">Мои мероприятия</h2>
+      <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Мои мероприятия</h2>
       {rows.length === 0 ? (
         <SimpleEmpty title="Нет одобренных мероприятий" desc="Одобренные заявки автоматически появляются в этом разделе." />
       ) : (
@@ -716,14 +716,14 @@ function EventsSection({ rows, sort, setSort }: {
           <table className="w-full text-[13px]">
             <thead>
               <tr style={{ background: T.tableHeaderBg }}>
-                <th className="py-2.5 px-3 text-left font-semibold">ID мероприятия</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Название" active={sort?.key === "title"} direction={sort?.key === "title" ? sort.dir : null} onClick={() => setColumnSort("title")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold">Площадка</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Город" active={sort?.key === "city"} direction={sort?.key === "city" ? sort.dir : null} onClick={() => setColumnSort("city")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold">Категория</th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Дата" active={sort?.key === "dateTime"} direction={sort?.key === "dateTime" ? sort.dir : null} onClick={() => setColumnSort("dateTime")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Вместимость" active={sort?.key === "capacity"} direction={sort?.key === "capacity" ? sort.dir : null} onClick={() => setColumnSort("capacity")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold"><SortableHeader label="Статус" active={sort?.key === "status"} direction={sort?.key === "status" ? sort.dir : null} onClick={() => setColumnSort("status")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>ID мероприятия</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Название" active={sort?.key === "title"} direction={sort?.key === "title" ? sort.dir : null} onClick={() => setColumnSort("title")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Площадка</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Город" active={sort?.key === "city"} direction={sort?.key === "city" ? sort.dir : null} onClick={() => setColumnSort("city")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Категория</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Дата" active={sort?.key === "dateTime"} direction={sort?.key === "dateTime" ? sort.dir : null} onClick={() => setColumnSort("dateTime")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Вместимость" active={sort?.key === "capacity"} direction={sort?.key === "capacity" ? sort.dir : null} onClick={() => setColumnSort("capacity")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Статус" active={sort?.key === "status"} direction={sort?.key === "status" ? sort.dir : null} onClick={() => setColumnSort("status")} /></th>
               </tr>
             </thead>
             <tbody>
@@ -784,7 +784,7 @@ function EventsTable({ rows, compact = false }: { rows: EventRecord[]; compact?:
 function SalesSection({ rows }: { rows: OrganizerSaleRecord[] }) {
   return (
     <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-      <h2 className="text-lg font-semibold mb-4">Продажи и билеты</h2>
+      <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Продажи и билеты</h2>
       {rows.length === 0 ? (
         <SimpleEmpty title="Пока нет продаж" desc="Продажи появляются после покупок в B2C по вашим мероприятиям." />
       ) : (
@@ -792,13 +792,13 @@ function SalesSection({ rows }: { rows: OrganizerSaleRecord[] }) {
           <table className="w-full text-[13px]">
             <thead>
               <tr style={{ background: T.tableHeaderBg }}>
-                <th className="py-2.5 px-3 text-left font-semibold">ID продажи</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Мероприятие</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Дата продажи</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Количество билетов</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Сумма</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Канал</th>
-                <th className="py-2.5 px-3 text-left font-semibold">Статус</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>ID продажи</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Мероприятие</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Дата продажи</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Количество билетов</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Сумма</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Канал</th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Статус</th>
               </tr>
             </thead>
             <tbody>
@@ -843,7 +843,7 @@ function ReportsSection({ rows, totals }: {
       </div>
 
       <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-        <h2 className="text-lg font-semibold mb-4">Таблица отчетности</h2>
+        <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Таблица отчетности</h2>
         {rows.length === 0 ? (
           <SimpleEmpty title="Нет данных для отчета" desc="Когда в B2C появятся продажи, они автоматически попадут в отчетность." />
         ) : (
@@ -896,7 +896,7 @@ function DocumentsSection({ rows }: { rows: OrganizerDocument[] }) {
   return (
     <>
       <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-        <h2 className="text-lg font-semibold mb-4">Документы организатора</h2>
+        <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Документы организатора</h2>
         {rows.length === 0 ? (
           <SimpleEmpty title="Нет документов" desc="Документы появятся после добавления в профиль организатора." />
         ) : (
@@ -915,7 +915,7 @@ function DocumentsSection({ rows }: { rows: OrganizerDocument[] }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setOpenedDoc(null)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative w-full max-w-md rounded-2xl border p-5" style={{ background: T.cardBg, borderColor: T.border }} onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-2">Открыт документ</h3>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: T.textPrimary }}>Открыт документ</h3>
             <p className="text-sm mb-1">{openedDoc.title}</p>
             <p className="text-xs" style={{ color: T.textSecondary }}>ID документа: {openedDoc.documentId}</p>
             <p className="text-xs" style={{ color: T.textSecondary }}>Статус: {openedDoc.status}</p>
@@ -935,7 +935,7 @@ function SupportSection() {
   return (
     <>
       <div className="rounded-[18px] border p-6 space-y-4" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-        <h2 className="text-lg font-semibold">Поддержка TicketHub</h2>
+        <h2 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Поддержка TicketHub</h2>
         <div className="text-sm" style={{ color: T.textSecondary }}>
           Email: support@tickethub.by<br />
           Телефон: +375 (17) 300-00-00<br />
@@ -945,10 +945,10 @@ function SupportSection() {
           <button onClick={() => setMessageOpen(true)} className="h-9 px-4 rounded-lg text-sm" style={{ background: "#111", color: "#FFF" }}>
             Написать в поддержку
           </button>
-          <button onClick={() => toast.success("Форма обращения будет добавлена в следующем релизе.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder }}>
+          <button onClick={() => toast.success("Форма обращения будет добавлена в следующем релизе.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
             Оставить обращение
           </button>
-          <button onClick={() => toast.success("AI-помощник откроется в отдельном виджете.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder }}>
+          <button onClick={() => toast.success("AI-помощник откроется в отдельном виджете.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
             Открыть AI-помощника
           </button>
         </div>
@@ -957,7 +957,7 @@ function SupportSection() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setMessageOpen(false)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative w-full max-w-md rounded-2xl border p-5" style={{ background: T.cardBg, borderColor: T.border }} onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-2">Обращение в поддержку</h3>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: T.textPrimary }}>Обращение в поддержку</h3>
             <p className="text-sm" style={{ color: T.textSecondary }}>Канал связи активирован. В демо-режиме сообщение не отправляется на внешний сервер.</p>
             <button className="mt-4 h-9 px-4 rounded-lg text-sm" style={{ background: "#111", color: "#FFF" }} onClick={() => setMessageOpen(false)}>
               Понятно
@@ -972,7 +972,7 @@ function SupportSection() {
 function SimpleCard({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-[18px] border p-10 text-center" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
-      <h2 className="text-lg font-semibold mb-1">{title}</h2>
+      <h2 className="text-lg font-semibold mb-1" style={{ color: T.textPrimary }}>{title}</h2>
       <p className="text-[13px]" style={{ color: T.textSecondary }}>{text}</p>
     </div>
   );
@@ -992,7 +992,7 @@ function OrganizerProfileCard({ organizer, onClose }: { organizer: NonNullable<R
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
       <div className="relative w-full max-w-xl rounded-2xl border p-6" style={{ background: T.cardBg, borderColor: T.border }} onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold mb-4">Профиль организатора</h3>
+        <h3 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Профиль организатора</h3>
         <div className="grid md:grid-cols-2 gap-3 text-sm" style={{ color: T.textSecondary }}>
           <div><strong style={{ color: T.textPrimary }}>Полное название:</strong><br />{organizer.fullName}</div>
           <div><strong style={{ color: T.textPrimary }}>УНП:</strong><br />{organizer.unp}</div>
@@ -1017,7 +1017,7 @@ function ApplicationDetailsDrawer({ app, onClose }: { app: Application; onClose:
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.55)" }} />
       <div className="relative w-full max-w-md h-full overflow-y-auto" style={{ background: T.cardBg, boxShadow: "-10px 0 50px rgba(0,0,0,0.4)" }} onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 border-b" style={{ background: T.cardBg, borderColor: T.border }}>
-          <h3 className="text-lg font-semibold">Карточка заявки</h3>
+          <h3 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Карточка заявки</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center"><X size={18} /></button>
         </div>
         <div className="p-6">
@@ -1109,7 +1109,7 @@ function CreateApplicationDrawer({
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.55)" }} />
       <div className="relative w-full max-w-md h-full overflow-y-auto" style={{ background: T.cardBg, boxShadow: "-10px 0 50px rgba(0,0,0,0.4)" }} onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 border-b" style={{ background: T.cardBg, borderColor: T.border }}>
-          <h3 className="text-lg font-semibold">Новая заявка</h3>
+          <h3 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Новая заявка</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center"><X size={18} /></button>
         </div>
         <div className="p-6 space-y-4">
