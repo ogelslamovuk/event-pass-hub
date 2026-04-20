@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 type AdminTab =
-  | "dashboard" | "applications" | "calendar" | "control" | "decisions"
+  | "dashboard" | "calendar" | "control" | "decisions"
   | "organizerApplications" | "eventComplianceApplications"
   | "orgRegistry" | "venueRegistry" | "events" | "tickets" | "operations" | "reports";
 
@@ -35,7 +35,6 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
   {
     label: "Регулятор",
     items: [
-      { key: "applications", label: "Заявки", icon: FileText },
       { key: "organizerApplications", label: "Заявки организаторов", icon: FileText },
       { key: "eventComplianceApplications", label: "Заявки мероприятий", icon: FileText },
       { key: "calendar", label: "Календарь", icon: Calendar },
@@ -67,9 +66,8 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
 
 const tabTitles: Record<AdminTab, string> = {
   dashboard: "Дашборд",
-  applications: "Заявки",
   organizerApplications: "Заявки организаторов",
-  eventComplianceApplications: "Заявки по compliance мероприятий",
+  eventComplianceApplications: "Заявки мероприятий",
   calendar: "Календарь мероприятий",
   control: "Контроль и нарушения",
   decisions: "Журнал решений",
@@ -201,9 +199,13 @@ export default function AdminPage() {
         {/* Content */}
         <main className="p-6">
           {tab === "dashboard" && <AdminDashboard state={state} onNavigate={setTab} />}
-          {tab === "applications" && <AdminApplications state={state} onUpdate={update} />}
           {tab === "organizerApplications" && <AdminOrganizerApplications state={state} onUpdate={update} />}
-          {tab === "eventComplianceApplications" && <AdminEventComplianceApplications state={state} onUpdate={update} />}
+          {tab === "eventComplianceApplications" && (
+            <div className="space-y-8">
+              <AdminApplications state={state} onUpdate={update} />
+              <AdminEventComplianceApplications state={state} onUpdate={update} />
+            </div>
+          )}
           {tab === "calendar" && <AdminCalendar state={state} />}
           {tab === "control" && <AdminControl state={state} />}
           {tab === "decisions" && <AdminDecisionLog state={state} />}
