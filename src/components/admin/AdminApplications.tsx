@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import type { AppState, Application } from "@/lib/store";
 import { approveApplication, rejectApplication } from "@/lib/store";
 import { toast } from "sonner";
@@ -24,8 +24,10 @@ function checkFeePaid(app: Application): boolean {
 export default function AdminApplications({ state, onUpdate }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [kpiFilter, setKpiFilter] = useState<"" | "blocked">("");
   const [drawerApp, setDrawerApp] = useState<Application | null>(null);
   const [confirm, setConfirm] = useState<{ app: Application; action: "approve" | "reject" } | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
 
   const kpi = useMemo(() => {
     const a = state.applications;
@@ -39,6 +41,8 @@ export default function AdminApplications({ state, onUpdate }: Props) {
 
   const filtered = useMemo(() => {
     return state.applications.filter(a => {
+      const isBlocked = a.status === "submitted" && (!checkRegistry(a) || !checkFeePaid(a));
+      if (kpiFilter === "blocked" && !isBlocked) return false;
       if (statusFilter && a.status !== statusFilter) return false;
       if (search) {
         const s = search.toLowerCase();
@@ -64,21 +68,41 @@ export default function AdminApplications({ state, onUpdate }: Props) {
   };
 
   const kpiItems = [
-    { label: "Новые", value: kpi.newCount, accent: A.cyan },
-    { label: "На проверке", value: kpi.reviewing, accent: A.blue },
-    { label: "Одобрено", value: kpi.approved, accent: A.statusOk },
-    { label: "Блокировано", value: kpi.blocked, accent: A.statusError },
+    { key: "new" as const, label: "Новые", value: kpi.newCount, accent: A.cyan },
+    { key: "review" as const, label: "На проверке", value: kpi.reviewing, accent: A.blue },
+    { key: "approved" as const, label: "Одобрено", value: kpi.approved, accent: A.statusOk },
+    { key: "blocked" as const, label: "Блокировано", value: kpi.blocked, accent: A.statusError },
   ];
+
+  const handleKpiClick = (key: "new" | "review" | "approved" | "blocked") => {
+    if (key === "new" || key === "review") {
+      setStatusFilter("submitted");
+      setKpiFilter("");
+    } else if (key === "approved") {
+      setStatusFilter("approved");
+      setKpiFilter("");
+    } else {
+      setStatusFilter("");
+      setKpiFilter("blocked");
+    }
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="space-y-5">
       {/* Mini KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpiItems.map((k, i) => (
-          <div key={i} style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 14 }} className="p-4">
+          <button
+            key={i}
+            type="button"
+            onClick={() => handleKpiClick(k.key)}
+            style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 14 }}
+            className="p-4 text-left transition hover:opacity-90"
+          >
             <div style={{ color: k.accent }} className="text-xl font-bold">{k.value}</div>
             <div style={{ color: A.textSecondary }} className="text-xs mt-0.5">{k.label}</div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -90,7 +114,7 @@ export default function AdminApplications({ state, onUpdate }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setKpiFilter(""); }}
           className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
           style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
           <option value="">Все статусы</option>
@@ -102,7 +126,7 @@ export default function AdminApplications({ state, onUpdate }: Props) {
       </div>
 
       {/* Table */}
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div ref={tableRef} style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <FileText size={28} style={{ color: A.textMuted }} className="mb-2" />
