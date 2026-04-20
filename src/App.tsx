@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import OrganizerPage from "./pages/OrganizerPage";
 import ChannelPage from "./pages/ChannelPage";
@@ -24,7 +24,7 @@ function OrganizerRouteGuard() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/admin" replace />} />
           <Route path="/organizer" element={<OrganizerRouteGuard />} />
@@ -36,7 +36,7 @@ const App = () => (
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
