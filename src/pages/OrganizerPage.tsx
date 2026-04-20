@@ -8,9 +8,13 @@ import { createApplication, logoutOrganizer, submitApplication } from "@/lib/sto
 import {
   DEMO_VAT_RATE,
   selectCurrentOrganizer,
+  selectIsCurrentOrganizerApproved,
+  selectMyEventComplianceApplications,
   selectMyApplications,
   selectMyDocuments,
   selectMyEvents,
+  selectMyOrganizerApplication,
+  selectMyOrganizerRegistryRecord,
   selectMyReportingRows,
   selectMySales,
 } from "@/lib/organizerSelectors";
@@ -125,10 +129,14 @@ export default function OrganizerPage() {
   const [eventSort, setEventSort] = useState<{ key: "title" | "city" | "dateTime" | "capacity" | "status"; dir: SortDirection } | null>(null);
 
   const myApplications = useMemo(() => selectMyApplications(state), [state]);
+  const myComplianceApplications = useMemo(() => selectMyEventComplianceApplications(state), [state]);
   const myEvents = useMemo(() => selectMyEvents(state), [state]);
   const mySales = useMemo(() => selectMySales(state), [state]);
   const reportingRows = useMemo(() => selectMyReportingRows(state), [state]);
   const myDocuments = useMemo(() => selectMyDocuments(state), [state]);
+  const organizerApp = useMemo(() => selectMyOrganizerApplication(state), [state]);
+  const isOrganizerApproved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
+  const organizerRegistryRecord = useMemo(() => selectMyOrganizerRegistryRecord(state), [state]);
 
   const isValid = title.trim() && venue.trim() && dateTime && Number(capacity) > 0 && Number(capacity) <= 5000 && city && category && description.trim() &&
     tiers.every((t) => t.name.trim() && Number(t.price) > 0);
@@ -189,6 +197,42 @@ export default function OrganizerPage() {
   if (!organizer) {
     return <Navigate to="/organizer/login" replace />;
   }
+
+  if (!isOrganizerApproved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#0B0F14", color: "#F5F7FA" }}>
+        <div className="w-full max-w-2xl rounded-2xl border p-7 space-y-5" style={{ borderColor: "rgba(255,255,255,0.10)", background: "#111A24" }}>
+          <h1 className="text-2xl font-bold">Кабинет организатора (ограниченный режим)</h1>
+          <p className="text-sm" style={{ color: "rgba(245,247,250,0.75)" }}>
+            Полный кабинет откроется после одобрения заявки на статус организатора.
+          </p>
+          <div className="rounded-xl border p-4 text-sm space-y-2" style={{ borderColor: "rgba(255,255,255,0.12)", background: "#0F1620" }}>
+            <div>Статус заявки: <b>{organizerApp?.status ?? "заявка отсутствует"}</b></div>
+            {organizerApp?.adminComment && <div>Комментарий администратора: {organizerApp.adminComment}</div>}
+            <div>Отправлена: {organizerApp?.submittedAt ? organizerApp.submittedAt.slice(0, 16).replace("T", " ") : "—"}</div>
+          </div>
+          <div className="text-xs" style={{ color: "rgba(245,247,250,0.55)" }}>
+            Если статус Needs rework, обновите и отправьте заявку на странице «Стать организатором».
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                logoutOrganizer(state);
+                update({ ...state });
+                navigate("/organizer/login", { replace: true });
+              }}
+              className="px-4 h-10 rounded-xl text-sm font-semibold"
+              style={{ background: "#F2C94C", color: "#111" }}
+            >
+              Выйти
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  void myComplianceApplications;
+  void organizerRegistryRecord;
 
   const addTier = () => {
     if (tiers.length < 3) setTiers([...tiers, { name: "", price: "" }]);
@@ -290,6 +334,13 @@ export default function OrganizerPage() {
           style: { background: T.cardBg, border: `1px solid ${T.border}`, color: T.textPrimary },
         }}
       />
+      <button
+        onClick={() => navigate("/organizer/compliance")}
+        className="fixed right-5 bottom-5 z-20 px-4 h-10 rounded-xl text-sm font-semibold shadow-lg"
+        style={{ background: T.gold, color: "#111" }}
+      >
+        Compliance-заявка
+      </button>
 
       <aside className="w-60 min-h-screen border-r flex-shrink-0 flex flex-col" style={{ background: T.sidebarBg, borderColor: T.border }}>
         <div className="px-5 py-5 border-b" style={{ borderColor: T.border }}>
