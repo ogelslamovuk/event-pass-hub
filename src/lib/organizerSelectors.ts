@@ -1,5 +1,21 @@
-import type { AppState, Application, EventRecord, OrganizerSaleRecord } from "@/lib/store";
-import { getCurrentOrganizer, getMyApplications, getMyEvents, getMyOrganizerDocuments, getMySales } from "@/lib/store";
+import type {
+  AppState,
+  Application,
+  EventComplianceApplicationRecord,
+  EventRecord,
+  OrganizerApplicationRecord,
+  OrganizerSaleRecord,
+} from "@/lib/store";
+import {
+  getCurrentOrganizer,
+  getMyApplications,
+  getMyEvents,
+  getMyOrganizerDocuments,
+  getMySales,
+  getOrganizerApplicationByOrganizerId,
+  getOrganizerRegistryRecord,
+  isOrganizerApproved,
+} from "@/lib/store";
 
 export const DEMO_VAT_RATE = 0.2;
 
@@ -32,6 +48,30 @@ export function selectMySales(state: AppState): OrganizerSaleRecord[] {
 
 export function selectMyDocuments(state: AppState) {
   return getMyOrganizerDocuments(state);
+}
+
+export function selectMyOrganizerApplication(state: AppState): OrganizerApplicationRecord | null {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return null;
+  return getOrganizerApplicationByOrganizerId(state, organizer.organizerId);
+}
+
+export function selectIsCurrentOrganizerApproved(state: AppState): boolean {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return false;
+  return isOrganizerApproved(state, organizer.organizerId);
+}
+
+export function selectMyOrganizerRegistryRecord(state: AppState) {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return null;
+  return getOrganizerRegistryRecord(state, organizer.organizerId);
+}
+
+export function selectMyEventComplianceApplications(state: AppState): EventComplianceApplicationRecord[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return state.eventComplianceApplications.filter((x) => x.organizerId === organizer.organizerId);
 }
 
 export function selectMyReportingRows(state: AppState): OrganizerReportRow[] {
