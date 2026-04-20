@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { A } from "@/components/admin/adminStyles";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminApplications from "@/components/admin/AdminApplications";
+import AdminOrganizerApplications from "@/components/admin/AdminOrganizerApplications";
+import AdminEventComplianceApplications from "@/components/admin/AdminEventComplianceApplications";
 import AdminEvents from "@/components/admin/AdminEvents";
 import AdminTickets from "@/components/admin/AdminTickets";
 import AdminOperations from "@/components/admin/AdminOperations";
@@ -21,6 +23,7 @@ import {
 
 type AdminTab =
   | "dashboard" | "applications" | "calendar" | "control" | "decisions"
+  | "organizerApplications" | "eventComplianceApplications"
   | "orgRegistry" | "venueRegistry" | "events" | "tickets" | "operations" | "reports";
 
 const sidebarSections: { label?: string; items: { key: AdminTab; label: string; icon: React.ElementType }[] }[] = [
@@ -33,6 +36,8 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
     label: "Регулятор",
     items: [
       { key: "applications", label: "Заявки", icon: FileText },
+      { key: "organizerApplications", label: "Заявки организаторов", icon: FileText },
+      { key: "eventComplianceApplications", label: "Заявки мероприятий", icon: FileText },
       { key: "calendar", label: "Календарь", icon: Calendar },
       { key: "control", label: "Контроль", icon: ShieldAlert },
       { key: "decisions", label: "Журнал решений", icon: BookOpen },
@@ -63,6 +68,8 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
 const tabTitles: Record<AdminTab, string> = {
   dashboard: "Дашборд",
   applications: "Заявки",
+  organizerApplications: "Заявки организаторов",
+  eventComplianceApplications: "Заявки по compliance мероприятий",
   calendar: "Календарь мероприятий",
   control: "Контроль и нарушения",
   decisions: "Журнал решений",
@@ -195,6 +202,8 @@ export default function AdminPage() {
         <main className="p-6">
           {tab === "dashboard" && <AdminDashboard state={state} onNavigate={setTab} />}
           {tab === "applications" && <AdminApplications state={state} onUpdate={update} />}
+          {tab === "organizerApplications" && <AdminOrganizerApplications state={state} onUpdate={update} />}
+          {tab === "eventComplianceApplications" && <AdminEventComplianceApplications state={state} onUpdate={update} />}
           {tab === "calendar" && <AdminCalendar state={state} />}
           {tab === "control" && <AdminControl state={state} />}
           {tab === "decisions" && <AdminDecisionLog state={state} />}

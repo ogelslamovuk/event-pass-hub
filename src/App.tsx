@@ -8,6 +8,7 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import OrganizerLoginPage from "./pages/OrganizerLoginPage";
 import OrganizerRegistrationStubPage from "./pages/OrganizerRegistrationStubPage";
+import OrganizerEventCompliancePage from "./pages/OrganizerEventCompliancePage";
 import { useStorageSync } from "./hooks/useStorageSync";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/organizer" element={<OrganizerRouteGuard />} />
           <Route path="/organizer/login" element={<OrganizerLoginPage />} />
           <Route path="/organizer/register" element={<OrganizerRegistrationStubPage />} />
+          <Route path="/organizer/compliance" element={<OrganizerEventCompliancePage />} />
           <Route path="/channel" element={<ChannelPage />} />
           <Route path="/demo" element={<DemoPage />} />
           <Route path="/admin" element={<AdminPage />} />
