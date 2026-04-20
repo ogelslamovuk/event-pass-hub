@@ -3,6 +3,7 @@
 export type Role = "organizer" | "regulator" | "tickethub" | "channel" | "b2c";
 export type Channel = "ByCard" | "TicketPro" | "SellerPOS";
 export type AppStatus = "draft" | "submitted" | "approved" | "rejected";
+export type ReviewStatus = "draft" | "submitted" | "in_review" | "approved" | "rejected" | "needs_rework";
 export type EventStatus = "approved" | "published";
 export type TicketStatus = "issued" | "sold" | "refunded" | "redeemed";
 export type OpType = "sell" | "refund" | "redeem" | "verify";
@@ -101,13 +102,133 @@ export interface OrganizerAccount {
   name: string;
   fullName: string;
   unp: string;
-  registryStatus: "зарегистрирован в реестре";
-  registryRegisteredAt: string;
+  registryStatus: "зарегистрирован в реестре" | "ожидает включения";
+  registryRegisteredAt: string | null;
   director: string;
   email: string;
   phone: string;
-  accountStatus: "активен";
+  accountStatus: "активен" | "pending";
   feesStatus: "оплачены";
+}
+
+export interface MockAttachment {
+  attachmentId: string;
+  name: string;
+  kind: string;
+  uploadedAt: string;
+  isSample?: boolean;
+}
+
+export interface IdentityRecord {
+  fullName: string;
+  docType: string;
+  docNumber: string;
+  issueDate: string;
+  issueAuthority: string;
+}
+
+export interface OrganizerApplicationData {
+  legalName: string;
+  registrationNumber: string;
+  postalCode: string;
+  region: string;
+  locality: string;
+  street: string;
+  houseNumber: string;
+  roomTypeAndNumber: string;
+  addressExtra: string;
+  contactPhone: string;
+  website: string;
+  email: string;
+  ownershipType: "private" | "state" | "mixed";
+  director: IdentityRecord;
+  workers: IdentityRecord[];
+  founders: IdentityRecord[];
+  activities: string[];
+  activityOther: string;
+  pastEventsDescription: string;
+  pastMaterials: MockAttachment[];
+  documents: MockAttachment[];
+  confirmations: { isAccurate: boolean; adminReviewConsent: boolean };
+  accountCredentials: { login: string; password: string };
+}
+
+export interface OrganizerApplicationRecord {
+  organizerApplicationId: string;
+  organizerId: string;
+  status: ReviewStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  adminComment: string;
+  data: OrganizerApplicationData;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrganizerRegistryRecord {
+  organizerRegistryId: string;
+  organizerId: string;
+  internalNumber: string;
+  includedAt: string;
+}
+
+export interface EventPerformer {
+  name: string;
+  performerType: "solo" | "group";
+  country: string;
+  representative: string;
+  comment: string;
+}
+
+export interface EventComplianceData {
+  title: string;
+  eventType: string;
+  shortDescription: string;
+  program: string;
+  dateSlots: string[];
+  venueName: string;
+  venueAddress: string;
+  performers: EventPerformer[];
+  onlyBelarusianPerformers: boolean;
+  hasForeignPerformers: boolean;
+  venueType: string;
+  projectedCapacity: number | null;
+  plannedTicketsForSale: number | null;
+  ageCategory: "0+" | "6+" | "12+" | "16+" | "18+";
+  ageComment: string;
+  approvalMode: "certificate_required" | "notice_only" | "certificate_not_required";
+  approvalBasis: string;
+  eventDocuments: MockAttachment[];
+  salesStartDate: string;
+  feeExempt: boolean;
+  feeExemptReason: string;
+  feePaid: boolean;
+  paymentAttachments: MockAttachment[];
+  paymentComment: string;
+  adRestrictionConfirmed: boolean;
+  cancelled: boolean;
+  changesDeclared: boolean;
+  executiveCommitteeNotified: boolean;
+  citizensNotified: boolean;
+  notificationsAttachment: MockAttachment[];
+  cancellationComment: string;
+}
+
+export interface EventComplianceApplicationRecord {
+  eventComplianceApplicationId: string;
+  organizerId: string;
+  status: ReviewStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  adminComment: string;
+  feePaymentConfirmedByAdmin: boolean;
+  certificateNumber: string;
+  certificateDate: string;
+  linkedLegacyAppId: string | null;
+  linkedEventId: string | null;
+  data: EventComplianceData;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface OrganizerDocument {
@@ -123,6 +244,9 @@ export interface AppState {
   meta: { version: string; updatedAt: string };
   counters: { app: number; lic: number; evt: number; tck: number; op: number };
   applications: Application[];
+  organizerApplications: OrganizerApplicationRecord[];
+  eventComplianceApplications: EventComplianceApplicationRecord[];
+  organizerRegistry: OrganizerRegistryRecord[];
   events: EventRecord[];
   tickets: Ticket[];
   demoPurchases: DemoPurchaseTicket[];
@@ -192,9 +316,12 @@ export function genId(prefix: string, counter: number): string {
 
 export function defaultState(): AppState {
   const state: AppState = {
-    meta: { version: "v2", updatedAt: new Date().toISOString() },
+    meta: { version: "v3", updatedAt: new Date().toISOString() },
     counters: { app: 1, lic: 1, evt: 1, tck: 1, op: 1 },
     applications: [],
+    organizerApplications: [],
+    eventComplianceApplications: [],
+    organizerRegistry: [],
     events: [],
     tickets: [],
     demoPurchases: [],
@@ -322,6 +449,9 @@ function migrateState(parsed: Partial<AppState>): AppState {
       ...defaultState(),
       ...parsed,
       applications: Array.isArray(parsed.applications) ? parsed.applications : [],
+      organizerApplications: Array.isArray(parsed.organizerApplications) ? parsed.organizerApplications : [],
+      eventComplianceApplications: Array.isArray(parsed.eventComplianceApplications) ? parsed.eventComplianceApplications : [],
+      organizerRegistry: Array.isArray(parsed.organizerRegistry) ? parsed.organizerRegistry : [],
       events: Array.isArray(parsed.events) ? parsed.events : [],
       tickets: Array.isArray(parsed.tickets) ? parsed.tickets : [],
       demoPurchases: Array.isArray(parsed.demoPurchases) ? parsed.demoPurchases : [],
@@ -333,6 +463,11 @@ function migrateState(parsed: Partial<AppState>): AppState {
     };
 
     const knownOrganizerIds = new Set(state.organizers.map((o) => o.organizerId));
+    for (const organizer of state.organizers) {
+      if (!organizer.accountStatus) organizer.accountStatus = "активен";
+      if (!organizer.registryStatus) organizer.registryStatus = "зарегистрирован в реестре";
+      if (organizer.registryRegisteredAt === undefined) organizer.registryRegisteredAt = null;
+    }
     for (const app of state.applications) {
       if (!app.organizerId || !knownOrganizerIds.has(app.organizerId)) {
         app.organizerId = LEGACY_DEFAULT_ORGANIZER_ID;
@@ -349,7 +484,7 @@ function migrateState(parsed: Partial<AppState>): AppState {
     }
     ensureOrganizerDocuments(state);
     seedOrganizerDemoData(state);
-    state.meta.version = "v2";
+    state.meta.version = "v3";
     return state;
   } finally {
     suppressPersistence = false;
@@ -385,6 +520,14 @@ function nextId(state: AppState, key: "app" | "lic" | "evt" | "tck" | "op", pref
   return id;
 }
 
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function quickId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
 function addOp(state: AppState, op: Omit<OpRecord, "opId" | "ts">): OpRecord {
   const rec: OpRecord = { ...op, opId: nextId(state, "op", "OP"), ts: new Date().toISOString() };
   state.ops.push(rec);
@@ -395,6 +538,276 @@ function recalcRemaining(state: AppState, eventId: string) {
   const evt = state.events.find((e) => e.eventId === eventId);
   if (!evt) return;
   evt.remaining = state.tickets.filter((t) => t.eventId === eventId && t.status === "issued").length;
+}
+
+export function defaultIdentityRecord(): IdentityRecord {
+  return { fullName: "", docType: "", docNumber: "", issueDate: "", issueAuthority: "" };
+}
+
+export function defaultOrganizerApplicationData(): OrganizerApplicationData {
+  return {
+    legalName: "",
+    registrationNumber: "",
+    postalCode: "",
+    region: "",
+    locality: "",
+    street: "",
+    houseNumber: "",
+    roomTypeAndNumber: "",
+    addressExtra: "",
+    contactPhone: "",
+    website: "",
+    email: "",
+    ownershipType: "private",
+    director: defaultIdentityRecord(),
+    workers: [],
+    founders: [],
+    activities: [],
+    activityOther: "",
+    pastEventsDescription: "",
+    pastMaterials: [],
+    documents: [],
+    confirmations: { isAccurate: false, adminReviewConsent: false },
+    accountCredentials: { login: "", password: "" },
+  };
+}
+
+export function defaultEventComplianceData(): EventComplianceData {
+  return {
+    title: "",
+    eventType: "",
+    shortDescription: "",
+    program: "",
+    dateSlots: [""],
+    venueName: "",
+    venueAddress: "",
+    performers: [],
+    onlyBelarusianPerformers: false,
+    hasForeignPerformers: false,
+    venueType: "",
+    projectedCapacity: null,
+    plannedTicketsForSale: null,
+    ageCategory: "0+",
+    ageComment: "",
+    approvalMode: "certificate_required",
+    approvalBasis: "",
+    eventDocuments: [],
+    salesStartDate: "",
+    feeExempt: false,
+    feeExemptReason: "",
+    feePaid: false,
+    paymentAttachments: [],
+    paymentComment: "",
+    adRestrictionConfirmed: false,
+    cancelled: false,
+    changesDeclared: false,
+    executiveCommitteeNotified: false,
+    citizensNotified: false,
+    notificationsAttachment: [],
+    cancellationComment: "",
+  };
+}
+
+export function calculateComplianceFee(capacity: number | null, plannedTicketsForSale: number | null): number {
+  const basis = capacity && capacity > 0 ? capacity : (plannedTicketsForSale && plannedTicketsForSale > 0 ? plannedTicketsForSale : 0);
+  if (basis <= 0) return 3;
+  if (basis <= 150) return 3;
+  if (basis <= 300) return 10;
+  if (basis <= 500) return 30;
+  if (basis <= 1000) return 50;
+  if (basis <= 1500) return 80;
+  if (basis <= 2000) return 100;
+  if (basis <= 3000) return 150;
+  return 200;
+}
+
+export function upsertOrganizerApplication(
+  state: AppState,
+  organizerId: string,
+  data: OrganizerApplicationData,
+  submit: boolean
+): OrganizerApplicationRecord {
+  const existing = state.organizerApplications.find((x) => x.organizerId === organizerId);
+  const status: ReviewStatus = submit ? "submitted" : "draft";
+  if (existing) {
+    existing.data = data;
+    existing.status = status;
+    existing.submittedAt = submit ? nowIso() : existing.submittedAt;
+    existing.updatedAt = nowIso();
+    existing.adminComment = "";
+    saveState(state);
+    return existing;
+  }
+  const rec: OrganizerApplicationRecord = {
+    organizerApplicationId: quickId("ORGAPP"),
+    organizerId,
+    status,
+    submittedAt: submit ? nowIso() : null,
+    reviewedAt: null,
+    adminComment: "",
+    data,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  };
+  state.organizerApplications.push(rec);
+  saveState(state);
+  return rec;
+}
+
+export function getOrganizerApplicationByOrganizerId(state: AppState, organizerId: string): OrganizerApplicationRecord | null {
+  return state.organizerApplications.find((x) => x.organizerId === organizerId) || null;
+}
+
+export function createPendingOrganizerAccount(
+  state: AppState,
+  profile: { legalName: string; registrationNumber: string; directorName: string; email: string; phone: string; login: string; password: string }
+): OrganizerAccount {
+  const existing = state.organizers.find((x) => x.login.toLowerCase() === profile.login.toLowerCase());
+  if (existing) return existing;
+  const organizer: OrganizerAccount = {
+    organizerId: quickId("ORG"),
+    login: profile.login.trim(),
+    password: profile.password,
+    name: profile.legalName,
+    fullName: profile.legalName,
+    unp: profile.registrationNumber,
+    registryStatus: "ожидает включения",
+    registryRegisteredAt: null,
+    director: profile.directorName,
+    email: profile.email,
+    phone: profile.phone,
+    accountStatus: "pending",
+    feesStatus: "оплачены",
+  };
+  state.organizers.push(organizer);
+  saveState(state);
+  return organizer;
+}
+
+export function setOrganizerApplicationReview(
+  state: AppState,
+  organizerApplicationId: string,
+  decision: "approved" | "rejected" | "needs_rework",
+  comment = ""
+): boolean {
+  const app = state.organizerApplications.find((x) => x.organizerApplicationId === organizerApplicationId);
+  if (!app) return false;
+  if (decision === "rejected" && !comment.trim()) return false;
+  app.status = decision;
+  app.adminComment = comment.trim();
+  app.reviewedAt = nowIso();
+  app.updatedAt = nowIso();
+  const organizer = state.organizers.find((o) => o.organizerId === app.organizerId);
+  if (organizer && decision === "approved") {
+    organizer.accountStatus = "активен";
+    organizer.registryStatus = "зарегистрирован в реестре";
+    organizer.registryRegisteredAt = nowIso().slice(0, 10);
+    const hasRegistry = state.organizerRegistry.some((r) => r.organizerId === organizer.organizerId);
+    if (!hasRegistry) {
+      state.organizerRegistry.push({
+        organizerRegistryId: quickId("ORGREG"),
+        organizerId: organizer.organizerId,
+        internalNumber: `REG-${state.organizerRegistry.length + 1}`,
+        includedAt: nowIso().slice(0, 10),
+      });
+    }
+  }
+  saveState(state);
+  return true;
+}
+
+export function createEventComplianceApplication(
+  state: AppState,
+  organizerId: string,
+  data: EventComplianceData,
+  submit: boolean
+): EventComplianceApplicationRecord {
+  const rec: EventComplianceApplicationRecord = {
+    eventComplianceApplicationId: quickId("EVAPP"),
+    organizerId,
+    status: submit ? "submitted" : "draft",
+    submittedAt: submit ? nowIso() : null,
+    reviewedAt: null,
+    adminComment: "",
+    feePaymentConfirmedByAdmin: false,
+    certificateNumber: "",
+    certificateDate: "",
+    linkedLegacyAppId: null,
+    linkedEventId: null,
+    data,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  };
+  state.eventComplianceApplications.push(rec);
+  saveState(state);
+  return rec;
+}
+
+export function updateEventComplianceApplication(
+  state: AppState,
+  eventComplianceApplicationId: string,
+  data: EventComplianceData,
+  submit: boolean
+): boolean {
+  const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
+  if (!app) return false;
+  app.data = data;
+  app.status = submit ? "submitted" : "draft";
+  app.submittedAt = submit ? nowIso() : app.submittedAt;
+  app.updatedAt = nowIso();
+  if (submit) app.adminComment = "";
+  saveState(state);
+  return true;
+}
+
+export function setEventComplianceReview(
+  state: AppState,
+  eventComplianceApplicationId: string,
+  payload: {
+    decision: "approved" | "rejected" | "needs_rework";
+    comment?: string;
+    confirmFeePayment?: boolean;
+    certificateNumber?: string;
+    certificateDate?: string;
+  }
+): boolean {
+  const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
+  if (!app) return false;
+  const comment = payload.comment?.trim() || "";
+  if (payload.decision === "rejected" && !comment) return false;
+
+  app.status = payload.decision;
+  app.adminComment = comment;
+  app.reviewedAt = nowIso();
+  app.updatedAt = nowIso();
+  app.feePaymentConfirmedByAdmin = Boolean(payload.confirmFeePayment);
+  app.certificateNumber = payload.certificateNumber?.trim() || "";
+  app.certificateDate = payload.certificateDate?.trim() || "";
+
+  if (payload.decision === "approved") {
+    const baseDate = app.data.dateSlots.find(Boolean) || "";
+    const legacy = createApplication(
+      state,
+      {
+        title: app.data.title,
+        venue: app.data.venueName || "Площадка не указана",
+        dateTime: baseDate,
+        capacity: app.data.projectedCapacity || app.data.plannedTicketsForSale || 1,
+        tiers: [{ name: "Стандарт", price: 50 }],
+        city: "",
+        category: app.data.eventType || "Иное",
+        description: app.data.shortDescription,
+        poster: "",
+      },
+      true,
+      app.organizerId
+    );
+    const approved = approveApplication(state, legacy.appId);
+    app.linkedLegacyAppId = legacy.appId;
+    app.linkedEventId = approved?.eventId || null;
+  }
+  saveState(state);
+  return true;
 }
 
 export function createApplication(
@@ -663,6 +1076,14 @@ export function logoutOrganizer(state: AppState): void {
 export function getCurrentOrganizer(state: AppState): OrganizerAccount | null {
   if (!state.currentOrganizerId) return null;
   return state.organizers.find((o) => o.organizerId === state.currentOrganizerId) || null;
+}
+
+export function getOrganizerRegistryRecord(state: AppState, organizerId: string): OrganizerRegistryRecord | null {
+  return state.organizerRegistry.find((r) => r.organizerId === organizerId) || null;
+}
+
+export function isOrganizerApproved(state: AppState, organizerId: string): boolean {
+  return Boolean(getOrganizerRegistryRecord(state, organizerId));
 }
 
 export function getMyApplications(state: AppState): Application[] {
