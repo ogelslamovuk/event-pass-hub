@@ -37,9 +37,6 @@ export default function PlatformLandingPage() {
           <span className="text-sm md:text-base font-semibold tracking-tight" style={{ color: A.textPrimary }}>
             Демо-платформа
           </span>
-          <a href="#demo-tools" className="text-sm font-medium" style={{ color: A.cyan }}>
-            Управление демо
-          </a>
         </header>
 
         <section className="mt-8 md:mt-12 rounded-2xl border p-6 md:p-9" style={{ borderColor: A.border, background: "rgba(17,26,42,0.75)" }}>
@@ -98,9 +95,6 @@ export default function PlatformLandingPage() {
             <h2 className="text-2xl font-semibold tracking-tight">Управление демо</h2>
             <p className="mt-2 text-sm leading-6" style={{ color: A.textSecondary }}>
               Технический блок для управления демонстрационной средой, сценариями и быстрыми действиями.
-            </p>
-            <p className="mt-1 text-xs" style={{ color: A.textMuted }}>
-              Все инструменты демо перенесены сюда из Центра управления.
             </p>
           </div>
 
