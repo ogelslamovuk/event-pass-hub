@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1200" y2="675" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg1)"/>
+  <circle cx="920" cy="140" r="120" fill="#A78BFA" fill-opacity="0.35"/>
+  <circle cx="225" cy="560" r="180" fill="#22D3EE" fill-opacity="0.22"/>
+  <text x="80" y="140" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="44" font-weight="700">TicketHub Demo</text>
+  <text x="80" y="210" fill="#C7D2FE" font-family="Arial, sans-serif" font-size="32" font-weight="600">Постер мероприятия #1</text>
+  <text x="80" y="300" fill="#BFDBFE" font-family="Arial, sans-serif" font-size="24">Локальный demo asset</text>
+</svg>
