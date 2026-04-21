@@ -1,12 +1,19 @@
 import React, { useState, useMemo, useRef } from "react";
-import type { AppState, Application } from "@/lib/store";
+import type { AppState, Application, AppStatus } from "@/lib/store";
 import { approveApplication, rejectApplication } from "@/lib/store";
 import { toast } from "sonner";
 import { A, appStatusChip, statusChip } from "./adminStyles";
 import { FileText, Search, ShieldCheck, AlertTriangle, X, CheckCircle, XCircle, Clock } from "lucide-react";
 import HelpTooltip from "@/components/ui/help-tooltip";
 
-interface Props { state: AppState; onUpdate: (s: AppState) => void; }
+interface Props {
+  state: AppState;
+  onUpdate: (s: AppState) => void;
+  title?: string;
+  subtitle?: string;
+  fixedStatus?: AppStatus;
+  hideKpi?: boolean;
+}
 
 const statusLabel: Record<string, string> = {
   draft: "Черновик", submitted: "Отправлена", approved: "Одобрена", rejected: "Отклонена",
@@ -31,7 +38,7 @@ function matchesApplicationFilters(app: Application, filterStatus: string, block
   return app.appId.toLowerCase().includes(s) || app.title.toLowerCase().includes(s) || app.venue.toLowerCase().includes(s);
 }
 
-export default function AdminApplications({ state, onUpdate }: Props) {
+export default function AdminApplications({ state, onUpdate, title, subtitle, fixedStatus, hideKpi }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [kpiFilter, setKpiFilter] = useState<"" | "blocked">("");
@@ -49,9 +56,12 @@ export default function AdminApplications({ state, onUpdate }: Props) {
     };
   }, [state.applications]);
 
+  const effectiveStatusFilter = fixedStatus || statusFilter;
+
   const filtered = useMemo(() => {
-    return state.applications.filter((a) => matchesApplicationFilters(a, statusFilter, kpiFilter === "blocked", search));
-  }, [state.applications, statusFilter, kpiFilter, search]);
+    const blockedOnly = fixedStatus ? false : kpiFilter === "blocked";
+    return state.applications.filter((a) => matchesApplicationFilters(a, effectiveStatusFilter, blockedOnly, search));
+  }, [state.applications, effectiveStatusFilter, kpiFilter, search, fixedStatus]);
 
   const handleConfirm = () => {
     if (!confirm) return;
@@ -91,21 +101,30 @@ export default function AdminApplications({ state, onUpdate }: Props) {
 
   return (
     <div className="space-y-5">
+      {(title || subtitle) && (
+        <div className="space-y-1">
+          {title && <h2 className="text-base font-semibold" style={{ color: A.textPrimary }}>{title}</h2>}
+          {subtitle && <p className="text-xs" style={{ color: A.textSecondary }}>{subtitle}</p>}
+        </div>
+      )}
+
       {/* Mini KPI */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {kpiItems.map((k, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => handleKpiClick(k.key)}
-            style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 14 }}
-            className="p-4 text-left transition hover:opacity-90"
-          >
-            <div style={{ color: k.accent }} className="text-xl font-bold">{k.value}</div>
-            <div style={{ color: A.textSecondary }} className="text-xs mt-0.5">{k.label}</div>
-          </button>
-        ))}
-      </div>
+      {!hideKpi && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {kpiItems.map((k, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleKpiClick(k.key)}
+              style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 14 }}
+              className="p-4 text-left transition hover:opacity-90"
+            >
+              <div style={{ color: k.accent }} className="text-xl font-bold">{k.value}</div>
+              <div style={{ color: A.textSecondary }} className="text-xs mt-0.5">{k.label}</div>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -116,16 +135,20 @@ export default function AdminApplications({ state, onUpdate }: Props) {
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
         <HelpTooltip text="Поиск работает по ID заявки, названию мероприятия и площадке." />
-        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setKpiFilter(""); }}
-          className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
-          style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
-          <option value="">Все статусы</option>
-          <option value="submitted">Отправленные</option>
-          <option value="approved">Одобренные</option>
-          <option value="rejected">Отклонённые</option>
-          <option value="draft">Черновики</option>
-        </select>
-        <HelpTooltip text="Выберите статус, чтобы показать только нужный этап обработки заявок." />
+        {!fixedStatus && (
+          <>
+            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setKpiFilter(""); }}
+              className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
+              style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
+              <option value="">Все статусы</option>
+              <option value="submitted">Отправленные</option>
+              <option value="approved">Одобренные</option>
+              <option value="rejected">Отклонённые</option>
+              <option value="draft">Черновики</option>
+            </select>
+            <HelpTooltip text="Выберите статус, чтобы показать только нужный этап обработки заявок." />
+          </>
+        )}
       </div>
 
       {/* Table */}
