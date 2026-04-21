@@ -14,6 +14,7 @@ import {
   selectMyDocuments,
   selectMyEvents,
   selectMyOrganizerApplication,
+  selectMyOrganizerApplicationHistory,
   selectMyOrganizerRegistryRecord,
   selectMyReportingRows,
   selectMySales,
@@ -135,6 +136,7 @@ export default function OrganizerPage() {
   const reportingRows = useMemo(() => selectMyReportingRows(state), [state]);
   const myDocuments = useMemo(() => selectMyDocuments(state), [state]);
   const organizerApp = useMemo(() => selectMyOrganizerApplication(state), [state]);
+  const organizerAppHistory = useMemo(() => selectMyOrganizerApplicationHistory(state), [state]);
   const isOrganizerApproved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
   const organizerRegistryRecord = useMemo(() => selectMyOrganizerRegistryRecord(state), [state]);
 
@@ -211,6 +213,20 @@ export default function OrganizerPage() {
             {organizerApp?.adminComment && <div>Комментарий администратора: {organizerApp.adminComment}</div>}
             <div>Отправлена: {organizerApp?.submittedAt ? organizerApp.submittedAt.slice(0, 16).replace("T", " ") : "—"}</div>
           </div>
+          {organizerAppHistory.length > 0 && (
+            <div className="rounded-xl border p-4 text-xs space-y-2" style={{ borderColor: "rgba(255,255,255,0.12)", background: "#0F1620" }}>
+              <div className="font-semibold">История попыток</div>
+              {organizerAppHistory.slice(0, 5).map((attempt) => (
+                <div key={attempt.organizerApplicationId} className="flex flex-wrap gap-2">
+                  <span>{attempt.organizerApplicationId}</span>
+                  <span>·</span>
+                  <span>{attempt.status}</span>
+                  <span>·</span>
+                  <span>{attempt.submittedAt ? attempt.submittedAt.slice(0, 16).replace("T", " ") : "черновик"}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="text-xs" style={{ color: "rgba(245,247,250,0.55)" }}>
             Если статус Needs rework, обновите и отправьте заявку на странице «Стать организатором».
           </div>
@@ -231,7 +247,6 @@ export default function OrganizerPage() {
       </div>
     );
   }
-  void myComplianceApplications;
   void organizerRegistryRecord;
 
   const addTier = () => {
@@ -549,7 +564,7 @@ export default function OrganizerPage() {
             )}
 
             {activeSection === "documents" && (
-              <DocumentsSection rows={myDocuments} />
+              <DocumentsSection rows={myDocuments} complianceRows={myComplianceApplications} />
             )}
 
             {activeSection === "support" && (
@@ -682,6 +697,7 @@ function ApplicationsTable({
           <select
             value={appFilter}
             onChange={(e) => setAppFilter(e.target.value as AppFilter)}
+            title="Фильтр по статусу. Совпадает с карточками статусов выше."
             className="border rounded-xl px-3 py-2 text-[13px]"
             style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
           >
@@ -941,11 +957,40 @@ function KpiCard({ title, value }: { title: string; value: string }) {
   );
 }
 
-function DocumentsSection({ rows }: { rows: OrganizerDocument[] }) {
+function DocumentsSection({ rows, complianceRows }: { rows: OrganizerDocument[]; complianceRows: ReturnType<typeof selectMyEventComplianceApplications> }) {
   const [openedDoc, setOpenedDoc] = useState<OrganizerDocument | null>(null);
+  const certificates = useMemo(
+    () => complianceRows.filter((x) => x.status === "approved" && x.certificateNumber && x.linkedEventId),
+    [complianceRows]
+  );
 
   return (
     <>
+      {certificates.length > 0 && (
+        <div className="rounded-[18px] border p-6 mb-4" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Удостоверения по одобренным мероприятиям</h2>
+          <div className="space-y-2">
+            {certificates.map((item) => (
+              <div key={item.eventComplianceApplicationId} className="rounded-xl border p-3 flex items-center justify-between gap-3" style={{ borderColor: T.border, background: T.sidebarBg }}>
+                <div>
+                  <div className="text-sm font-semibold">{item.data.title || "Без названия"}</div>
+                  <div className="text-xs" style={{ color: T.textSecondary }}>
+                    Event: {item.linkedEventId} · № удостоверения: {item.certificateNumber} · дата: {item.certificateDate || "—"}
+                  </div>
+                </div>
+                <button
+                  className="h-9 px-4 rounded-lg text-sm font-semibold"
+                  style={{ background: "#111", color: "#FFF" }}
+                  onClick={() => toast.success(`Удостоверение ${item.certificateNumber} готово к выдаче по событию ${item.linkedEventId}`)}
+                  title="Скачать удостоверение по одобренному мероприятию."
+                >
+                  Скачать удостоверение
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
         <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Документы организатора</h2>
         {rows.length === 0 ? (

@@ -89,16 +89,16 @@ export default function OrganizerRegistrationStubPage() {
         <section className="space-y-3">
           <h2 className="font-semibold">Данные организации</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Полное наименование" value={form.legalName} onChange={(e) => setForm((p) => ({ ...p, legalName: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Регистрационный номер" value={form.registrationNumber} onChange={(e) => setForm((p) => ({ ...p, registrationNumber: e.target.value }))} />
+            <input title="Официальное наименование юридического лица." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Полное наименование" value={form.legalName} onChange={(e) => setForm((p) => ({ ...p, legalName: e.target.value }))} />
+            <input title="Номер госрегистрации/УНП организации." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Регистрационный номер" value={form.registrationNumber} onChange={(e) => setForm((p) => ({ ...p, registrationNumber: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Почтовый индекс" value={form.postalCode} onChange={(e) => setForm((p) => ({ ...p, postalCode: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Область" value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Населённый пункт" value={form.locality} onChange={(e) => setForm((p) => ({ ...p, locality: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Улица / проспект" value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Номер дома" value={form.houseNumber} onChange={(e) => setForm((p) => ({ ...p, houseNumber: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Помещение" value={form.roomTypeAndNumber} onChange={(e) => setForm((p) => ({ ...p, roomTypeAndNumber: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Контактный телефон" value={form.contactPhone} onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+            <input title="Телефон для связи по заявке." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Контактный телефон" value={form.contactPhone} onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))} />
+            <input title="Email для уведомлений о решении и доработках." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Интернет-сайт" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
             <select className="h-10 rounded px-3 bg-[#0F1620] border" value={form.ownershipType} onChange={(e) => setForm((p) => ({ ...p, ownershipType: e.target.value as "private" | "state" | "mixed" }))}>
               <option value="private">Частная</option>
@@ -112,7 +112,7 @@ export default function OrganizerRegistrationStubPage() {
         <section className="space-y-3">
           <h2 className="font-semibold">Руководитель</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="ФИО" value={form.director.fullName} onChange={(e) => updateDirector({ fullName: e.target.value })} />
+            <input title="ФИО руководителя, как в документе." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="ФИО" value={form.director.fullName} onChange={(e) => updateDirector({ fullName: e.target.value })} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Вид документа" value={form.director.docType} onChange={(e) => updateDirector({ docType: e.target.value })} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Серия / номер" value={form.director.docNumber} onChange={(e) => updateDirector({ docNumber: e.target.value })} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" type="date" value={form.director.issueDate} onChange={(e) => updateDirector({ issueDate: e.target.value })} />
@@ -178,8 +178,8 @@ export default function OrganizerRegistrationStubPage() {
         <section className="space-y-2">
           <h2 className="font-semibold">Доступ в кабинет</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Желаемый логин" value={form.accountCredentials.login} onChange={(e) => setForm((p) => ({ ...p, accountCredentials: { ...p.accountCredentials, login: e.target.value } }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="password" placeholder="Пароль" value={form.accountCredentials.password} onChange={(e) => setForm((p) => ({ ...p, accountCredentials: { ...p.accountCredentials, password: e.target.value } }))} />
+            <input title="Логин для входа в кабинет организатора." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Желаемый логин" value={form.accountCredentials.login} onChange={(e) => setForm((p) => ({ ...p, accountCredentials: { ...p.accountCredentials, login: e.target.value } }))} />
+            <input title="Пароль для входа, минимум 6 символов." className="h-10 rounded px-3 bg-[#0F1620] border" type="password" placeholder="Пароль" value={form.accountCredentials.password} onChange={(e) => setForm((p) => ({ ...p, accountCredentials: { ...p.accountCredentials, password: e.target.value } }))} />
           </div>
         </section>
 
@@ -189,8 +189,8 @@ export default function OrganizerRegistrationStubPage() {
         </section>
 
         <div className="flex flex-wrap gap-3 pt-2">
-          <button className="px-4 h-10 rounded bg-[#2b3f57]" onClick={() => save(false)}>Сохранить черновик</button>
-          <button className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
+          <button title="Сохраняет текущую форму без отправки на рассмотрение." className="px-4 h-10 rounded bg-[#2b3f57]" onClick={() => save(false)}>Сохранить черновик</button>
+          <button title="Отправляет текущую версию как новую попытку." className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
           <Link to="/organizer/login" className="px-4 h-10 inline-flex items-center rounded border">Вернуться ко входу</Link>
         </div>
       </div>
