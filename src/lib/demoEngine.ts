@@ -147,8 +147,18 @@ function buildBaselineState(): AppState {
   return defaultState();
 }
 
+function todayYmd(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function seedDemoCatalog(state: AppState): AppState {
   state.organizers = DEMO_ORGANIZERS.map((organizer) => ({ ...organizer }));
+  state.organizerRegistry = DEMO_ORGANIZERS.map((organizer, index) => ({
+    organizerRegistryId: `DEMO-ORGREG-${index + 1}`,
+    organizerId: organizer.organizerId,
+    internalNumber: index === 0 ? "DEMO-REG-001" : "DEMO-REG-002",
+    includedAt: organizer.registryRegisteredAt || todayYmd(),
+  }));
   state.organizerDocuments = [];
   state.currentOrganizerId = null;
 
