@@ -3,14 +3,13 @@ import { Database, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useStorageSync } from "@/hooks/useStorageSync";
 import { A } from "@/components/admin/adminStyles";
-import { defaultState, generateDemoData, loadState, resetState, runDemoScenario } from "@/lib/store";
+import { generateDemoData, resetDemoData, runDemoScenario } from "@/lib/demoEngine";
 
 export default function DemoToolsPanel() {
   const { setState } = useStorageSync();
 
   const handleGenerateDemo = () => {
-    const s = loadState();
-    generateDemoData(s);
+    const s = generateDemoData();
     setState({ ...s });
     toast.success("Демо-данные сгенерированы");
   };
@@ -22,8 +21,8 @@ export default function DemoToolsPanel() {
   };
 
   const handleReset = () => {
-    resetState();
-    setState(defaultState());
+    const s = resetDemoData();
+    setState({ ...s });
     toast.success("Сброшено");
   };
 

@@ -262,41 +262,6 @@ const STORAGE_KEY = "ticket_hub_state_v1";
 const LEGACY_DEFAULT_ORGANIZER_ID = "org_demo_1";
 let suppressPersistence = false;
 
-function organizerSeedList(): OrganizerAccount[] {
-  return [
-    {
-      organizerId: "org_demo_1",
-      login: "organizer.a",
-      password: "demo123",
-      name: "ООО «Альфа Сцена»",
-      fullName: "Общество с ограниченной ответственностью «Альфа Сцена»",
-      unp: "192837465",
-      registryStatus: "зарегистрирован в реестре",
-      registryRegisteredAt: "2024-02-12",
-      director: "Иванов Иван Петрович",
-      email: "alpha@demo.by",
-      phone: "+375 (29) 111-11-11",
-      accountStatus: "активен",
-      feesStatus: "оплачены",
-    },
-    {
-      organizerId: "org_demo_2",
-      login: "organizer.b",
-      password: "demo123",
-      name: "ЧУП «Бета Ивент»",
-      fullName: "Частное унитарное предприятие «Бета Ивент»",
-      unp: "102938475",
-      registryStatus: "зарегистрирован в реестре",
-      registryRegisteredAt: "2024-06-03",
-      director: "Петрова Мария Сергеевна",
-      email: "beta@demo.by",
-      phone: "+375 (33) 222-22-22",
-      accountStatus: "активен",
-      feesStatus: "оплачены",
-    },
-  ];
-}
-
 const ORGANIZER_DOCUMENT_TEMPLATES: Omit<OrganizerDocument, "organizerId" | "updatedAt">[] = [
   { documentId: "DOC-001", title: "Выписка из реестра организаторов", type: "реестр", status: "доступен" },
   { documentId: "DOC-002", title: "Устав организации", type: "устав", status: "доступен" },
@@ -327,13 +292,11 @@ export function defaultState(): AppState {
     demoPurchases: [],
     ops: [],
     users: [{ userId: "demo_user_1", name: "Демо пользователь" }],
-    organizers: organizerSeedList(),
+    organizers: [],
     organizerDocuments: [],
     currentOrganizerId: null,
     ui: { selectedRole: "organizer", selectedChannel: "ByCard" },
   };
-  ensureOrganizerDocuments(state);
-  seedOrganizerDemoData(state);
   return state;
 }
 
@@ -355,93 +318,6 @@ function ensureOrganizerDocuments(state: AppState): void {
   }
 }
 
-function seedOrganizerDemoData(state: AppState): void {
-  const hasOrg1Data = state.applications.some((a) => a.organizerId === "org_demo_1");
-  const hasOrg2Data = state.applications.some((a) => a.organizerId === "org_demo_2");
-  if (hasOrg1Data && hasOrg2Data) return;
-
-  if (!hasOrg1Data) {
-    createApplication(state, {
-      title: "Концерт «Классика под звёздами»",
-      venue: "Большой зал филармонии",
-      dateTime: "2026-05-15T19:00",
-      capacity: 1200,
-      tiers: [{ name: "Партер", price: 120 }, { name: "Балкон", price: 80 }],
-      city: "Минск",
-      category: "Концерты",
-      description: "Вечер классической музыки в атмосферном зале.",
-      poster: "",
-    }, true, "org_demo_1");
-
-    createApplication(state, {
-      title: "Фестиваль «Городской ритм»",
-      venue: "Парк Победы",
-      dateTime: "2026-07-02T18:00",
-      capacity: 5000,
-      tiers: [{ name: "Стандарт", price: 45 }, { name: "Фан-зона", price: 90 }],
-      city: "Минск",
-      category: "Фестивали",
-      description: "Открытый музыкальный фестиваль на набережной.",
-      poster: "",
-    }, false, "org_demo_1");
-
-    const submittedForReject = createApplication(state, {
-      title: "Шоу «Свет и звук»",
-      venue: "Культурный центр «Сфера»",
-      dateTime: "2026-06-11T20:00",
-      capacity: 700,
-      tiers: [{ name: "Стандарт", price: 60 }, { name: "VIP", price: 110 }],
-      city: "Брест",
-      category: "Шоу",
-      description: "Иммерсивное мультимедийное шоу.",
-      poster: "",
-    }, true, "org_demo_1");
-    rejectApplication(state, submittedForReject.appId);
-
-    const submittedForApprove = state.applications.find((a) => a.organizerId === "org_demo_1" && a.status === "submitted");
-    if (submittedForApprove) {
-      approveApplication(state, submittedForApprove.appId);
-      const event = state.events.find((e) => e.appId === submittedForApprove.appId);
-      if (event) {
-        publishEvent(state, event.eventId);
-        createDemoPurchaseTicket(state, {
-          eventId: event.eventId,
-          selectedPriceCategory: event.tiers[0]?.name || "Партер",
-          quantity: 2,
-          buyerName: "Покупатель A",
-        });
-      }
-    }
-  }
-
-  if (!hasOrg2Data) {
-    const approvedCandidate = createApplication(state, {
-      title: "Спектакль «Вечер в театре»",
-      venue: "Театр драмы",
-      dateTime: "2026-06-21T18:30",
-      capacity: 450,
-      tiers: [{ name: "Партер", price: 55 }, { name: "Амфитеатр", price: 35 }],
-      city: "Гродно",
-      category: "Театр",
-      description: "Классическая постановка в двух актах.",
-      poster: "",
-    }, true, "org_demo_2");
-    approveApplication(state, approvedCandidate.appId);
-
-    createApplication(state, {
-      title: "Детское шоу «Планета игр»",
-      venue: "Дом культуры",
-      dateTime: "2026-08-10T12:00",
-      capacity: 600,
-      tiers: [{ name: "Семейный", price: 30 }, { name: "Премиум", price: 50 }],
-      city: "Витебск",
-      category: "Детям",
-      description: "Интерактивное шоу для всей семьи.",
-      poster: "",
-    }, false, "org_demo_2");
-  }
-}
-
 function migrateState(parsed: Partial<AppState>): AppState {
   suppressPersistence = true;
   try {
@@ -457,7 +333,7 @@ function migrateState(parsed: Partial<AppState>): AppState {
       demoPurchases: Array.isArray(parsed.demoPurchases) ? parsed.demoPurchases : [],
       ops: Array.isArray(parsed.ops) ? parsed.ops : [],
       users: Array.isArray(parsed.users) ? parsed.users : [{ userId: "demo_user_1", name: "Демо пользователь" }],
-      organizers: Array.isArray(parsed.organizers) && parsed.organizers.length > 0 ? parsed.organizers : organizerSeedList(),
+      organizers: Array.isArray(parsed.organizers) ? parsed.organizers : [],
       organizerDocuments: Array.isArray(parsed.organizerDocuments) ? parsed.organizerDocuments : [],
       currentOrganizerId: typeof parsed.currentOrganizerId === "string" ? parsed.currentOrganizerId : null,
     };
@@ -483,7 +359,6 @@ function migrateState(parsed: Partial<AppState>): AppState {
       state.currentOrganizerId = null;
     }
     ensureOrganizerDocuments(state);
-    seedOrganizerDemoData(state);
     state.meta.version = "v3";
     return state;
   } finally {
@@ -1153,71 +1028,4 @@ export function getMyOrganizerDocuments(state: AppState): OrganizerDocument[] {
   const organizer = getCurrentOrganizer(state);
   if (!organizer) return [];
   return state.organizerDocuments.filter((d) => d.organizerId === organizer.organizerId);
-}
-
-// ===== Demo helpers =====
-
-export function generateDemoData(state: AppState): void {
-  // 1 submitted app
-  const app = createApplication(state, {
-    title: "Концерт «Классика под звёздами»",
-    venue: "Большой зал филармонии",
-    dateTime: "2026-05-15T19:00",
-    capacity: 30,
-    tiers: [
-      { name: "Партер", price: 3000 },
-      { name: "Балкон", price: 1500 },
-      { name: "Галёрка", price: 800 },
-    ],
-    city: "Минск",
-    category: "Концерты",
-    description: "Вечер классической музыки в атмосферном зале.",
-    poster: "",
-  }, true);
-  // approve
-  approveApplication(state, app.appId);
-  const evt = state.events[state.events.length - 1];
-  // publish
-  publishEvent(state, evt.eventId);
-  // issue
-  issueMarks(state, evt.eventId);
-  // sell 2
-  sell(state, evt.eventId, "Партер", "ByCard", "demo_user_1");
-  sell(state, evt.eventId, "Балкон", "ByCard");
-}
-
-export function runDemoScenario(): AppState {
-  resetState();
-  const state = defaultState();
-  // create submitted
-  const app = createApplication(state, {
-    title: "Концерт «Классика под звёздами»",
-    venue: "Большой зал филармонии",
-    dateTime: "2026-05-15T19:00",
-    capacity: 30,
-    tiers: [
-      { name: "Партер", price: 3000 },
-      { name: "Балкон", price: 1500 },
-      { name: "Галёрка", price: 800 },
-    ],
-    city: "Минск",
-    category: "Концерты",
-    description: "Вечер классической музыки в атмосферном зале.",
-    poster: "",
-  }, true);
-  // approve
-  approveApplication(state, app.appId);
-  const evt = state.events[state.events.length - 1];
-  // publish
-  publishEvent(state, evt.eventId);
-  // issue
-  issueMarks(state, evt.eventId);
-  // b2c buy
-  const sellResult = sell(state, evt.eventId, "Партер", "ByCard", "demo_user_1");
-  // redeem 1
-  if (sellResult.ok && sellResult.ticketId) {
-    redeem(state, sellResult.ticketId, "ByCard");
-  }
-  saveState(state);
-  return state;
 }
