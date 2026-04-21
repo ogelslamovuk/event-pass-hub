@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { calculateComplianceFee, setEventComplianceReview } from "@/lib/store";
 import { A } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -64,7 +65,7 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                   <td className="py-2 px-3">{fee}</td>
                   <td className="py-2 px-3">{r.status}</td>
                   <td className="py-2 px-3 space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-[1fr_auto] gap-2">
                       <input
                         className="h-8 rounded px-2 text-xs"
                         placeholder="№ удостоверения"
@@ -72,6 +73,7 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                         onChange={(e) => setCertificateNumber((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
                         style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                       />
+                      <FieldHelp text="Укажите номер удостоверения при одобрении заявки." />
                       <input
                         className="h-8 rounded px-2 text-xs"
                         type="date"
@@ -79,6 +81,7 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                         onChange={(e) => setCertificateDate((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
                         style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                       />
+                      <FieldHelp text="Дата удостоверения фиксирует основание для выпуска события." />
                     </div>
                     <label className="flex items-center gap-2 text-xs">
                       <input
@@ -88,13 +91,16 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                       />
                       Подтвердить оплату
                     </label>
-                    <textarea
-                      className="w-full min-h-14 rounded px-2 py-1 text-xs"
-                      placeholder="Комментарий (обязателен при reject и needs rework)"
-                      value={comment[r.eventComplianceApplicationId] || ""}
-                      onChange={(e) => setComment((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
-                      style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
-                    />
+                    <div className="flex items-start gap-2">
+                      <textarea
+                        className="w-full min-h-14 rounded px-2 py-1 text-xs"
+                        placeholder="Комментарий (обязателен при reject и needs rework)"
+                        value={comment[r.eventComplianceApplicationId] || ""}
+                        onChange={(e) => setComment((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
+                        style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
+                      />
+                      <FieldHelp text="Для отклонения и возврата на доработку комментарий обязателен." />
+                    </div>
                     <div className="flex gap-2 flex-wrap">
                       <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.eventComplianceApplicationId, "approved")}>Одобрить заявку</button>
                       <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.eventComplianceApplicationId, "needs_rework")}>Вернуть на доработку</button>

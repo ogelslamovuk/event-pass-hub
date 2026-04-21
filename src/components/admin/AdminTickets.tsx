@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import type { AppState, Ticket } from "@/lib/store";
 import { A, tktStatusChip } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 import { Ticket as TicketIcon, Search, X } from "lucide-react";
 
 interface Props { state: AppState; }
@@ -36,6 +37,7 @@ export default function AdminTickets({ state }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
+        <FieldHelp text="Поиск учитывает TicketID, EventID и ценовую категорию билета." />
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
           style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
@@ -48,6 +50,7 @@ export default function AdminTickets({ state }: Props) {
           <option value="">Все события</option>
           {uniqueEvents.map(e => <option key={e} value={e}>{e}</option>)}
         </select>
+        <FieldHelp text="Статус и событие комбинируются: в таблице остаются записи, удовлетворяющие обоим фильтрам." />
       </div>
 
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">

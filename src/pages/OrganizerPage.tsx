@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useStorageSync } from "@/hooks/useStorageSync";
+import FieldHelp from "@/components/common/FieldHelp";
 import type { Application, AppState, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
 import { createApplication, logoutOrganizer, submitApplication } from "@/lib/store";
 import {
@@ -694,19 +695,21 @@ function ApplicationsTable({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <select
-            value={appFilter}
-            onChange={(e) => setAppFilter(e.target.value as AppFilter)}
-            title="Фильтр по статусу. Совпадает с карточками статусов выше."
-            className="border rounded-xl px-3 py-2 text-[13px]"
-            style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
-          >
-            <option value="all">Все статусы</option>
-            <option value="draft">Черновики</option>
-            <option value="submitted">На рассмотрении</option>
-            <option value="approved">Одобрено</option>
-            <option value="rejected">Отклонено</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={appFilter}
+              onChange={(e) => setAppFilter(e.target.value as AppFilter)}
+              className="border rounded-xl px-3 py-2 text-[13px]"
+              style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
+            >
+              <option value="all">Все статусы</option>
+              <option value="draft">Черновики</option>
+              <option value="submitted">На рассмотрении</option>
+              <option value="approved">Одобрено</option>
+              <option value="rejected">Отклонено</option>
+            </select>
+            <FieldHelp text="Фильтр по статусу использует ту же логику, что и карточки статусов." />
+          </div>
           <button onClick={onCreateNew} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
             <Plus size={14} /> Создать
           </button>
@@ -978,14 +981,16 @@ function DocumentsSection({ rows, complianceRows }: { rows: OrganizerDocument[];
                     Event: {item.linkedEventId} · № удостоверения: {item.certificateNumber} · дата: {item.certificateDate || "—"}
                   </div>
                 </div>
-                <button
-                  className="h-9 px-4 rounded-lg text-sm font-semibold"
-                  style={{ background: "#111", color: "#FFF" }}
-                  onClick={() => toast.success(`Удостоверение ${item.certificateNumber} готово к выдаче по событию ${item.linkedEventId}`)}
-                  title="Скачать удостоверение по одобренному мероприятию."
-                >
-                  Скачать удостоверение
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="h-9 px-4 rounded-lg text-sm font-semibold"
+                    style={{ background: "#111", color: "#FFF" }}
+                    onClick={() => toast.success(`Удостоверение ${item.certificateNumber} готово к выдаче по событию ${item.linkedEventId}`)}
+                  >
+                    Скачать удостоверение
+                  </button>
+                  <FieldHelp text="Скачивание доступно только для одобренного мероприятия с номером удостоверения." />
+                </div>
               </div>
             ))}
           </div>

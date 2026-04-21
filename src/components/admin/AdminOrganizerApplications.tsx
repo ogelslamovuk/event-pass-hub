@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { setOrganizerApplicationReview } from "@/lib/store";
 import { A } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -48,13 +49,16 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
                 <td className="py-2 px-3">{r.data.documents.length + r.data.pastMaterials.length}</td>
                 <td className="py-2 px-3">{r.status}</td>
                 <td className="py-2 px-3 space-y-2">
-                  <textarea
-                    className="w-full min-h-16 rounded px-2 py-1 text-xs"
-                    placeholder="Комментарий (обязателен для reject и needs rework)"
-                    value={comment[r.organizerApplicationId] || ""}
-                    onChange={(e) => setComment((p) => ({ ...p, [r.organizerApplicationId]: e.target.value }))}
-                    style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
-                  />
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      className="w-full min-h-16 rounded px-2 py-1 text-xs"
+                      placeholder="Комментарий (обязателен для reject и needs rework)"
+                      value={comment[r.organizerApplicationId] || ""}
+                      onChange={(e) => setComment((p) => ({ ...p, [r.organizerApplicationId]: e.target.value }))}
+                      style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
+                    />
+                    <FieldHelp text="Для отклонения и доработки комментарий обязателен." />
+                  </div>
                   <div className="flex gap-2 flex-wrap">
                     <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.organizerApplicationId, "approved")}>Одобрить</button>
                     <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.organizerApplicationId, "needs_rework")}>Вернуть на доработку</button>

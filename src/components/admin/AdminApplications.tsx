@@ -3,6 +3,7 @@ import type { AppState, Application } from "@/lib/store";
 import { approveApplication, rejectApplication } from "@/lib/store";
 import { toast } from "sonner";
 import { A, appStatusChip, statusChip } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 import { FileText, Search, ShieldCheck, AlertTriangle, X, CheckCircle, XCircle, Clock } from "lucide-react";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
@@ -32,8 +33,7 @@ function matchesApplicationFilters(app: Application, filterStatus: string, block
 
 export default function AdminApplications({ state, onUpdate }: Props) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [kpiFilter, setKpiFilter] = useState<"" | "blocked">("");
+  const [statusFilter, setStatusFilter] = useState<"" | "draft" | "submitted" | "approved" | "rejected" | "blocked">("");
   const [drawerApp, setDrawerApp] = useState<Application | null>(null);
   const [confirm, setConfirm] = useState<{ app: Application; action: "approve" | "reject" } | null>(null);
   const tableRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +41,7 @@ export default function AdminApplications({ state, onUpdate }: Props) {
   const kpi = useMemo(() => {
     const a = state.applications;
     return {
-      newCount: a.filter((x) => matchesApplicationFilters(x, "submitted", false, "")).length,
+      newCount: a.filter((x) => matchesApplicationFilters(x, "draft", false, "")).length,
       reviewing: a.filter((x) => matchesApplicationFilters(x, "submitted", false, "")).length,
       approved: a.filter((x) => matchesApplicationFilters(x, "approved", false, "")).length,
       blocked: a.filter((x) => matchesApplicationFilters(x, "", true, "")).length,
@@ -49,8 +49,10 @@ export default function AdminApplications({ state, onUpdate }: Props) {
   }, [state.applications]);
 
   const filtered = useMemo(() => {
-    return state.applications.filter((a) => matchesApplicationFilters(a, statusFilter, kpiFilter === "blocked", search));
-  }, [state.applications, statusFilter, kpiFilter, search]);
+    const blockedOnly = statusFilter === "blocked";
+    const filterByStatus = blockedOnly ? "" : statusFilter;
+    return state.applications.filter((a) => matchesApplicationFilters(a, filterByStatus, blockedOnly, search));
+  }, [state.applications, statusFilter, search]);
 
   const handleConfirm = () => {
     if (!confirm) return;
@@ -75,15 +77,14 @@ export default function AdminApplications({ state, onUpdate }: Props) {
   ];
 
   const handleKpiClick = (key: "new" | "review" | "approved" | "blocked") => {
-    if (key === "new" || key === "review") {
+    if (key === "new") {
+      setStatusFilter("draft");
+    } else if (key === "review") {
       setStatusFilter("submitted");
-      setKpiFilter("");
     } else if (key === "approved") {
       setStatusFilter("approved");
-      setKpiFilter("");
     } else {
-      setStatusFilter("");
-      setKpiFilter("blocked");
+      setStatusFilter("blocked");
     }
     tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -114,15 +115,20 @@ export default function AdminApplications({ state, onUpdate }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
-        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setKpiFilter(""); }}
-          className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
-          style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
-          <option value="">Все статусы</option>
-          <option value="submitted">Отправленные</option>
-          <option value="approved">Одобренные</option>
-          <option value="rejected">Отклонённые</option>
-          <option value="draft">Черновики</option>
-        </select>
+        <FieldHelp text="Поиск применяет фильтрацию по APP ID, названию мероприятия и площадке." />
+        <div className="flex items-center gap-2">
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as "" | "draft" | "submitted" | "approved" | "rejected" | "blocked")}
+            className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
+            style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
+            <option value="">Все статусы</option>
+            <option value="draft">Черновики</option>
+            <option value="submitted">На проверке</option>
+            <option value="approved">Одобренные</option>
+            <option value="rejected">Отклонённые</option>
+            <option value="blocked">Блокированные</option>
+          </select>
+          <FieldHelp text="Фильтр таблицы и KPI используют единую статусную логику." />
+        </div>
       </div>
 
       {/* Table */}

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import type { AppState } from "@/lib/store";
 import { A, opResultChip } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 import { Activity, Search } from "lucide-react";
 
 interface Props { state: AppState; }
@@ -33,6 +34,7 @@ export default function AdminOperations({ state }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
+        <FieldHelp text="Поиск и фильтры применяются вместе и изменяют содержимое таблицы операций." />
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
           className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
           style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>

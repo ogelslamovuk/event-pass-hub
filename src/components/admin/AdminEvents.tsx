@@ -3,6 +3,7 @@ import type { AppState, EventRecord } from "@/lib/store";
 import { publishEvent, issueMarks } from "@/lib/store";
 import { toast } from "sonner";
 import { A, statusChip } from "./adminStyles";
+import FieldHelp from "@/components/common/FieldHelp";
 import { Calendar, Search, X, Ticket, Globe } from "lucide-react";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
@@ -46,6 +47,7 @@ export default function AdminEvents({ state, onUpdate }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
+        <FieldHelp text="Поиск фильтрует таблицу событий по EventID, названию и площадке." />
       </div>
 
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
