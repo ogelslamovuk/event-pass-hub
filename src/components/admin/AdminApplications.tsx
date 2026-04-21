@@ -21,6 +21,15 @@ function checkFeePaid(app: Application): boolean {
   return app.capacity <= 500;
 }
 
+function matchesApplicationFilters(app: Application, filterStatus: string, blockedOnly: boolean, query: string): boolean {
+  const isBlocked = app.status === "submitted" && (!checkRegistry(app) || !checkFeePaid(app));
+  if (blockedOnly && !isBlocked) return false;
+  if (filterStatus && app.status !== filterStatus) return false;
+  if (!query) return true;
+  const s = query.toLowerCase();
+  return app.appId.toLowerCase().includes(s) || app.title.toLowerCase().includes(s) || app.venue.toLowerCase().includes(s);
+}
+
 export default function AdminApplications({ state, onUpdate }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -32,25 +41,16 @@ export default function AdminApplications({ state, onUpdate }: Props) {
   const kpi = useMemo(() => {
     const a = state.applications;
     return {
-      newCount: a.filter(x => x.status === "submitted").length,
-      reviewing: a.filter(x => x.status === "submitted").length,
-      approved: a.filter(x => x.status === "approved").length,
-      blocked: a.filter(x => x.status === "submitted" && (!checkRegistry(x) || !checkFeePaid(x))).length,
+      newCount: a.filter((x) => matchesApplicationFilters(x, "submitted", false, "")).length,
+      reviewing: a.filter((x) => matchesApplicationFilters(x, "submitted", false, "")).length,
+      approved: a.filter((x) => matchesApplicationFilters(x, "approved", false, "")).length,
+      blocked: a.filter((x) => matchesApplicationFilters(x, "", true, "")).length,
     };
   }, [state.applications]);
 
   const filtered = useMemo(() => {
-    return state.applications.filter(a => {
-      const isBlocked = a.status === "submitted" && (!checkRegistry(a) || !checkFeePaid(a));
-      if (kpiFilter === "blocked" && !isBlocked) return false;
-      if (statusFilter && a.status !== statusFilter) return false;
-      if (search) {
-        const s = search.toLowerCase();
-        return a.appId.toLowerCase().includes(s) || a.title.toLowerCase().includes(s) || a.venue.toLowerCase().includes(s);
-      }
-      return true;
-    });
-  }, [state.applications, statusFilter, search]);
+    return state.applications.filter((a) => matchesApplicationFilters(a, statusFilter, kpiFilter === "blocked", search));
+  }, [state.applications, statusFilter, kpiFilter, search]);
 
   const handleConfirm = () => {
     if (!confirm) return;

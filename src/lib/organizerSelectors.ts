@@ -9,6 +9,7 @@ import type {
 import {
   getCurrentOrganizer,
   getMyApplications,
+  getOrganizerApplicationHistory,
   getMyEvents,
   getMyOrganizerDocuments,
   getMySales,
@@ -54,6 +55,12 @@ export function selectMyOrganizerApplication(state: AppState): OrganizerApplicat
   const organizer = getCurrentOrganizer(state);
   if (!organizer) return null;
   return getOrganizerApplicationByOrganizerId(state, organizer.organizerId);
+}
+
+export function selectMyOrganizerApplicationHistory(state: AppState): OrganizerApplicationRecord[] {
+  const organizer = getCurrentOrganizer(state);
+  if (!organizer) return [];
+  return getOrganizerApplicationHistory(state, organizer.organizerId);
 }
 
 export function selectIsCurrentOrganizerApproved(state: AppState): boolean {

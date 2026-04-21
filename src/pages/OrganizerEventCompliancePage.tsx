@@ -74,12 +74,12 @@ export default function OrganizerEventCompliancePage() {
         <section className="space-y-3">
           <h2 className="font-semibold">Основные сведения о мероприятии</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Наименование" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Тип мероприятия" value={form.eventType} onChange={(e) => setForm((p) => ({ ...p, eventType: e.target.value }))} />
+            <input title="Официальное название мероприятия для рассмотрения." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Наименование" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
+            <input title="Формат события: концерт, спектакль, фестиваль и т.д." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Тип мероприятия" value={form.eventType} onChange={(e) => setForm((p) => ({ ...p, eventType: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" type="datetime-local" value={form.dateSlots[0] || ""} onChange={(e) => setForm((p) => ({ ...p, dateSlots: [e.target.value] }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Место проведения" value={form.venueName} onChange={(e) => setForm((p) => ({ ...p, venueName: e.target.value }))} />
+            <input title="Название площадки в рамках этого кейса." className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Место проведения" value={form.venueName} onChange={(e) => setForm((p) => ({ ...p, venueName: e.target.value }))} />
           </div>
-          <input className="h-10 w-full rounded px-3 bg-[#0F1620] border" placeholder="Адрес площадки" value={form.venueAddress} onChange={(e) => setForm((p) => ({ ...p, venueAddress: e.target.value }))} />
+          <input title="Фактический адрес проведения мероприятия." className="h-10 w-full rounded px-3 bg-[#0F1620] border" placeholder="Адрес площадки" value={form.venueAddress} onChange={(e) => setForm((p) => ({ ...p, venueAddress: e.target.value }))} />
           <textarea className="w-full min-h-20 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Краткое описание" value={form.shortDescription} onChange={(e) => setForm((p) => ({ ...p, shortDescription: e.target.value }))} />
           <textarea className="w-full min-h-20 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Программа" value={form.program} onChange={(e) => setForm((p) => ({ ...p, program: e.target.value }))} />
         </section>
@@ -155,8 +155,8 @@ export default function OrganizerEventCompliancePage() {
         </section>
 
         <div className="flex gap-3">
-          <button className="px-4 h-10 rounded bg-[#2b3f57]" onClick={() => save(false)}>Сохранить черновик</button>
-          <button className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
+          <button title="Сохраняет форму без отправки в регуляторный контур." className="px-4 h-10 rounded bg-[#2b3f57]" onClick={() => save(false)}>Сохранить черновик</button>
+          <button title="Отправляет заявку на рассмотрение с текущими артефактами." className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
         </div>
 
         <section className="space-y-2">

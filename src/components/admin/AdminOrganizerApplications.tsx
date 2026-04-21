@@ -50,7 +50,7 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
                 <td className="py-2 px-3 space-y-2">
                   <textarea
                     className="w-full min-h-16 rounded px-2 py-1 text-xs"
-                    placeholder="Комментарий (обязателен для reject, рекомендован для needs rework)"
+                    placeholder="Комментарий (обязателен для reject и needs rework)"
                     value={comment[r.organizerApplicationId] || ""}
                     onChange={(e) => setComment((p) => ({ ...p, [r.organizerApplicationId]: e.target.value }))}
                     style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}

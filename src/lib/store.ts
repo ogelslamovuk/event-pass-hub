@@ -627,21 +627,23 @@ export function upsertOrganizerApplication(
   data: OrganizerApplicationData,
   submit: boolean
 ): OrganizerApplicationRecord {
-  const existing = state.organizerApplications.find((x) => x.organizerId === organizerId);
-  const status: ReviewStatus = submit ? "submitted" : "draft";
-  if (existing) {
-    existing.data = data;
-    existing.status = status;
-    existing.submittedAt = submit ? nowIso() : existing.submittedAt;
-    existing.updatedAt = nowIso();
-    existing.adminComment = "";
+  const organizerAttempts = state.organizerApplications
+    .filter((x) => x.organizerId === organizerId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const latest = organizerAttempts[0];
+
+  if (!submit && latest && latest.status === "draft") {
+    latest.data = data;
+    latest.updatedAt = nowIso();
+    latest.adminComment = "";
     saveState(state);
-    return existing;
+    return latest;
   }
+
   const rec: OrganizerApplicationRecord = {
     organizerApplicationId: quickId("ORGAPP"),
     organizerId,
-    status,
+    status: submit ? "submitted" : "draft",
     submittedAt: submit ? nowIso() : null,
     reviewedAt: null,
     adminComment: "",
@@ -655,7 +657,16 @@ export function upsertOrganizerApplication(
 }
 
 export function getOrganizerApplicationByOrganizerId(state: AppState, organizerId: string): OrganizerApplicationRecord | null {
-  return state.organizerApplications.find((x) => x.organizerId === organizerId) || null;
+  const attempts = state.organizerApplications
+    .filter((x) => x.organizerId === organizerId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return attempts[0] || null;
+}
+
+export function getOrganizerApplicationHistory(state: AppState, organizerId: string): OrganizerApplicationRecord[] {
+  return state.organizerApplications
+    .filter((x) => x.organizerId === organizerId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function createPendingOrganizerAccount(
@@ -692,7 +703,7 @@ export function setOrganizerApplicationReview(
 ): boolean {
   const app = state.organizerApplications.find((x) => x.organizerApplicationId === organizerApplicationId);
   if (!app) return false;
-  if (decision === "rejected" && !comment.trim()) return false;
+  if ((decision === "rejected" || decision === "needs_rework") && !comment.trim()) return false;
   app.status = decision;
   app.adminComment = comment.trim();
   app.reviewedAt = nowIso();
@@ -774,7 +785,7 @@ export function setEventComplianceReview(
   const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
   if (!app) return false;
   const comment = payload.comment?.trim() || "";
-  if (payload.decision === "rejected" && !comment) return false;
+  if ((payload.decision === "rejected" || payload.decision === "needs_rework") && !comment) return false;
 
   app.status = payload.decision;
   app.adminComment = comment;
