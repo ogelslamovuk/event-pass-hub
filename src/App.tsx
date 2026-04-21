@@ -11,6 +11,7 @@ import OrganizerRegistrationStubPage from "./pages/OrganizerRegistrationStubPage
 import OrganizerEventCompliancePage from "./pages/OrganizerEventCompliancePage";
 import PlatformLandingPage from "./pages/PlatformLandingPage";
 import { useStorageSync } from "./hooks/useStorageSync";
+import RouteTitleManager from "./components/RouteTitleManager";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <HashRouter>
+        <RouteTitleManager />
         <Routes>
           <Route path="/" element={<Navigate to="/admin" replace />} />
           <Route path="/organizer" element={<OrganizerRouteGuard />} />
