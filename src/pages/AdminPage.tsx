@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useStorageSync } from "@/hooks/useStorageSync";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { loadState, generateDemoData, runDemoScenario, resetState, defaultState } from "@/lib/store";
-import { toast } from "sonner";
 import { A } from "@/components/admin/adminStyles";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminApplications from "@/components/admin/AdminApplications";
@@ -18,7 +16,7 @@ import { AdminOrgRegistry, AdminVenueRegistry } from "@/components/admin/AdminRe
 import AdminReports from "@/components/admin/AdminReports";
 import {
   LayoutDashboard, FileText, Calendar, ShieldAlert, BookOpen, Building2, MapPin,
-  Globe, Ticket, Activity, BarChart3, Bell, Zap, X, RefreshCw, Trash2, Database,
+  Globe, Ticket, Activity, BarChart3, Bell, Zap,
 } from "lucide-react";
 
 type AdminTab =
@@ -80,27 +78,8 @@ const tabTitles: Record<AdminTab, string> = {
 };
 
 export default function AdminPage() {
-  const { state, update, setState } = useStorageSync();
+  const { state, update } = useStorageSync();
   const [tab, setTab] = useState<AdminTab>("dashboard");
-  const [demoOpen, setDemoOpen] = useState(false);
-
-  const handleGenerateDemo = () => {
-    const s = loadState();
-    generateDemoData(s);
-    setState({ ...s });
-    toast.success("Демо-данные сгенерированы");
-  };
-  const handleRunScenario = () => {
-    const s = runDemoScenario();
-    setState({ ...s });
-    toast.success("Демо-сценарий выполнен");
-  };
-  const handleReset = () => {
-    resetState();
-    setState(defaultState());
-    toast.success("Сброшено");
-  };
-
   const syncTime = state.meta?.updatedAt ? new Date(state.meta.updatedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
 
   return (
@@ -187,12 +166,6 @@ export default function AdminPage() {
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
               <Bell size={16} />
             </button>
-            <button onClick={() => setDemoOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 h-8 rounded-lg text-xs font-semibold transition-all"
-              style={{ background: `linear-gradient(135deg, ${A.cyan}20, ${A.violet}20)`, border: `1px solid ${A.cyan}30`, color: A.cyan }}>
-              <Database size={13} />
-              Demo Tools
-            </button>
           </div>
         </header>
 
@@ -218,49 +191,6 @@ export default function AdminPage() {
         </main>
       </div>
 
-      {/* Demo Tools Drawer */}
-      {demoOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setDemoOpen(false)}>
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative w-full max-w-sm h-full overflow-y-auto animate-in slide-in-from-right duration-300"
-            style={{ background: A.glassGradient + ', ' + A.sidebarBg, borderLeft: `1px solid ${A.borderGlass}`, boxShadow: '0 0 80px rgba(0,0,0,0.6)' }}
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5" style={{ borderBottom: `1px solid ${A.border}` }}>
-              <div>
-                <h3 className="text-base font-semibold" style={{ color: A.textPrimary }}>Demo Tools</h3>
-                <p className="text-xs mt-0.5" style={{ color: A.textMuted }}>Служебная панель · временное</p>
-              </div>
-              <button onClick={() => setDemoOpen(false)} style={{ color: A.textMuted }} className="hover:opacity-80"><X size={18} /></button>
-            </div>
-            <div className="p-5 space-y-3">
-              <button onClick={handleGenerateDemo}
-                className="w-full flex items-center gap-3 px-4 h-12 rounded-xl text-sm font-semibold transition-all"
-                style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = A.cyan + '50')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = A.borderLight)}>
-                <Database size={16} style={{ color: A.cyan }} />
-                Сгенерировать демо-данные
-              </button>
-              <button onClick={handleRunScenario}
-                className="w-full flex items-center gap-3 px-4 h-12 rounded-xl text-sm font-semibold transition-all"
-                style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = A.violet + '50')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = A.borderLight)}>
-                <RefreshCw size={16} style={{ color: A.violet }} />
-                Прогнать демо-сценарий
-              </button>
-              <button onClick={handleReset}
-                className="w-full flex items-center gap-3 px-4 h-12 rounded-xl text-sm font-semibold transition-all"
-                style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = A.statusError + '50')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = A.borderLight)}>
-                <Trash2 size={16} style={{ color: A.statusError }} />
-                Сбросить всё
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

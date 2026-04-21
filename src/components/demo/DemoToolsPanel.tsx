@@ -1,0 +1,68 @@
+import React from "react";
+import { Database, RefreshCw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useStorageSync } from "@/hooks/useStorageSync";
+import { A } from "@/components/admin/adminStyles";
+import { defaultState, generateDemoData, loadState, resetState, runDemoScenario } from "@/lib/store";
+
+export default function DemoToolsPanel() {
+  const { setState } = useStorageSync();
+
+  const handleGenerateDemo = () => {
+    const s = loadState();
+    generateDemoData(s);
+    setState({ ...s });
+    toast.success("Демо-данные сгенерированы");
+  };
+
+  const handleRunScenario = () => {
+    const s = runDemoScenario();
+    setState({ ...s });
+    toast.success("Демо-сценарий выполнен");
+  };
+
+  const handleReset = () => {
+    resetState();
+    setState(defaultState());
+    toast.success("Сброшено");
+  };
+
+  const actionClass = "w-full flex items-center gap-3 px-4 h-12 rounded-xl text-sm font-semibold transition-colors";
+
+  return (
+    <div className="space-y-3">
+      <button
+        onClick={handleGenerateDemo}
+        className={actionClass}
+        style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${A.cyan}50`)}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = A.borderLight)}
+      >
+        <Database size={16} style={{ color: A.cyan }} />
+        Сгенерировать демо-данные
+      </button>
+
+      <button
+        onClick={handleRunScenario}
+        className={actionClass}
+        style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${A.violet}50`)}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = A.borderLight)}
+      >
+        <RefreshCw size={16} style={{ color: A.violet }} />
+        Прогнать демо-сценарий
+      </button>
+
+      <button
+        onClick={handleReset}
+        className={actionClass}
+        style={{ background: A.surfaceBg, border: `1px solid ${A.borderLight}`, color: A.textPrimary }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${A.statusError}50`)}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = A.borderLight)}
+      >
+        <Trash2 size={16} style={{ color: A.statusError }} />
+        Сбросить всё
+      </button>
+    </div>
+  );
+}
