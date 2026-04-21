@@ -4,6 +4,7 @@ import { publishEvent, issueMarks } from "@/lib/store";
 import { toast } from "sonner";
 import { A, statusChip } from "./adminStyles";
 import { Calendar, Search, X, Ticket, Globe } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -46,6 +47,7 @@ export default function AdminEvents({ state, onUpdate }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
+        <HelpTooltip text="Поиск работает по EventID, названию и площадке мероприятия." />
       </div>
 
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">

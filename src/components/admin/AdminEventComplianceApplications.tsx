@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { calculateComplianceFee, setEventComplianceReview } from "@/lib/store";
 import { A } from "./adminStyles";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -27,7 +28,10 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm" style={{ color: A.textSecondary }}>Event compliance applications</h2>
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-sm" style={{ color: A.textSecondary }}>Event compliance applications</h2>
+        <HelpTooltip text="При одобрении заполните номер и дату удостоверения, а также отметьте подтверждение пошлины." />
+      </div>
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 12 }} className="overflow-hidden">
         <table className="w-full text-sm">
           <thead>
