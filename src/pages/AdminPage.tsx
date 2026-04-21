@@ -14,6 +14,7 @@ import AdminCalendar from "@/components/admin/AdminCalendar";
 import AdminDecisionLog from "@/components/admin/AdminDecisionLog";
 import { AdminOrgRegistry, AdminVenueRegistry } from "@/components/admin/AdminRegistries";
 import AdminReports from "@/components/admin/AdminReports";
+import AdminRegistryEvents from "@/components/admin/AdminRegistryEvents";
 import {
   LayoutDashboard, FileText, Calendar, ShieldAlert, BookOpen, Building2, MapPin,
   Globe, Ticket, Activity, BarChart3, Bell, Zap,
@@ -22,7 +23,7 @@ import {
 type AdminTab =
   | "dashboard" | "calendar" | "control" | "decisions"
   | "organizerApplications" | "eventComplianceApplications"
-  | "orgRegistry" | "venueRegistry" | "events" | "tickets" | "operations" | "reports";
+  | "orgRegistry" | "venueRegistry" | "registryEvents" | "events" | "tickets" | "operations" | "reports";
 
 const sidebarSections: { label?: string; items: { key: AdminTab; label: string; icon: React.ElementType }[] }[] = [
   {
@@ -45,6 +46,7 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
     items: [
       { key: "orgRegistry", label: "Организаторы", icon: Building2 },
       { key: "venueRegistry", label: "Площадки", icon: MapPin },
+      { key: "registryEvents", label: "Мероприятия", icon: Calendar },
     ],
   },
   {
@@ -71,6 +73,7 @@ const tabTitles: Record<AdminTab, string> = {
   decisions: "Журнал решений",
   orgRegistry: "Реестр организаторов",
   venueRegistry: "Реестр площадок",
+  registryEvents: "Мероприятия",
   events: "Реестр событий",
   tickets: "Реестр билетов",
   operations: "Журнал операций",
@@ -184,6 +187,7 @@ export default function AdminPage() {
           {tab === "decisions" && <AdminDecisionLog state={state} />}
           {tab === "orgRegistry" && <AdminOrgRegistry state={state} />}
           {tab === "venueRegistry" && <AdminVenueRegistry state={state} />}
+          {tab === "registryEvents" && <AdminRegistryEvents state={state} onUpdate={update} />}
           {tab === "events" && <AdminEvents state={state} onUpdate={update} />}
           {tab === "tickets" && <AdminTickets state={state} />}
           {tab === "operations" && <AdminOperations state={state} />}
