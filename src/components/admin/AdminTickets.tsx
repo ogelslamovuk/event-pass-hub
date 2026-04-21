@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import type { AppState, Ticket } from "@/lib/store";
 import { A, tktStatusChip } from "./adminStyles";
 import { Ticket as TicketIcon, Search, X } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; }
 
@@ -48,6 +49,7 @@ export default function AdminTickets({ state }: Props) {
           <option value="">Все события</option>
           {uniqueEvents.map(e => <option key={e} value={e}>{e}</option>)}
         </select>
+        <HelpTooltip text="Используйте фильтры, чтобы быстро найти билеты по статусу или конкретному событию." />
       </div>
 
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">

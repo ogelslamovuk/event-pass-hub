@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { A, statusChip } from "./adminStyles";
 import { Building2, MapPin, X } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 // Organizer Registry
 export function AdminOrgRegistry({ state }: { state: AppState }) {
@@ -38,6 +39,10 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs" style={{ color: A.textSecondary }}>Реестр организаторов</span>
+        <HelpTooltip text="Нажмите на строку, чтобы открыть карточку организатора с деталями и риском." />
+      </div>
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
         {orgs.length === 0 ? (
           <div className="flex flex-col items-center py-12">
@@ -134,6 +139,10 @@ export function AdminVenueRegistry({ state }: { state: AppState }) {
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs" style={{ color: A.textSecondary }}>Реестр площадок</span>
+        <HelpTooltip text="Нажмите на строку площадки, чтобы открыть подробные сведения в боковой панели." />
+      </div>
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
         {venues.length === 0 ? (
           <div className="flex flex-col items-center py-12">

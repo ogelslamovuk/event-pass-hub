@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { setOrganizerApplicationReview } from "@/lib/store";
 import { A } from "./adminStyles";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -18,7 +19,10 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm" style={{ color: A.textSecondary }}>Заявки организаторов</h2>
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-sm" style={{ color: A.textSecondary }}>Заявки организаторов</h2>
+        <HelpTooltip text="Перед отклонением или возвратом на доработку добавьте комментарий с причиной." />
+      </div>
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 12 }} className="overflow-hidden">
         <table className="w-full text-sm">
           <thead>

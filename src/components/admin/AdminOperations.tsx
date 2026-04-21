@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import type { AppState } from "@/lib/store";
 import { A, opResultChip } from "./adminStyles";
 import { Activity, Search } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; }
 
@@ -46,6 +47,7 @@ export default function AdminOperations({ state }: Props) {
           <option value="ok">OK</option>
           <option value="error">Ошибка</option>
         </select>
+        <HelpTooltip text="Комбинируйте тип и результат операции, чтобы локализовать проблемные транзакции." />
       </div>
 
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">

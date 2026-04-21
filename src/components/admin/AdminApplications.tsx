@@ -4,6 +4,7 @@ import { approveApplication, rejectApplication } from "@/lib/store";
 import { toast } from "sonner";
 import { A, appStatusChip, statusChip } from "./adminStyles";
 import { FileText, Search, ShieldCheck, AlertTriangle, X, CheckCircle, XCircle, Clock } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -114,6 +115,7 @@ export default function AdminApplications({ state, onUpdate }: Props) {
             className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }} />
         </div>
+        <HelpTooltip text="Поиск работает по ID заявки, названию мероприятия и площадке." />
         <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setKpiFilter(""); }}
           className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
           style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
@@ -123,6 +125,7 @@ export default function AdminApplications({ state, onUpdate }: Props) {
           <option value="rejected">Отклонённые</option>
           <option value="draft">Черновики</option>
         </select>
+        <HelpTooltip text="Выберите статус, чтобы показать только нужный этап обработки заявок." />
       </div>
 
       {/* Table */}

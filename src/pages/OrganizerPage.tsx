@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import HelpTooltip from "@/components/ui/help-tooltip";
 import { useStorageSync } from "@/hooks/useStorageSync";
 import type { Application, AppState, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
 import { createApplication, logoutOrganizer, submitApplication } from "@/lib/store";
@@ -697,7 +698,6 @@ function ApplicationsTable({
           <select
             value={appFilter}
             onChange={(e) => setAppFilter(e.target.value as AppFilter)}
-            title="Фильтр по статусу. Совпадает с карточками статусов выше."
             className="border rounded-xl px-3 py-2 text-[13px]"
             style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
           >
@@ -707,6 +707,7 @@ function ApplicationsTable({
             <option value="approved">Одобрено</option>
             <option value="rejected">Отклонено</option>
           </select>
+          <HelpTooltip text="Фильтр применяет статусы заявок из таблицы. KPI-карточки выше используют ту же логику." />
           <button onClick={onCreateNew} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
             <Plus size={14} /> Создать
           </button>
@@ -982,10 +983,10 @@ function DocumentsSection({ rows, complianceRows }: { rows: OrganizerDocument[];
                   className="h-9 px-4 rounded-lg text-sm font-semibold"
                   style={{ background: "#111", color: "#FFF" }}
                   onClick={() => toast.success(`Удостоверение ${item.certificateNumber} готово к выдаче по событию ${item.linkedEventId}`)}
-                  title="Скачать удостоверение по одобренному мероприятию."
                 >
                   Скачать удостоверение
                 </button>
+                <HelpTooltip text="Скачайте удостоверение только после одобрения compliance-заявки по мероприятию." />
               </div>
             ))}
           </div>
@@ -1209,17 +1210,17 @@ function CreateApplicationDrawer({
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center"><X size={18} /></button>
         </div>
         <div className="p-6 space-y-4">
-          <Field label="Название *"><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
-          <Field label="Площадка *"><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={venue} onChange={(e) => setVenue(e.target.value)} /></Field>
-          <Field label="Дата и время *"><input type="datetime-local" className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={dateTime} onChange={(e) => setDateTime(e.target.value)} /></Field>
-          <Field label="Вместимость *"><input type="number" min={1} max={5000} className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
-          <Field label="Город *">
+          <Field label="Название *" helpText="Краткое название, которое увидит администратор при проверке."><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
+          <Field label="Площадка *" helpText="Укажите площадку проведения так же, как в согласовании и документах."><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={venue} onChange={(e) => setVenue(e.target.value)} /></Field>
+          <Field label="Дата и время *" helpText="Выберите фактическую дату и время начала мероприятия."><input type="datetime-local" className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={dateTime} onChange={(e) => setDateTime(e.target.value)} /></Field>
+          <Field label="Вместимость *" helpText="Максимум мест на площадке. Значение используется в проверках и выпуске билетов."><input type="number" min={1} max={5000} className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
+          <Field label="Город *" helpText="Выберите город из разрешённого справочника.">
             <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={city} onChange={(e) => setCity(e.target.value as (typeof CITY_WHITELIST)[number] | "")}> 
               <option value="">Выберите город</option>
               {CITY_WHITELIST.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </Field>
-          <Field label="Категория *">
+          <Field label="Категория *" helpText="Категория помогает маршрутизировать заявку и отчётность.">
             <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORY_WHITELIST)[number] | "")}> 
               <option value="">Выберите категорию</option>
               {CATEGORY_WHITELIST.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -1252,10 +1253,13 @@ function CreateApplicationDrawer({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, helpText, children }: { label: string; helpText?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[13px] font-semibold mb-1.5">{label}</label>
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <label className="block text-[13px] font-semibold">{label}</label>
+        {helpText && <HelpTooltip text={helpText} />}
+      </div>
       {children}
     </div>
   );
