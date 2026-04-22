@@ -188,11 +188,13 @@ export default function PlatformLandingPage() {
         </header>
 
         <section className="mt-3 grid gap-3 lg:grid-cols-[1fr_1.33fr]">
-          <div className="relative overflow-hidden rounded-2xl border border-[#253a63] bg-[#040d23]/95 p-5 shadow-[0_30px_70px_rgba(9,20,48,0.5)] lg:p-6">
-            <div className="absolute -left-16 top-16 h-44 w-44 rounded-full bg-violet-600/20 blur-3xl" />
-            <div className="absolute right-8 top-8 h-28 w-28 rounded-full bg-indigo-500/20 blur-2xl" />
-            <span className="inline-flex rounded-md border border-[#3a4f7d] bg-[#121e3b] px-2.5 py-1 text-[10px] text-[#a8b5dd]">Билетная платформа</span>
-            <h1 className="mt-3 text-[52px] font-semibold leading-[0.96] tracking-tight lg:text-[58px]">
+          <div className="relative overflow-hidden rounded-2xl border border-[#2a406e] bg-[linear-gradient(165deg,rgba(8,20,48,0.95),rgba(4,13,35,0.96))] p-5 shadow-[0_34px_86px_rgba(8,18,44,0.58)] lg:p-6">
+            <div className="absolute -left-16 top-14 h-44 w-44 rounded-full bg-violet-600/30 blur-3xl" />
+            <div className="absolute right-8 top-10 h-32 w-32 rounded-full bg-indigo-500/28 blur-3xl" />
+            <div className="absolute bottom-6 left-1/3 h-24 w-24 rounded-full bg-cyan-500/10 blur-2xl" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-violet-500/15 via-transparent to-blue-500/15" />
+            <span className="inline-flex rounded-lg border border-[#4a5d8f] bg-[#152345]/90 px-3 py-1 text-[10px] font-medium tracking-wide text-[#b4c1e8] shadow-[inset_0_1px_0_rgba(186,205,255,0.22)]">Билетная платформа</span>
+            <h1 className="mt-3 text-[52px] font-semibold leading-[0.94] tracking-tight lg:text-[58px]">
               Единая платформа
               <br />
               управления
@@ -200,23 +202,24 @@ export default function PlatformLandingPage() {
               <span className="bg-gradient-to-r from-[#bb83ff] via-[#9a70ff] to-[#6f91ff] bg-clip-text text-transparent">мероприятиями</span>
               <br />и билетами
             </h1>
-            <p className="mt-4 max-w-[540px] text-[11px] leading-[1.5] text-[#bbc8e7] lg:text-[12px]">
+            <p className="mt-4 max-w-[560px] text-[11px] leading-[1.52] text-[#c3d0ec] lg:text-[12px]">
               Демо-портал показывает, как регулятор, организаторы, реселлеры и B2C-витрина работают в одной системе: управляют мероприятиями, ведут билеты, контролируют продажи, получают отчётность и видят общую картину рынка.
             </p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-3 gap-2.5">
               {["Единый реестр мероприятий", "Единый реестр билетов", "Отчётность и контроль"].map((item) => (
-                <div key={item} className="rounded-xl border border-[#2a406a] bg-[#07132c]/90 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(168,191,255,0.12)]">
-                  <div className="inline-flex rounded-md border border-[#3e568d] bg-[#0c1a38] p-1.5">
+                <div key={item} className="rounded-xl border border-[#324a79] bg-[linear-gradient(180deg,rgba(13,30,62,0.85),rgba(8,20,46,0.95))] px-2.5 py-2.5 shadow-[inset_0_1px_0_rgba(177,200,255,0.18),0_8px_18px_rgba(6,14,34,0.45)]">
+                  <div className="inline-flex rounded-md border border-[#4b66a2] bg-[#122953] p-1.5 shadow-[inset_0_1px_0_rgba(183,206,255,0.3)]">
                     <Layers3 className="h-3.5 w-3.5 text-[#9cb0e7]" />
                   </div>
-                  <p className="mt-1.5 text-[11px] leading-[1.25] text-[#edf2ff]">{item}</p>
+                  <p className="mt-2 text-[10px] leading-[1.28] text-[#eaf0ff] lg:text-[11px]">{item}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-[#28407a] bg-[#040f27]/95 p-4 shadow-[0_0_90px_rgba(92,88,255,0.2)] lg:p-5">
-            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-violet-500/15 via-transparent to-cyan-500/15" />
+          <div className="relative overflow-hidden rounded-2xl border border-[#2f4788] bg-[linear-gradient(155deg,rgba(7,19,45,0.98),rgba(5,15,37,0.98))] p-4 shadow-[0_0_95px_rgba(95,96,255,0.24)] lg:p-5">
+            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-violet-500/20 via-indigo-500/8 to-cyan-500/18" />
+            <div className="absolute -right-8 top-16 h-28 w-28 rounded-full bg-fuchsia-500/14 blur-3xl" />
             <div className="relative flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-[22px] font-semibold leading-tight lg:text-[24px]">Лицензирование</h2>
@@ -228,20 +231,21 @@ export default function PlatformLandingPage() {
             </div>
             <div className="relative mt-3 flex flex-wrap gap-1.5 text-[9px] lg:text-[10px]">
               {["Все", "Концерты", "Фестивали", "Форумы", "Спорт", "Выставки"].map((f, i) => (
-                <span key={f} className={`rounded-full border px-2 py-0.5 ${i === 0 ? "border-[#6f6cff] bg-[#3f3bc2]" : "border-[#2a3d66] bg-[#071229]"}`}>
+                <span key={f} className={`rounded-full border px-2.5 py-0.5 ${i === 0 ? "border-[#7e7bff] bg-[#4541cb] text-white shadow-[0_0_20px_rgba(96,95,255,0.45)]" : "border-[#334a77] bg-[#0a1a39] text-[#c8d4f3]"}`}>
                   {f}
                 </span>
               ))}
             </div>
             <div className="relative mt-3 space-y-2">
               {previewRows.map((r) => (
-                <div key={r.title} className="rounded-xl border border-[#1d2f52] bg-[#071327] p-2.5 shadow-[inset_0_1px_0_rgba(140,167,220,0.1)]">
-                  <div className="grid items-center gap-2 md:grid-cols-[1.7fr_auto_1fr]">
+                <div key={r.title} className="rounded-xl border border-[#27406e] bg-[linear-gradient(165deg,rgba(10,28,56,0.88),rgba(6,18,39,0.96))] p-2.5 shadow-[inset_0_1px_0_rgba(171,195,248,0.16),0_10px_20px_rgba(6,14,35,0.38)]">
+                  <div className="grid items-center gap-2 md:grid-cols-[auto_1.7fr_auto_1fr]">
+                    <div className="h-9 w-14 overflow-hidden rounded-md border border-[#3a5589] bg-gradient-to-br from-[#7c3cff] via-[#335dff] to-[#28a8cc]" />
                     <div className="min-w-0">
                       <p className="truncate text-[10px] font-medium leading-snug lg:text-[11px]">{r.title}</p>
-                      <p className="truncate text-[9px] text-[#95a4ca] lg:text-[10px]">{r.subtitle}</p>
+                      <p className="truncate text-[9px] text-[#9daed8] lg:text-[10px]">{r.subtitle}</p>
                     </div>
-                    <span className={`rounded-full border px-2 py-0.5 text-[8px] lg:text-[9px] ${r.statusClass}`}>{r.status}</span>
+                    <span className={`rounded-full border px-2.5 py-0.5 text-[8px] font-medium lg:text-[9px] ${r.statusClass}`}>{r.status}</span>
                     <div className="grid grid-cols-2 gap-2 text-right">
                       <div>
                         <p className="text-[8px] uppercase tracking-wide text-[#7f90b7]">Продано билетов</p>
@@ -268,13 +272,13 @@ export default function PlatformLandingPage() {
                 <Link
                   key={card.title}
                   to={card.route}
-                  className={`group rounded-xl border border-[#2a3f68] bg-gradient-to-b ${card.glow} p-3 shadow-[inset_0_1px_0_rgba(164,186,243,0.14)] transition hover:border-[#4a69a6]`}
+                  className={`group rounded-xl border border-[#304875] bg-gradient-to-b ${card.glow} p-3.5 shadow-[inset_0_1px_0_rgba(178,199,250,0.18),0_8px_18px_rgba(6,15,36,0.35)] transition hover:border-[#5a79bb]`}
                 >
-                  <div className={`inline-flex rounded-md border p-1.5 ${card.iconWrap}`}>
+                  <div className={`inline-flex rounded-md border p-1.5 shadow-[inset_0_1px_0_rgba(219,231,255,0.22)] ${card.iconWrap}`}>
                     <Users className="h-3.5 w-3.5" />
                   </div>
-                  <p className="mt-2 text-[12px] font-medium leading-snug">{card.title}</p>
-                  <p className="mt-1 text-[9px] leading-[1.4] text-[#b3c0df]">{card.description}</p>
+                  <p className="mt-2 text-[11px] font-medium leading-snug lg:text-[12px]">{card.title}</p>
+                  <p className="mt-1 text-[9px] leading-[1.42] text-[#b9c6e3]">{card.description}</p>
                 </Link>
               ))}
             </div>
@@ -284,26 +288,26 @@ export default function PlatformLandingPage() {
             <h3 className="text-[26px] font-semibold leading-tight lg:text-[28px]">Демо-инструменты</h3>
             <p className="text-[10px] text-[#93a3cb] lg:text-[11px]">Инструменты для управления демо-средой и загрузки типовых данных</p>
             <div className="mt-3 grid gap-2 lg:grid-cols-3">
-              <button onClick={runReset} className="rounded-xl border border-[#31456f] bg-gradient-to-b from-[#311450]/35 to-[#08142e] p-3 text-left shadow-[inset_0_1px_0_rgba(174,125,245,0.2)]">
-                <div className="inline-flex rounded-md border border-[#9445d9]/40 bg-[#812eb6]/20 p-1.5">
+              <button onClick={runReset} className="rounded-xl border border-[#3a4f78] bg-gradient-to-b from-[#311450]/35 to-[#08142e] p-3.5 text-left shadow-[inset_0_1px_0_rgba(190,149,255,0.24),0_8px_18px_rgba(6,15,36,0.32)]">
+                <div className="inline-flex rounded-md border border-[#9445d9]/45 bg-[#812eb6]/24 p-1.5 shadow-[inset_0_1px_0_rgba(227,199,255,0.24)]">
                   <RefreshCw className="h-3.5 w-3.5 text-[#c997ff]" />
                 </div>
-                <p className="mt-2 text-[12px] font-medium leading-tight">Сбросить демо</p>
-                <p className="text-[9px] leading-snug text-[#b7c5e1]">Очистить текущее демо и вернуть систему к базовому состоянию</p>
+                <p className="mt-2 text-[11px] font-medium leading-tight lg:text-[12px]">Сбросить демо</p>
+                <p className="text-[9px] leading-[1.38] text-[#b7c5e1]">Очистить текущее демо и вернуть систему к базовому состоянию</p>
               </button>
-              <button onClick={runGenerate} className="rounded-xl border border-[#31456f] bg-gradient-to-b from-[#0f345f]/40 to-[#08142e] p-3 text-left shadow-[inset_0_1px_0_rgba(109,194,255,0.2)]">
-                <div className="inline-flex rounded-md border border-[#3c82d6]/40 bg-[#245aa3]/20 p-1.5">
+              <button onClick={runGenerate} className="rounded-xl border border-[#3a4f78] bg-gradient-to-b from-[#0f345f]/40 to-[#08142e] p-3.5 text-left shadow-[inset_0_1px_0_rgba(145,208,255,0.25),0_8px_18px_rgba(6,15,36,0.32)]">
+                <div className="inline-flex rounded-md border border-[#3c82d6]/45 bg-[#245aa3]/24 p-1.5 shadow-[inset_0_1px_0_rgba(201,230,255,0.22)]">
                   <Database className="h-3.5 w-3.5 text-[#6dc2ff]" />
                 </div>
-                <p className="mt-2 text-[12px] font-medium leading-tight">Загрузить mock-данные</p>
-                <p className="text-[9px] leading-snug text-[#b7c5e1]">Загрузить типовые данные по мероприятиям, билетам и пользователям</p>
+                <p className="mt-2 text-[11px] font-medium leading-tight lg:text-[12px]">Загрузить mock-данные</p>
+                <p className="text-[9px] leading-[1.38] text-[#b7c5e1]">Загрузить типовые данные по мероприятиям, билетам и пользователям</p>
               </button>
-              <button onClick={runScenario} className="rounded-xl border border-[#31456f] bg-gradient-to-b from-[#134b44]/35 to-[#08142e] p-3 text-left shadow-[inset_0_1px_0_rgba(103,223,183,0.2)]">
-                <div className="inline-flex rounded-md border border-[#3cae87]/40 bg-[#228565]/20 p-1.5">
+              <button onClick={runScenario} className="rounded-xl border border-[#3a4f78] bg-gradient-to-b from-[#134b44]/35 to-[#08142e] p-3.5 text-left shadow-[inset_0_1px_0_rgba(143,233,203,0.24),0_8px_18px_rgba(6,15,36,0.32)]">
+                <div className="inline-flex rounded-md border border-[#3cae87]/45 bg-[#228565]/24 p-1.5 shadow-[inset_0_1px_0_rgba(204,255,236,0.22)]">
                   <Play className="h-3.5 w-3.5 text-[#67dfb7]" />
                 </div>
-                <p className="mt-2 text-[12px] font-medium leading-tight">Запустить demo-сценарий</p>
-                <p className="text-[9px] leading-snug text-[#b7c5e1]">Запустить готовый сценарий работы системы с типовыми данными</p>
+                <p className="mt-2 text-[11px] font-medium leading-tight lg:text-[12px]">Запустить demo-сценарий</p>
+                <p className="text-[9px] leading-[1.38] text-[#b7c5e1]">Запустить готовый сценарий работы системы с типовыми данными</p>
               </button>
             </div>
           </div>
