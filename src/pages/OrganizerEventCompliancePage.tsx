@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import HelpTooltip from "@/components/ui/help-tooltip";
@@ -18,6 +18,7 @@ import {
 
 export default function OrganizerEventCompliancePage() {
   const { state, update } = useStorageSync();
+  const [searchParams] = useSearchParams();
   const organizer = useMemo(() => selectCurrentOrganizer(state), [state]);
   const approved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
   const myApps = useMemo(() => selectMyEventComplianceApplications(state), [state]);
@@ -30,6 +31,14 @@ export default function OrganizerEventCompliancePage() {
     rejected: "Отклонена",
     needs_rework: "Требует доработки",
   };
+
+  const editId = searchParams.get("edit");
+  const editingApplication = editId ? myApps.find((app) => app.eventComplianceApplicationId === editId) : null;
+  useEffect(() => {
+    if (!organizer || !approved || !editId || !editingApplication) return;
+    setEditingId(editId);
+    setForm(editingApplication.data);
+  }, [approved, editId, editingApplication, organizer]);
 
   if (!organizer) return <Navigate to="/organizer/login" replace />;
   if (!approved) return <Navigate to="/organizer" replace />;
@@ -88,9 +97,11 @@ export default function OrganizerEventCompliancePage() {
       return;
     }
     update({ ...state });
-    toast.success(submit ? "Заявка отправлена" : "Черновик сохранён");
-    setEditingId(null);
-    setForm(defaultEventComplianceData());
+    toast.success(submit ? "Заявка отправлена." : "Черновик сохранён.");
+    if (submit) {
+      setEditingId(null);
+      setForm(defaultEventComplianceData());
+    }
   };
 
   return (
@@ -220,9 +231,9 @@ export default function OrganizerEventCompliancePage() {
                   <div>
                     <div className="font-medium">{app.data.title || "Без названия"}</div>
                     <div className="text-xs opacity-70">{app.eventComplianceApplicationId} · {complianceStatusLabel[app.status] || app.status}</div>
-                    {!!app.adminComment && <div className="text-xs mt-1">Комментарий: {app.adminComment}</div>}
+                    {!!app.adminComment && <div className="text-xs mt-1"><span className="opacity-70">Комментарий администратора:</span> {app.adminComment}</div>}
                   </div>
-                  {app.status === "needs_rework" && (
+                  {(app.status === "needs_rework" || app.status === "draft") && (
                     <button
                       className="px-3 py-2 rounded bg-[#1d2a3b]"
                       onClick={() => {
@@ -230,7 +241,7 @@ export default function OrganizerEventCompliancePage() {
                         setForm(app.data);
                       }}
                     >
-                      Доработать
+                      {app.status === "draft" ? "Продолжить" : "Доработать"}
                     </button>
                   )}
                 </div>

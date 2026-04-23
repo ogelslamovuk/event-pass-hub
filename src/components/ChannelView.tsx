@@ -156,30 +156,32 @@ export default function ChannelView({ state }: Props) {
     [state.ops],
   );
 
-  const appMap = useMemo(() => new Map(state.applications.map((app) => [app.appId, app.title])), [state.applications]);
+  const organizerMap = useMemo(() => new Map(state.organizers.map((org) => [org.organizerId, org.name])), [state.organizers]);
+  const issuedEventIds = useMemo(() => new Set(state.tickets.map((ticket) => ticket.eventId)), [state.tickets]);
 
   const events = useMemo(() => {
     return state.events
+      .filter((e) => e.status === "published" && issuedEventIds.has(e.eventId))
       .filter((e) => (statusFilter === "all" ? true : e.status === statusFilter))
       .filter((e) => (dateFilter ? e.dateTime.startsWith(dateFilter) : true))
       .filter((e) => {
         if (organizerFilter === "all") return true;
-        const organizer = appMap.get(e.appId) || `Организатор ${e.appId}`;
+        const organizer = organizerMap.get(e.organizerId) || `Организатор ${e.organizerId}`;
         return organizer === organizerFilter;
       })
       .filter((e) => {
         if (!search.trim()) return true;
         const q = search.toLowerCase();
-        return [e.eventId, e.title, e.venue, appMap.get(e.appId) || ""].some((value) => value.toLowerCase().includes(q));
+        return [e.eventId, e.title, e.venue, organizerMap.get(e.organizerId) || ""].some((value) => value.toLowerCase().includes(q));
       })
       .sort((a, b) => a.dateTime.localeCompare(b.dateTime));
-  }, [appMap, dateFilter, organizerFilter, search, state.events, statusFilter]);
+  }, [dateFilter, issuedEventIds, organizerFilter, organizerMap, search, state.events, statusFilter]);
 
   const organizerOptions = useMemo(() => {
     const set = new Set<string>();
-    state.events.forEach((event) => set.add(appMap.get(event.appId) || `Организатор ${event.appId}`));
+    events.forEach((event) => set.add(organizerMap.get(event.organizerId) || `Организатор ${event.organizerId}`));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [appMap, state.events]);
+  }, [events, organizerMap]);
 
   const selectedEvent = useMemo(
     () => state.events.find((e) => e.eventId === selectedEventId) || null,
@@ -188,7 +190,7 @@ export default function ChannelView({ state }: Props) {
 
   const today = new Date().toISOString().slice(0, 10);
   const todayOps = channelOps.filter((op) => op.ts.startsWith(today));
-  const activeEvents = state.events.filter((e) => e.status === "published");
+  const activeEvents = state.events.filter((e) => e.status === "published" && issuedEventIds.has(e.eventId));
   const ticketsAvailable = activeEvents.reduce((acc, event) => acc + event.remaining, 0);
   const failedRequests = todayOps.filter((op) => op.result === "error").length;
   const webhookDeliveries = todayOps.length;
@@ -314,7 +316,7 @@ export default function ChannelView({ state }: Props) {
                 )}
                 {events.map((event) => {
                   const isSelected = selectedEventId === event.eventId;
-                  const organizer = appMap.get(event.appId) || `Организатор ${event.appId}`;
+                  const organizer = organizerMap.get(event.organizerId) || `Организатор ${event.organizerId}`;
                   return (
                     <tr key={event.eventId} onClick={() => setSelectedEventId(event.eventId)} className={`cursor-pointer border-b border-white/5 transition-colors ${isSelected ? "bg-cyan-500/15" : "hover:bg-slate-800/55"}`}>
                       <td className="px-2 py-2 font-mono text-xs text-slate-200">{event.eventId}</td>

@@ -96,6 +96,7 @@ export default function B2CView({ state, onUpdate }: Props) {
   const publishedEvents = useMemo<DemoEvent[]>(() => {
     return state.events
       .filter((event) => event.status === "published")
+      .filter((event) => state.tickets.some((ticket) => ticket.eventId === event.eventId))
       .map((event) => ({
         ...event,
         city: CITY_WHITELIST.includes(event.city as (typeof CITY_WHITELIST)[number]) ? event.city : "Минск",
@@ -103,7 +104,7 @@ export default function B2CView({ state, onUpdate }: Props) {
         description: event.description || "Описание события появится позже.",
         poster: event.poster || "",
       }));
-  }, [state.events]);
+  }, [state.events, state.tickets]);
 
   const filteredEvents = useMemo(() => {
     const q = search.trim().toLowerCase();

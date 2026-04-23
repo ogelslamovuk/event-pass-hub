@@ -4,13 +4,12 @@ import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import HelpTooltip from "@/components/ui/help-tooltip";
 import { useStorageSync } from "@/hooks/useStorageSync";
-import type { Application, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
-import { logoutOrganizer, submitApplication } from "@/lib/store";
+import type { Application, EventComplianceApplicationRecord, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
+import { logoutOrganizer } from "@/lib/store";
 import {
   DEMO_VAT_RATE,
   selectCurrentOrganizer,
   selectMyEventComplianceApplications,
-  selectMyApplications,
   selectMyDocuments,
   selectMyEvents,
   selectMyReportingRows,
@@ -37,7 +36,7 @@ import {
 } from "lucide-react";
 
 type Section = "dashboard" | "applications" | "events" | "sales" | "reports" | "marketing" | "documents" | "support";
-type AppFilter = "all" | "draft" | "submitted" | "approved" | "rejected";
+type AppFilter = "all" | "draft" | "submitted" | "approved" | "rejected" | "needs_rework";
 type SortDirection = "asc" | "desc";
 
 const sidebarItems: { id: Section; label: string; icon: React.ElementType; demo?: boolean }[] = [
@@ -56,6 +55,7 @@ const statusStyle: Record<string, React.CSSProperties> = {
   submitted: { background: "rgba(59,130,246,0.18)", color: "#3B82F6" },
   approved: { background: "rgba(34,197,94,0.18)", color: "#22C55E" },
   rejected: { background: "rgba(239,68,68,0.18)", color: "#EF4444" },
+  needs_rework: { background: "rgba(245,158,11,0.18)", color: "#F59E0B" },
 };
 
 const statusLabel: Record<string, string> = {
@@ -63,6 +63,7 @@ const statusLabel: Record<string, string> = {
   submitted: "На рассмотрении",
   approved: "Одобрено",
   rejected: "Отклонено",
+  needs_rework: "Требует доработки",
 };
 
 const T = {
@@ -107,7 +108,6 @@ export default function OrganizerPage() {
   const [appSort, setAppSort] = useState<{ key: "title" | "city" | "dateTime" | "capacity" | "status"; dir: SortDirection } | null>(null);
   const [eventSort, setEventSort] = useState<{ key: "title" | "city" | "dateTime" | "capacity" | "status"; dir: SortDirection } | null>(null);
 
-  const myApplications = useMemo(() => selectMyApplications(state), [state]);
   const myComplianceApplications = useMemo(() => selectMyEventComplianceApplications(state), [state]);
   const myEvents = useMemo(() => selectMyEvents(state), [state]);
   const mySales = useMemo(() => selectMySales(state), [state]);
@@ -123,10 +123,11 @@ export default function OrganizerPage() {
   }, [organizer, state.organizerApplications]);
 
   const kpi = {
-    draft: myApplications.filter((a) => a.status === "draft").length,
-    submitted: myApplications.filter((a) => a.status === "submitted").length,
-    approved: myApplications.filter((a) => a.status === "approved").length,
-    rejected: myApplications.filter((a) => a.status === "rejected").length,
+    draft: myComplianceApplications.filter((a) => a.status === "draft").length,
+    submitted: myComplianceApplications.filter((a) => a.status === "submitted").length,
+    approved: myComplianceApplications.filter((a) => a.status === "approved").length,
+    rejected: myComplianceApplications.filter((a) => a.status === "rejected").length,
+    needsRework: myComplianceApplications.filter((a) => a.status === "needs_rework").length,
   };
 
   const recentOps = useMemo(() => {
@@ -142,19 +143,26 @@ export default function OrganizerPage() {
 
   const filteredApplications = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const filtered = myApplications.filter((a) => {
+    const filtered = myComplianceApplications.filter((a) => {
       if (appFilter !== "all" && a.status !== appFilter) return false;
       if (!q) return true;
-      return [a.appId, a.title, a.venue, a.city, a.category].join(" ").toLowerCase().includes(q);
+      return [
+        a.eventComplianceApplicationId,
+        a.data.title,
+        a.data.venueName,
+        a.data.venueAddress,
+        a.data.eventType,
+        a.adminComment,
+      ].join(" ").toLowerCase().includes(q);
     });
     if (!appSort) return filtered;
     const sorted = [...filtered].sort((a, b) => {
-      const va = String(a[appSort.key]);
-      const vb = String(b[appSort.key]);
+      const va = String(appSort.key === "title" ? a.data.title : appSort.key === "dateTime" ? a.data.dateSlots[0] : appSort.key === "status" ? a.status : appSort.key === "city" ? a.data.venueAddress : (a.data.projectedCapacity ?? 0));
+      const vb = String(appSort.key === "title" ? b.data.title : appSort.key === "dateTime" ? b.data.dateSlots[0] : appSort.key === "status" ? b.status : appSort.key === "city" ? b.data.venueAddress : (b.data.projectedCapacity ?? 0));
       return appSort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     return sorted;
-  }, [myApplications, appFilter, search, appSort]);
+  }, [myComplianceApplications, appFilter, search, appSort]);
 
   const filteredEvents = useMemo(() => {
     const filtered = [...myEvents];
@@ -184,12 +192,6 @@ export default function OrganizerPage() {
     update({ ...state });
     return <Navigate to="/organizer/login" replace />;
   }
-
-  const handleSubmit = (appId: string) => {
-    submitApplication(state, appId);
-    toast.success(`Заявка ${appId} отправлена`);
-    update({ ...state });
-  };
 
   const openFilteredApplications = (filter: AppFilter) => {
     setAppFilter(filter);
@@ -327,12 +329,13 @@ export default function OrganizerPage() {
             {activeSection === "dashboard" && (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { label: "Черновики", value: kpi.draft, icon: Clock, filter: "draft" as const },
-                    { label: "На рассмотрении", value: kpi.submitted, icon: FileText, filter: "submitted" as const },
-                    { label: "Одобрено", value: kpi.approved, icon: CheckCircle, filter: "approved" as const },
-                    { label: "Отклонено", value: kpi.rejected, icon: XCircle, filter: "rejected" as const },
-                  ].map((k) => (
+                    {[
+                      { label: "Черновики", value: kpi.draft, icon: Clock, filter: "draft" as const },
+                      { label: "На рассмотрении", value: kpi.submitted, icon: FileText, filter: "submitted" as const },
+                      { label: "На доработке", value: kpi.needsRework, icon: X, filter: "needs_rework" as const },
+                      { label: "Одобрено", value: kpi.approved, icon: CheckCircle, filter: "approved" as const },
+                      { label: "Отклонено", value: kpi.rejected, icon: XCircle, filter: "rejected" as const },
+                    ].map((k) => (
                     <button
                       key={k.label}
                       onClick={() => openFilteredApplications(k.filter)}
@@ -358,7 +361,7 @@ export default function OrganizerPage() {
                       <Row dt="Статус" dd={organizer.registryStatus} />
                       <Row dt="Дата регистрации" dd={organizer.registryRegisteredAt} />
                       <Row dt="Пошлины" dd={organizer.feesStatus} />
-                      <Row dt="Всего заявок" dd={String(myApplications.length)} />
+                      <Row dt="Всего заявок" dd={String(myComplianceApplications.length)} />
                     </dl>
                   </div>
 
@@ -420,8 +423,8 @@ export default function OrganizerPage() {
                 sort={appSort}
                 setSort={setAppSort}
                 onOpen={setDrawerApp}
-                onSubmit={handleSubmit}
                 onCreateNew={() => navigate("/organizer/compliance")}
+                onEdit={(id) => navigate(`/organizer/compliance?edit=${id}`)}
               />
             )}
 
@@ -501,19 +504,19 @@ function ApplicationsTable({
   sort,
   setSort,
   onOpen,
-  onSubmit,
   onCreateNew,
+  onEdit,
 }: {
-  rows: Application[];
+  rows: EventComplianceApplicationRecord[];
   search: string;
   setSearch: (s: string) => void;
   appFilter: AppFilter;
   setAppFilter: (f: AppFilter) => void;
   sort: { key: "title" | "city" | "dateTime" | "capacity" | "status"; dir: SortDirection } | null;
   setSort: (s: { key: "title" | "city" | "dateTime" | "capacity" | "status"; dir: SortDirection } | null) => void;
-  onOpen: (a: Application) => void;
-  onSubmit: (id: string) => void;
+  onOpen: (a: Application | null) => void;
   onCreateNew: () => void;
+  onEdit: (id: string) => void;
 }) {
   const setColumnSort = (key: "title" | "city" | "dateTime" | "capacity" | "status") => {
     if (!sort || sort.key !== key) {
@@ -547,6 +550,7 @@ function ApplicationsTable({
             <option value="all">Все статусы</option>
             <option value="draft">Черновики</option>
             <option value="submitted">На рассмотрении</option>
+            <option value="needs_rework">Требует доработки</option>
             <option value="approved">Одобрено</option>
             <option value="rejected">Отклонено</option>
           </select>
@@ -567,31 +571,29 @@ function ApplicationsTable({
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>ID заявки</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Название" active={sort?.key === "title"} direction={sort?.key === "title" ? sort.dir : null} onClick={() => setColumnSort("title")} /></th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Площадка</th>
-                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Город" active={sort?.key === "city"} direction={sort?.key === "city" ? sort.dir : null} onClick={() => setColumnSort("city")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Категория</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Дата и время" active={sort?.key === "dateTime"} direction={sort?.key === "dateTime" ? sort.dir : null} onClick={() => setColumnSort("dateTime")} /></th>
-                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Вместимость" active={sort?.key === "capacity"} direction={sort?.key === "capacity" ? sort.dir : null} onClick={() => setColumnSort("capacity")} /></th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}><SortableHeader label="Статус" active={sort?.key === "status"} direction={sort?.key === "status" ? sort.dir : null} onClick={() => setColumnSort("status")} /></th>
+                <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Комментарий администратора</th>
                 <th className="py-2.5 px-3 text-left font-semibold" style={{ color: T.textPrimary }}>Действия</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((a) => (
-                <tr key={a.appId} className="border-b" style={{ borderColor: T.border }}>
-                  <td className="py-2.5 px-3 font-mono text-xs" style={{ color: T.textSecondary }}>{a.appId}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textPrimary }}>{a.title}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.venue}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.city || "—"}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.category || "—"}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{fmtDateTime(a.dateTime)}</td>
-                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.capacity}</td>
+                <tr key={a.eventComplianceApplicationId} className="border-b" style={{ borderColor: T.border }}>
+                  <td className="py-2.5 px-3 font-mono text-xs" style={{ color: T.textSecondary }}>{a.eventComplianceApplicationId}</td>
+                  <td className="py-2.5 px-3" style={{ color: T.textPrimary }}>{a.data.title || "—"}</td>
+                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{a.data.venueName || "—"}</td>
+                  <td className="py-2.5 px-3" style={{ color: T.textSecondary }}>{fmtDateTime(a.data.dateSlots[0] || "")}</td>
                   <td className="py-2.5 px-3">
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold" style={statusStyle[a.status]}>{statusLabel[a.status]}</span>
                   </td>
-                  <td className="py-2.5 px-3 space-x-2">
-                    <button onClick={() => onOpen(a)} className="h-7 px-3 rounded-lg border text-[12px]" style={{ borderColor: T.btnSecondaryBorder, color: T.textSecondary }}>Открыть</button>
-                    {a.status === "draft" && (
-                      <button onClick={() => onSubmit(a.appId)} className="h-7 px-3 rounded-lg text-[12px]" style={{ background: "#111111", color: "#FFF" }}>Отправить</button>
+                  <td className="py-2.5 px-3 text-xs" style={{ color: T.textSecondary }}>{a.adminComment || "—"}</td>
+                  <td className="py-2.5 px-3 space-x-2 whitespace-nowrap">
+                    <button onClick={() => onOpen(null)} className="h-7 px-3 rounded-lg border text-[12px]" style={{ borderColor: T.btnSecondaryBorder, color: T.textSecondary }}>Просмотр</button>
+                    {(a.status === "draft" || a.status === "needs_rework") && (
+                      <button onClick={() => onEdit(a.eventComplianceApplicationId)} className="h-7 px-3 rounded-lg text-[12px]" style={{ background: "#111111", color: "#FFF" }}>
+                        {a.status === "draft" ? "Продолжить" : "Доработать"}
+                      </button>
                     )}
                   </td>
                 </tr>

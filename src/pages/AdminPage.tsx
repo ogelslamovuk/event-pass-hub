@@ -3,7 +3,6 @@ import { useStorageSync } from "@/hooks/useStorageSync";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { A } from "@/components/admin/adminStyles";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import AdminApplications from "@/components/admin/AdminApplications";
 import AdminOrganizerApplications from "@/components/admin/AdminOrganizerApplications";
 import AdminEventComplianceApplications from "@/components/admin/AdminEventComplianceApplications";
 import AdminEvents from "@/components/admin/AdminEvents";
@@ -177,10 +176,7 @@ export default function AdminPage() {
           {tab === "dashboard" && <AdminDashboard state={state} onNavigate={setTab} />}
           {tab === "organizerApplications" && <AdminOrganizerApplications state={state} onUpdate={update} />}
           {tab === "eventComplianceApplications" && (
-            <div className="space-y-8">
-              <AdminApplications state={state} onUpdate={update} />
-              <AdminEventComplianceApplications state={state} onUpdate={update} />
-            </div>
+            <AdminEventComplianceApplications state={state} onUpdate={update} />
           )}
           {tab === "calendar" && <AdminCalendar state={state} />}
           {tab === "control" && <AdminControl state={state} />}
