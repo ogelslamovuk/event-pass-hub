@@ -919,11 +919,23 @@ export function createDemoPurchaseTicket(
   const event = state.events.find((e) => e.eventId === data.eventId && e.status === "published");
   if (!event) return null;
   const safeQty = Math.max(1, Math.min(6, Math.floor(data.quantity)));
+  const availableIssued = state.tickets.filter(
+    (ticket) => ticket.eventId === data.eventId && ticket.tier === data.selectedPriceCategory && ticket.status === "issued"
+  ).length;
+  if (availableIssued < safeQty) return null;
+
+  const soldTicketIds: string[] = [];
+  for (let i = 0; i < safeQty; i++) {
+    const outcome = sell(state, data.eventId, data.selectedPriceCategory, "B2C", state.users[0]?.userId);
+    if (!outcome.ok || !outcome.ticketId) return null;
+    soldTicketIds.push(outcome.ticketId);
+  }
+
   const [date = "", timeRaw = ""] = event.dateTime.split("T");
   const time = timeRaw ? timeRaw.slice(0, 5) : "";
   const now = new Date().toISOString();
   const rec: DemoPurchaseTicket = {
-    ticketId: nextId(state, "tck", "TCK"),
+    ticketId: soldTicketIds[0],
     eventId: event.eventId,
     eventTitle: event.title,
     date,

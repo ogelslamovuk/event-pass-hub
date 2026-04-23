@@ -36,6 +36,31 @@ export default function OrganizerEventCompliancePage() {
 
   const fee = calculateComplianceFee(form.projectedCapacity, form.plannedTicketsForSale);
 
+  const normalizeDateTimeLocal = (value: string | null | undefined): string => {
+    const raw = (value || "").trim();
+    if (!raw) return "";
+    const m = raw.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    if (m) return `${m[1]}T${m[2]}`;
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return "";
+    const yyyy = parsed.getFullYear();
+    const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+    const dd = String(parsed.getDate()).padStart(2, "0");
+    const hh = String(parsed.getHours()).padStart(2, "0");
+    const mi = String(parsed.getMinutes()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  };
+
+  const normalizeFormPayload = () => {
+    const normalizedTitle = (form.title || "").replace(/\s+/g, " ").trim();
+    const firstDateSlot = normalizeDateTimeLocal(form.dateSlots[0]);
+    return {
+      ...form,
+      title: normalizedTitle,
+      dateSlots: [firstDateSlot, ...form.dateSlots.slice(1)],
+    };
+  };
+
   const addMockAttachment = (kind: string, target: "eventDocuments" | "paymentAttachments" | "notificationsAttachment", sample = false) => {
     const file = {
       attachmentId: `${kind}-${Date.now()}`,
@@ -48,14 +73,15 @@ export default function OrganizerEventCompliancePage() {
   };
 
   const save = (submit: boolean) => {
-    if (submit && !form.title.trim()) {
+    const payload = normalizeFormPayload();
+    if (submit && !payload.title) {
       toast.error("Укажите наименование мероприятия");
       return;
     }
 
     const ok = editingId
-      ? updateEventComplianceApplication(state, editingId, form, submit)
-      : !!createEventComplianceApplication(state, organizer.organizerId, form, submit);
+      ? updateEventComplianceApplication(state, editingId, payload, submit)
+      : !!createEventComplianceApplication(state, organizer.organizerId, payload, submit);
 
     if (!ok) {
       toast.error("Не удалось сохранить заявку");
@@ -90,7 +116,7 @@ export default function OrganizerEventCompliancePage() {
               <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Тип мероприятия" value={form.eventType} onChange={(e) => setForm((p) => ({ ...p, eventType: e.target.value }))} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Например: концерт, спектакль, фестиваль или выставка." /></div>
             </div>
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="datetime-local" value={form.dateSlots[0] || ""} onChange={(e) => setForm((p) => ({ ...p, dateSlots: [e.target.value] }))} />
+            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="datetime-local" value={normalizeDateTimeLocal(form.dateSlots[0])} onChange={(e) => setForm((p) => ({ ...p, dateSlots: [normalizeDateTimeLocal(e.target.value), ...p.dateSlots.slice(1)] }))} />
             <div className="relative">
               <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Место проведения" value={form.venueName} onChange={(e) => setForm((p) => ({ ...p, venueName: e.target.value }))} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите название площадки, как в договоре или уведомлении." /></div>
