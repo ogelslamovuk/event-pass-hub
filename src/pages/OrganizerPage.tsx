@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import HelpTooltip from "@/components/ui/help-tooltip";
 import { useStorageSync } from "@/hooks/useStorageSync";
-import type { Application, AppState, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
-import { createApplication, logoutOrganizer, submitApplication } from "@/lib/store";
+import type { Application, EventRecord, OrganizerDocument, OrganizerSaleRecord } from "@/lib/store";
+import { logoutOrganizer, submitApplication } from "@/lib/store";
 import {
   DEMO_VAT_RATE,
   selectCurrentOrganizer,
@@ -55,11 +55,6 @@ const sidebarItems: { id: Section; label: string; icon: React.ElementType; demo?
   { id: "support", label: "Поддержка", icon: HelpCircle },
 ];
 
-const CITY_WHITELIST = ["Минск", "Брест", "Витебск", "Гомель", "Гродно", "Могилёв"] as const;
-const CATEGORY_WHITELIST = ["Концерты", "Театр", "Шоу", "Детям", "Фестивали"] as const;
-const POSTER_PLACEHOLDER = "/placeholder.svg";
-const MAX_POSTER_SIZE_BYTES = 1_500_000;
-
 const statusStyle: Record<string, React.CSSProperties> = {
   draft: { background: "rgba(148,163,184,0.18)", color: "#94A3B8" },
   submitted: { background: "rgba(59,130,246,0.18)", color: "#3B82F6" },
@@ -107,23 +102,9 @@ export default function OrganizerPage() {
   const organizer = selectCurrentOrganizer(state);
 
   const [activeSection, setActiveSection] = useState<Section>("dashboard");
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerApp, setDrawerApp] = useState<Application | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileCardOpen, setProfileCardOpen] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [venue, setVenue] = useState("");
-  const [dateTime, setDateTime] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [city, setCity] = useState<(typeof CITY_WHITELIST)[number] | "">("");
-  const [category, setCategory] = useState<(typeof CATEGORY_WHITELIST)[number] | "">("");
-  const [description, setDescription] = useState("");
-  const [poster, setPoster] = useState("");
-  const [tiers, setTiers] = useState([
-    { name: "Партер", price: "" },
-    { name: "Балкон", price: "" },
-  ]);
 
   const [search, setSearch] = useState("");
   const [appFilter, setAppFilter] = useState<AppFilter>("all");
@@ -140,9 +121,6 @@ export default function OrganizerPage() {
   const organizerAppHistory = useMemo(() => selectMyOrganizerApplicationHistory(state), [state]);
   const isOrganizerApproved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
   const organizerRegistryRecord = useMemo(() => selectMyOrganizerRegistryRecord(state), [state]);
-
-  const isValid = title.trim() && venue.trim() && dateTime && Number(capacity) > 0 && Number(capacity) <= 5000 && city && category && description.trim() &&
-    tiers.every((t) => t.name.trim() && Number(t.price) > 0);
 
   const kpi = {
     draft: myApplications.filter((a) => a.status === "draft").length,
@@ -250,68 +228,6 @@ export default function OrganizerPage() {
   }
   void organizerRegistryRecord;
 
-  const addTier = () => {
-    if (tiers.length < 3) setTiers([...tiers, { name: "", price: "" }]);
-  };
-
-  const removeTier = (i: number) => {
-    if (tiers.length > 2) setTiers(tiers.filter((_, idx) => idx !== i));
-  };
-
-  const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Постер должен быть изображением");
-      return;
-    }
-    if (file.size > MAX_POSTER_SIZE_BYTES) {
-      toast.error("Файл слишком большой. Выберите изображение до 1.5MB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") setPoster(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSave = (submit: boolean) => {
-    if (!isValid) {
-      toast.error("Заполните все поля корректно");
-      return;
-    }
-    const app = createApplication(
-      state,
-      {
-        title: title.trim(),
-        venue: venue.trim(),
-        dateTime,
-        capacity: Number(capacity),
-        tiers: tiers.map((t) => ({ name: t.name.trim(), price: Number(t.price) })),
-        city,
-        category,
-        description: description.trim(),
-        poster,
-      },
-      submit,
-      organizer.organizerId
-    );
-    toast.success(submit ? `Заявка ${app.appId} отправлена` : `Черновик ${app.appId} сохранён`);
-    update({ ...state });
-
-    setTitle("");
-    setVenue("");
-    setDateTime("");
-    setCapacity("");
-    setCity("");
-    setCategory("");
-    setDescription("");
-    setPoster("");
-    setTiers([{ name: "Партер", price: "" }, { name: "Балкон", price: "" }]);
-    setDrawerOpen(false);
-  };
-
   const handleSubmit = (appId: string) => {
     submitApplication(state, appId);
     toast.success(`Заявка ${appId} отправлена`);
@@ -355,7 +271,7 @@ export default function OrganizerPage() {
         className="fixed right-5 bottom-5 z-20 px-4 h-10 rounded-xl text-sm font-semibold shadow-lg"
         style={{ background: T.gold, color: "#111" }}
       >
-        Compliance-заявка
+        Новая заявка
       </button>
 
       <aside className="w-60 min-h-screen border-r flex-shrink-0 flex flex-col" style={{ background: T.sidebarBg, borderColor: T.border }}>
@@ -417,7 +333,7 @@ export default function OrganizerPage() {
             >
               <ShieldCheck size={14} /> Проверить УНП
             </button>
-            <button onClick={() => setDrawerOpen(true)} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
+            <button onClick={() => navigate("/organizer/compliance")} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
               <Plus size={14} /> Создать заявку
             </button>
             <div className="relative">
@@ -521,7 +437,7 @@ export default function OrganizerPage() {
                     {sectionTiles.map((tile) => (
                       <button
                         key={tile.label}
-                        onClick={() => tile.id === "applications" && tile.label === "Новая заявка" ? setDrawerOpen(true) : setActiveSection(tile.id)}
+                        onClick={() => tile.id === "applications" && tile.label === "Новая заявка" ? navigate("/organizer/compliance") : setActiveSection(tile.id)}
                         className="rounded-[18px] border p-5 text-left transition-all duration-200 hover:-translate-y-0.5 group"
                         style={{ background: T.cardBg, borderColor: T.border }}
                       >
@@ -548,7 +464,7 @@ export default function OrganizerPage() {
                 setSort={setAppSort}
                 onOpen={setDrawerApp}
                 onSubmit={handleSubmit}
-                onCreateNew={() => setDrawerOpen(true)}
+                onCreateNew={() => navigate("/organizer/compliance")}
               />
             )}
 
@@ -578,36 +494,6 @@ export default function OrganizerPage() {
           </div>
         </main>
       </div>
-
-      {drawerOpen && (
-        <CreateApplicationDrawer
-          state={state}
-          organizerId={organizer.organizerId}
-          isValid={Boolean(isValid)}
-          title={title}
-          setTitle={setTitle}
-          venue={venue}
-          setVenue={setVenue}
-          dateTime={dateTime}
-          setDateTime={setDateTime}
-          capacity={capacity}
-          setCapacity={setCapacity}
-          city={city}
-          setCity={setCity}
-          category={category}
-          setCategory={setCategory}
-          description={description}
-          setDescription={setDescription}
-          poster={poster}
-          handlePosterChange={handlePosterChange}
-          tiers={tiers}
-          setTiers={setTiers}
-          addTier={addTier}
-          removeTier={removeTier}
-          onClose={() => setDrawerOpen(false)}
-          onSave={handleSave}
-        />
-      )}
 
       {drawerApp && (
         <ApplicationDetailsDrawer app={drawerApp} onClose={() => setDrawerApp(null)} />
@@ -1142,125 +1028,6 @@ function Item({ k, v }: { k: string; v: string }) {
     <div className="flex justify-between">
       <dt style={{ color: T.textSecondary }}>{k}</dt>
       <dd style={{ color: T.textPrimary }} className="font-medium">{v}</dd>
-    </div>
-  );
-}
-
-function CreateApplicationDrawer({
-  state,
-  organizerId,
-  isValid,
-  title,
-  setTitle,
-  venue,
-  setVenue,
-  dateTime,
-  setDateTime,
-  capacity,
-  setCapacity,
-  city,
-  setCity,
-  category,
-  setCategory,
-  description,
-  setDescription,
-  poster,
-  handlePosterChange,
-  tiers,
-  setTiers,
-  addTier,
-  removeTier,
-  onClose,
-  onSave,
-}: {
-  state: AppState;
-  organizerId: string;
-  isValid: boolean;
-  title: string;
-  setTitle: (v: string) => void;
-  venue: string;
-  setVenue: (v: string) => void;
-  dateTime: string;
-  setDateTime: (v: string) => void;
-  capacity: string;
-  setCapacity: (v: string) => void;
-  city: (typeof CITY_WHITELIST)[number] | "";
-  setCity: (v: (typeof CITY_WHITELIST)[number] | "") => void;
-  category: (typeof CATEGORY_WHITELIST)[number] | "";
-  setCategory: (v: (typeof CATEGORY_WHITELIST)[number] | "") => void;
-  description: string;
-  setDescription: (v: string) => void;
-  poster: string;
-  handlePosterChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  tiers: Array<{ name: string; price: string }>;
-  setTiers: (v: Array<{ name: string; price: string }>) => void;
-  addTier: () => void;
-  removeTier: (i: number) => void;
-  onClose: () => void;
-  onSave: (submit: boolean) => void;
-}) {
-  void state;
-  void organizerId;
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.55)" }} />
-      <div className="relative w-full max-w-md h-full overflow-y-auto" style={{ background: T.cardBg, boxShadow: "-10px 0 50px rgba(0,0,0,0.4)" }} onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 flex justify-between items-center px-6 py-4 border-b" style={{ background: T.cardBg, borderColor: T.border }}>
-          <h3 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Новая заявка</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center"><X size={18} /></button>
-        </div>
-        <div className="p-6 space-y-4">
-          <Field label="Название *" helpText="Краткое название, которое увидит администратор при проверке."><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
-          <Field label="Площадка *" helpText="Укажите площадку проведения так же, как в согласовании и документах."><input className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={venue} onChange={(e) => setVenue(e.target.value)} /></Field>
-          <Field label="Дата и время *" helpText="Выберите фактическую дату и время начала мероприятия."><input type="datetime-local" className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={dateTime} onChange={(e) => setDateTime(e.target.value)} /></Field>
-          <Field label="Вместимость *" helpText="Максимум мест на площадке. Значение используется в проверках и выпуске билетов."><input type="number" min={1} max={5000} className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
-          <Field label="Город *" helpText="Выберите город из разрешённого справочника.">
-            <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={city} onChange={(e) => setCity(e.target.value as (typeof CITY_WHITELIST)[number] | "")}> 
-              <option value="">Выберите город</option>
-              {CITY_WHITELIST.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </Field>
-          <Field label="Категория *" helpText="Категория помогает маршрутизировать заявку и отчётность.">
-            <select className="w-full border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORY_WHITELIST)[number] | "")}> 
-              <option value="">Выберите категорию</option>
-              {CATEGORY_WHITELIST.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </Field>
-          <Field label="Описание *"><textarea className="w-full border rounded-xl px-3 py-2.5 text-[14px] min-h-[96px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
-          <Field label="Постер"><input type="file" accept="image/png,image/jpeg,image/webp,image/*" className="w-full border rounded-xl px-3 py-2 text-[13px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} onChange={handlePosterChange} /><img src={poster || POSTER_PLACEHOLDER} alt="Постер" className="mt-3 h-36 w-full object-cover rounded-xl border" style={{ borderColor: T.btnSecondaryBorder }} /></Field>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[13px] font-semibold">Ценовые категории</span>
-              {tiers.length < 3 && <button onClick={addTier} className="text-[12px] font-medium" style={{ color: T.gold }}>+ Добавить</button>}
-            </div>
-            {tiers.map((t, i) => (
-              <div key={i} className="flex gap-2 mb-2 items-center">
-                <input className="flex-1 border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={t.name} onChange={(e) => { const n = [...tiers]; n[i].name = e.target.value; setTiers(n); }} placeholder="Категория" />
-                <input type="number" min={1} className="w-24 border rounded-xl px-3 py-2.5 text-[14px]" style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg }} value={t.price} onChange={(e) => { const n = [...tiers]; n[i].price = e.target.value; setTiers(n); }} placeholder="Цена" />
-                {tiers.length > 2 && <button onClick={() => removeTier(i)} className="w-8 h-8 rounded-lg flex items-center justify-center"><X size={14} /></button>}
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button onClick={() => onSave(false)} disabled={!isValid} className="flex-1 h-11 rounded-xl border text-[13px] font-semibold disabled:opacity-40" style={{ borderColor: T.btnSecondaryBorder }}>Черновик</button>
-            <button onClick={() => onSave(true)} disabled={!isValid} className="flex-1 h-11 rounded-xl text-[13px] font-semibold disabled:opacity-40" style={{ background: "#111111", color: "#FFF" }}>Отправить заявку</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, helpText, children }: { label: string; helpText?: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-1.5">
-        <label className="block text-[13px] font-semibold">{label}</label>
-        {helpText && <HelpTooltip text={helpText} />}
-      </div>
-      {children}
     </div>
   );
 }
