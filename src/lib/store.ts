@@ -578,6 +578,7 @@ export function setOrganizerApplicationReview(
 ): boolean {
   const app = state.organizerApplications.find((x) => x.organizerApplicationId === organizerApplicationId);
   if (!app) return false;
+  if (app.status !== "submitted") return false;
   if ((decision === "rejected" || decision === "needs_rework") && !comment.trim()) return false;
   app.status = decision;
   app.adminComment = comment.trim();
@@ -955,15 +956,32 @@ export function createDemoPurchaseTicket(
 
 // ===== Organizer auth + selectors =====
 
-export function loginOrganizer(state: AppState, login: string, password: string): OrganizerAccount | null {
+export type OrganizerLoginResult =
+  | { ok: true; organizer: OrganizerAccount }
+  | { ok: false; reason: "invalid_credentials" | "not_approved" };
+
+function hasApprovedOrganizerStatus(state: AppState, organizerId: string): boolean {
+  const organizer = state.organizers.find((o) => o.organizerId === organizerId);
+  if (!organizer) return false;
+  if (organizer.accountStatus === "активен") return true;
+  const latestApplication = state.organizerApplications
+    .filter((application) => application.organizerId === organizerId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return latestApplication?.status === "approved";
+}
+
+export function loginOrganizer(state: AppState, login: string, password: string): OrganizerLoginResult {
   const normalized = login.trim().toLowerCase();
   const organizer = state.organizers.find(
     (o) => o.login.toLowerCase() === normalized && o.password === password
   );
-  if (!organizer) return null;
+  if (!organizer) return { ok: false, reason: "invalid_credentials" };
+  if (!hasApprovedOrganizerStatus(state, organizer.organizerId)) {
+    return { ok: false, reason: "not_approved" };
+  }
   state.currentOrganizerId = organizer.organizerId;
   saveState(state);
-  return organizer;
+  return { ok: true, organizer };
 }
 
 export function logoutOrganizer(state: AppState): void {

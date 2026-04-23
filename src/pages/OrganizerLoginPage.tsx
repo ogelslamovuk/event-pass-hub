@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useStorageSync } from "@/hooks/useStorageSync";
 import { loginOrganizer } from "@/lib/store";
 import { toast } from "sonner";
@@ -7,23 +7,41 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 export default function OrganizerLoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state, update } = useStorageSync();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const showSubmittedSuccess = Boolean((location.state as { showSubmittedSuccess?: boolean } | null)?.showSubmittedSuccess);
 
   if (state.currentOrganizerId) {
+    const currentOrganizer = state.organizers.find((organizer) => organizer.organizerId === state.currentOrganizerId);
+    const latestApplication = currentOrganizer
+      ? state.organizerApplications
+          .filter((application) => application.organizerId === currentOrganizer.organizerId)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+      : null;
+    const isApproved = Boolean(currentOrganizer && (currentOrganizer.accountStatus === "активен" || latestApplication?.status === "approved"));
+    if (!isApproved) {
+      state.currentOrganizerId = null;
+      update({ ...state });
+    } else {
     return <Navigate to="/organizer" replace />;
+    }
   }
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const organizer = loginOrganizer(state, login, password);
-    if (!organizer) {
-      toast.error("Неверный логин или пароль");
+    const result = loginOrganizer(state, login, password);
+    if (!result.ok) {
+      if (result.reason === "not_approved") {
+        toast.error("Доступ в кабинет будет открыт после одобрения заявки. Результат будет направлен на указанный email.");
+        return;
+      }
+      toast.error("Неверный логин или пароль.");
       return;
     }
     update({ ...state });
-    toast.success(`Вход выполнен: ${organizer.name}`);
+    toast.success(`Вход выполнен: ${result.organizer.name}`);
     navigate("/organizer", { replace: true });
   };
 
@@ -35,6 +53,14 @@ export default function OrganizerLoginPage() {
         <p className="text-sm mb-6" style={{ color: "rgba(245,247,250,0.70)" }}>
           Вход для организаторов мероприятий
         </p>
+        {showSubmittedSuccess && (
+          <div
+            className="mb-4 rounded-xl border px-3 py-2 text-sm"
+            style={{ borderColor: "rgba(34,197,94,0.45)", background: "rgba(34,197,94,0.12)", color: "#DCFCE7" }}
+          >
+            Заявка отправлена на рассмотрение. Результат будет направлен на указанный email.
+          </div>
+        )}
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm mb-1.5">Логин</label>

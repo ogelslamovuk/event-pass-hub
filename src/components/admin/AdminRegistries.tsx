@@ -13,6 +13,9 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
     return state.organizers
       .filter((organizer) => approvedOrganizerIds.has(organizer.organizerId))
       .map((organizer) => {
+        const latestOrganizerApplication = state.organizerApplications
+          .filter((application) => application.organizerId === organizer.organizerId)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] || null;
         const apps = state.applications.filter((a) => a.organizerId === organizer.organizerId);
         const events = state.events.filter((e) => e.organizerId === organizer.organizerId);
         const eventIds = new Set(events.map((e) => e.eventId));
@@ -31,6 +34,7 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
           violations,
           lastActivity: updatedAt,
           risk: violations > 2 ? "high" : violations > 0 ? "medium" : "low",
+          latestOrganizerApplication,
         };
       });
   }, [state]);
@@ -97,7 +101,7 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
               <button onClick={() => setDrawer(null)} style={{ color: A.textMuted }}><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
-              {([["Реестровый номер", drawer.registryNumber], ["Заявки", String(drawer.apps)], ["Мероприятия", String(drawer.events)], ["Нарушения", String(drawer.violations)], ["Риск", drawer.risk.toUpperCase()], ["Последняя активность", drawer.lastActivity?.replace("T", " ").slice(0, 16) || "—"]] as [string, string][]).map(([k, v]) => (
+              {([["Полное наименование", drawer.latestOrganizerApplication?.data?.legalName || "—"], ["Регистрационный номер", drawer.latestOrganizerApplication?.data?.registrationNumber || "—"], ["Контактный телефон", drawer.latestOrganizerApplication?.data?.contactPhone || "—"], ["Email", drawer.latestOrganizerApplication?.data?.email || "—"], ["ФИО руководителя", drawer.latestOrganizerApplication?.data?.director?.fullName || "—"], ["Адрес", [drawer.latestOrganizerApplication?.data?.postalCode, drawer.latestOrganizerApplication?.data?.region, drawer.latestOrganizerApplication?.data?.locality, drawer.latestOrganizerApplication?.data?.street, drawer.latestOrganizerApplication?.data?.houseNumber, drawer.latestOrganizerApplication?.data?.roomTypeAndNumber, drawer.latestOrganizerApplication?.data?.addressExtra].filter((part: string | undefined) => Boolean(part && part.trim())).join(", ") || "—"], ["Вид деятельности / выбранные категории", [Array.isArray(drawer.latestOrganizerApplication?.data?.activities) ? drawer.latestOrganizerApplication.data.activities.join(", ") : "", drawer.latestOrganizerApplication?.data?.activityOther || ""].filter(Boolean).join(", ") || "—"], ["Реестровый номер", drawer.registryNumber], ["Последняя активность", drawer.lastActivity?.replace("T", " ").slice(0, 16) || "—"]] as [string, string][]).map(([k, v]) => (
                 <div key={k}>
                   <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
                   <div style={{ color: A.textPrimary }} className="text-sm">{v}</div>
