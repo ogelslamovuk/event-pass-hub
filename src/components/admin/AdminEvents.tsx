@@ -22,7 +22,11 @@ export default function AdminEvents({ state, onUpdate }: Props) {
   });
 
   const handlePublish = (eventId: string) => {
-    publishEvent(state, eventId);
+    const ok = publishEvent(state, eventId);
+    if (!ok) {
+      toast.error("Публикация доступна только для approved события");
+      return;
+    }
     toast.success(`Событие ${eventId} опубликовано`);
     onUpdate({ ...state });
   };
@@ -94,7 +98,7 @@ export default function AdminEvents({ state, onUpdate }: Props) {
                             <Globe size={12} className="inline mr-1" />Опубликовать
                           </button>
                         )}
-                        {!hasTickets(e.eventId) && (
+                        {e.status === "published" && !hasTickets(e.eventId) && (
                           <button onClick={() => setConfirmIssue(e.eventId)} className="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
                             style={{ background: A.statusOkBg, color: A.statusOk }}>
                             <Ticket size={12} className="inline mr-1" />Марки
@@ -122,7 +126,7 @@ export default function AdminEvents({ state, onUpdate }: Props) {
               <button onClick={() => setDrawer(null)} style={{ color: A.textMuted }}><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
-              {([["Название", drawer.title], ["Площадка", drawer.venue], ["Дата", drawer.dateTime?.replace("T", " ")], ["Вместимость", String(drawer.capacity)], ["Остаток", String(drawer.remaining)], ["LicenseID", drawer.licenseId], ["Заявка", drawer.appId]] as [string, string][]).map(([k, v]) => (
+              {([["Название", drawer.title], ["Площадка", drawer.venue], ["Дата", drawer.dateTime?.replace("T", " ")], ["Вместимость", String(drawer.capacity)], ["Остаток", String(drawer.remaining)], ["LicenseID", drawer.licenseId], ["Заявка", drawer.complianceApplicationId || drawer.appId || "—"]] as [string, string][]).map(([k, v]) => (
                 <div key={k}>
                   <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
                   <div style={{ color: A.textPrimary }} className="text-sm font-mono">{v}</div>

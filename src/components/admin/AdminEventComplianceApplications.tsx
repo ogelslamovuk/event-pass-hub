@@ -3,6 +3,7 @@ import type { AppState } from "@/lib/store";
 import { calculateComplianceFee, setEventComplianceReview } from "@/lib/store";
 import { A } from "./adminStyles";
 import HelpTooltip from "@/components/ui/help-tooltip";
+import { toast } from "sonner";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
@@ -15,14 +16,24 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
   const rows = useMemo(() => state.eventComplianceApplications.slice().reverse(), [state.eventComplianceApplications]);
 
   const applyDecision = (id: string, decision: "approved" | "rejected" | "needs_rework") => {
+    const text = (comment[id] || "").trim();
+    if ((decision === "rejected" || decision === "needs_rework") && !text) {
+      toast.error("Укажите комментарий для отклонения или возврата на доработку.");
+      return;
+    }
     const ok = setEventComplianceReview(state, id, {
       decision,
-      comment: comment[id] || "",
+      comment: text,
       certificateNumber: certificateNumber[id] || "",
       certificateDate: certificateDate[id] || "",
       confirmFeePayment: !!confirmFee[id],
     });
-    if (!ok) return;
+    if (!ok) {
+      toast.error("Недопустимый переход статуса.");
+      return;
+    }
+    if (decision === "needs_rework") toast.success("Заявка возвращена на доработку.");
+    if (decision === "rejected") toast.success("Заявка отклонена.");
     onUpdate({ ...state });
   };
 
@@ -100,9 +111,9 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                       style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                     />
                     <div className="flex gap-2 flex-wrap">
-                      <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.eventComplianceApplicationId, "approved")}>Одобрить заявку</button>
-                      <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.eventComplianceApplicationId, "needs_rework")}>Вернуть на доработку</button>
-                      <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.eventComplianceApplicationId, "rejected")}>Отклонить</button>
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.eventComplianceApplicationId, "approved")}>Одобрить заявку</button>
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.eventComplianceApplicationId, "needs_rework")}>Вернуть на доработку</button>
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.eventComplianceApplicationId, "rejected")}>Отклонить</button>
                     </div>
                   </td>
                 </tr>

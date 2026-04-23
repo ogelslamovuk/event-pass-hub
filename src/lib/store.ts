@@ -38,6 +38,7 @@ export interface EventRecord {
   organizerId: string;
   licenseId: string;
   appId: string;
+  complianceApplicationId?: string;
   title: string;
   venue: string;
   dateTime: string;
@@ -638,8 +639,10 @@ export function updateEventComplianceApplication(
 ): boolean {
   const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
   if (!app) return false;
+  if (app.status === "approved" || app.status === "rejected") return false;
+  if (app.status === "submitted" && !submit) return false;
   app.data = data;
-  app.status = submit ? "submitted" : "draft";
+  app.status = submit ? "submitted" : app.status === "needs_rework" ? "needs_rework" : "draft";
   app.submittedAt = submit ? nowIso() : app.submittedAt;
   app.updatedAt = nowIso();
   if (submit) app.adminComment = "";
@@ -660,6 +663,7 @@ export function setEventComplianceReview(
 ): boolean {
   const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
   if (!app) return false;
+  if (app.status !== "submitted") return false;
   const comment = payload.comment?.trim() || "";
   if ((payload.decision === "rejected" || payload.decision === "needs_rework") && !comment) return false;
 
@@ -672,26 +676,47 @@ export function setEventComplianceReview(
   app.certificateDate = payload.certificateDate?.trim() || "";
 
   if (payload.decision === "approved") {
-    const baseDate = app.data.dateSlots.find(Boolean) || "";
-    const legacy = createApplication(
-      state,
-      {
-        title: app.data.title,
-        venue: app.data.venueName || "Площадка не указана",
-        dateTime: baseDate,
-        capacity: app.data.projectedCapacity || app.data.plannedTicketsForSale || 1,
-        tiers: [{ name: "Стандарт", price: 50 }],
-        city: "",
-        category: app.data.eventType || "Иное",
-        description: app.data.shortDescription,
-        poster: "",
-      },
-      true,
-      app.organizerId
-    );
-    const approved = approveApplication(state, legacy.appId);
-    app.linkedLegacyAppId = legacy.appId;
-    app.linkedEventId = approved?.eventId || null;
+    const now = nowIso();
+    const existing = app.linkedEventId ? state.events.find((event) => event.eventId === app.linkedEventId) : null;
+    const dateTime = app.data.dateSlots.find(Boolean) || "";
+    const capacity = app.data.projectedCapacity || app.data.plannedTicketsForSale || 1;
+    const nextEvent: EventRecord = existing || {
+      eventId: nextId(state, "evt", "EVT"),
+      organizerId: app.organizerId,
+      licenseId: nextId(state, "lic", "LIC"),
+      appId: "",
+      complianceApplicationId: app.eventComplianceApplicationId,
+      title: "",
+      venue: "",
+      dateTime: "",
+      capacity: 0,
+      tiers: [{ name: "Стандарт", price: 50 }],
+      city: "",
+      category: "",
+      description: "",
+      poster: "",
+      status: "approved",
+      remaining: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    nextEvent.organizerId = app.organizerId;
+    nextEvent.complianceApplicationId = app.eventComplianceApplicationId;
+    nextEvent.title = app.data.title || "Без названия";
+    nextEvent.venue = app.data.venueName || "Площадка не указана";
+    nextEvent.dateTime = dateTime;
+    nextEvent.capacity = capacity;
+    nextEvent.tiers = [{ name: "Стандарт", price: 50 }];
+    nextEvent.city = "";
+    nextEvent.category = app.data.eventType || "Иное";
+    nextEvent.description = app.data.shortDescription;
+    nextEvent.poster = "";
+    nextEvent.status = "approved";
+    nextEvent.updatedAt = now;
+    if (!existing) {
+      state.events.push(nextEvent);
+    }
+    app.linkedEventId = nextEvent.eventId;
   }
   saveState(state);
   return true;
@@ -793,7 +818,7 @@ export function publishEvent(state: AppState, eventId: string): boolean {
 
 export function issueMarks(state: AppState, eventId: string): number {
   const evt = state.events.find((e) => e.eventId === eventId);
-  if (!evt) return 0;
+  if (!evt || evt.status !== "published") return 0;
   const existing = state.tickets.filter((t) => t.eventId === eventId);
   if (existing.length > 0) return 0;
   const { capacity, tiers } = evt;
