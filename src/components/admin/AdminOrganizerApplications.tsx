@@ -8,12 +8,26 @@ interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
 export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
   const [comment, setComment] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const rows = useMemo(() => state.organizerApplications.slice().reverse(), [state.organizerApplications]);
 
   const applyDecision = (id: string, decision: "approved" | "rejected" | "needs_rework") => {
+    const row = state.organizerApplications.find((application) => application.organizerApplicationId === id);
+    if (!row || row.status !== "submitted") {
+      setErrors((prev) => ({ ...prev, [id]: "Решение уже принято для этой заявки." }));
+      return;
+    }
+    if ((decision === "rejected" || decision === "needs_rework") && !(comment[id] || "").trim()) {
+      setErrors((prev) => ({ ...prev, [id]: "Укажите комментарий для отклонения или возврата на доработку." }));
+      return;
+    }
     const ok = setOrganizerApplicationReview(state, id, decision, comment[id] || "");
-    if (!ok) return;
+    if (!ok) {
+      setErrors((prev) => ({ ...prev, [id]: "Укажите комментарий для отклонения или возврата на доработку." }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, [id]: "" }));
     onUpdate({ ...state });
   };
 
@@ -56,13 +70,21 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
                     className="w-full min-h-16 rounded px-2 py-1 text-xs"
                     placeholder="Комментарий (обязателен для reject и needs rework)"
                     value={comment[r.organizerApplicationId] || ""}
-                    onChange={(e) => setComment((p) => ({ ...p, [r.organizerApplicationId]: e.target.value }))}
+                    onChange={(e) => {
+                      setComment((p) => ({ ...p, [r.organizerApplicationId]: e.target.value }));
+                      setErrors((p) => ({ ...p, [r.organizerApplicationId]: "" }));
+                    }}
                     style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                   />
+                  {errors[r.organizerApplicationId] && (
+                    <div className="text-xs" style={{ color: A.statusError }}>
+                      {errors[r.organizerApplicationId]}
+                    </div>
+                  )}
                   <div className="flex gap-2 flex-wrap">
-                    <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.organizerApplicationId, "approved")}>Одобрить</button>
-                    <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.organizerApplicationId, "needs_rework")}>Вернуть на доработку</button>
-                    <button className="px-2 py-1 rounded text-xs" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.organizerApplicationId, "rejected")}>Отклонить</button>
+                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.organizerApplicationId, "approved")}>Одобрить</button>
+                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.organizerApplicationId, "needs_rework")}>Вернуть на доработку</button>
+                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.organizerApplicationId, "rejected")}>Отклонить</button>
                   </div>
                 </td>
               </tr>

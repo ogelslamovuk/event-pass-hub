@@ -9,14 +9,10 @@ import { logoutOrganizer, submitApplication } from "@/lib/store";
 import {
   DEMO_VAT_RATE,
   selectCurrentOrganizer,
-  selectIsCurrentOrganizerApproved,
   selectMyEventComplianceApplications,
   selectMyApplications,
   selectMyDocuments,
   selectMyEvents,
-  selectMyOrganizerApplication,
-  selectMyOrganizerApplicationHistory,
-  selectMyOrganizerRegistryRecord,
   selectMyReportingRows,
   selectMySales,
 } from "@/lib/organizerSelectors";
@@ -117,10 +113,14 @@ export default function OrganizerPage() {
   const mySales = useMemo(() => selectMySales(state), [state]);
   const reportingRows = useMemo(() => selectMyReportingRows(state), [state]);
   const myDocuments = useMemo(() => selectMyDocuments(state), [state]);
-  const organizerApp = useMemo(() => selectMyOrganizerApplication(state), [state]);
-  const organizerAppHistory = useMemo(() => selectMyOrganizerApplicationHistory(state), [state]);
-  const isOrganizerApproved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
-  const organizerRegistryRecord = useMemo(() => selectMyOrganizerRegistryRecord(state), [state]);
+  const isOrganizerApproved = useMemo(() => {
+    if (!organizer) return false;
+    if (organizer.accountStatus === "активен") return true;
+    const latestOrganizerApplication = state.organizerApplications
+      .filter((attempt) => attempt.organizerId === organizer.organizerId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    return latestOrganizerApplication?.status === "approved";
+  }, [organizer, state.organizerApplications]);
 
   const kpi = {
     draft: myApplications.filter((a) => a.status === "draft").length,
@@ -180,53 +180,10 @@ export default function OrganizerPage() {
   }
 
   if (!isOrganizerApproved) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#0B0F14", color: "#F5F7FA" }}>
-        <div className="w-full max-w-2xl rounded-2xl border p-7 space-y-5" style={{ borderColor: "rgba(255,255,255,0.10)", background: "#111A24" }}>
-          <h1 className="text-2xl font-bold">Кабинет организатора (ограниченный режим)</h1>
-          <p className="text-sm" style={{ color: "rgba(245,247,250,0.75)" }}>
-            Полный кабинет откроется после одобрения заявки на статус организатора.
-          </p>
-          <div className="rounded-xl border p-4 text-sm space-y-2" style={{ borderColor: "rgba(255,255,255,0.12)", background: "#0F1620" }}>
-            <div>Статус заявки: <b>{organizerApp?.status ?? "заявка отсутствует"}</b></div>
-            {organizerApp?.adminComment && <div>Комментарий администратора: {organizerApp.adminComment}</div>}
-            <div>Отправлена: {organizerApp?.submittedAt ? organizerApp.submittedAt.slice(0, 16).replace("T", " ") : "—"}</div>
-          </div>
-          {organizerAppHistory.length > 0 && (
-            <div className="rounded-xl border p-4 text-xs space-y-2" style={{ borderColor: "rgba(255,255,255,0.12)", background: "#0F1620" }}>
-              <div className="font-semibold">История попыток</div>
-              {organizerAppHistory.slice(0, 5).map((attempt) => (
-                <div key={attempt.organizerApplicationId} className="flex flex-wrap gap-2">
-                  <span>{attempt.organizerApplicationId}</span>
-                  <span>·</span>
-                  <span>{attempt.status}</span>
-                  <span>·</span>
-                  <span>{attempt.submittedAt ? attempt.submittedAt.slice(0, 16).replace("T", " ") : "черновик"}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="text-xs" style={{ color: "rgba(245,247,250,0.55)" }}>
-            Если статус Needs rework, обновите и отправьте заявку на странице «Стать организатором».
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                logoutOrganizer(state);
-                update({ ...state });
-                navigate("/organizer/login", { replace: true });
-              }}
-              className="px-4 h-10 rounded-xl text-sm font-semibold"
-              style={{ background: "#F2C94C", color: "#111" }}
-            >
-              Выйти
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    logoutOrganizer(state);
+    update({ ...state });
+    return <Navigate to="/organizer/login" replace />;
   }
-  void organizerRegistryRecord;
 
   const handleSubmit = (appId: string) => {
     submitApplication(state, appId);
