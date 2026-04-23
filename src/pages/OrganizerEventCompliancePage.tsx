@@ -23,6 +23,13 @@ export default function OrganizerEventCompliancePage() {
   const myApps = useMemo(() => selectMyEventComplianceApplications(state), [state]);
   const [form, setForm] = useState(defaultEventComplianceData());
   const [editingId, setEditingId] = useState<string | null>(null);
+  const complianceStatusLabel: Record<string, string> = {
+    draft: "Черновик",
+    submitted: "На рассмотрении",
+    approved: "Одобрена",
+    rejected: "Отклонена",
+    needs_rework: "Требует доработки",
+  };
 
   if (!organizer) return <Navigate to="/organizer/login" replace />;
   if (!approved) return <Navigate to="/organizer" replace />;
@@ -138,7 +145,7 @@ export default function OrganizerEventCompliancePage() {
             <button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button>
           </div>
           {form.hasForeignPerformers && (
-            <p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей визуально required: документ на площадку и подтверждение договорённостей.</p>
+            <p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей обязательно: документ на площадку и подтверждение договорённостей.</p>
           )}
         </section>
 
@@ -186,7 +193,7 @@ export default function OrganizerEventCompliancePage() {
                 <div key={app.eventComplianceApplicationId} className="rounded border p-3 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.12)" }}>
                   <div>
                     <div className="font-medium">{app.data.title || "Без названия"}</div>
-                    <div className="text-xs opacity-70">{app.eventComplianceApplicationId} · {app.status}</div>
+                    <div className="text-xs opacity-70">{app.eventComplianceApplicationId} · {complianceStatusLabel[app.status] || app.status}</div>
                     {!!app.adminComment && <div className="text-xs mt-1">Комментарий: {app.adminComment}</div>}
                   </div>
                   {app.status === "needs_rework" && (
