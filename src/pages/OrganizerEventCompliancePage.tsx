@@ -23,6 +23,13 @@ export default function OrganizerEventCompliancePage() {
   const myApps = useMemo(() => selectMyEventComplianceApplications(state), [state]);
   const [form, setForm] = useState(defaultEventComplianceData());
   const [editingId, setEditingId] = useState<string | null>(null);
+  const complianceStatusLabel: Record<string, string> = {
+    draft: "Черновик",
+    submitted: "На рассмотрении",
+    approved: "Одобрена",
+    rejected: "Отклонена",
+    needs_rework: "Требует доработки",
+  };
 
   if (!organizer) return <Navigate to="/organizer/login" replace />;
   if (!approved) return <Navigate to="/organizer" replace />;
@@ -66,8 +73,8 @@ export default function OrganizerEventCompliancePage() {
       <div className="mx-auto max-w-5xl rounded-2xl border p-6 space-y-6" style={{ borderColor: "rgba(255,255,255,0.10)", background: "#111A24" }}>
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Event Compliance Application</h1>
-            <p className="text-sm" style={{ color: "rgba(245,247,250,0.72)" }}>Надстройка над существующим flow. После approve заявка уйдёт в legacy pipeline.</p>
+            <h1 className="text-2xl font-bold mb-2">Заявка на согласование мероприятия</h1>
+            <p className="text-sm" style={{ color: "rgba(245,247,250,0.72)" }}>Надстройка над существующим процессом. После одобрения заявка уйдёт в основной конвейер.</p>
           </div>
           <Link to="/organizer" className="px-3 h-9 inline-flex items-center rounded border">Назад в кабинет</Link>
         </div>
@@ -132,13 +139,13 @@ export default function OrganizerEventCompliancePage() {
         <section className="space-y-3">
           <h2 className="font-semibold">Документы по мероприятию</h2>
           <div className="flex gap-2 flex-wrap">
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("program", "eventDocuments")}>Программа (mock)</button>
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("venue-right", "eventDocuments")}>Право на площадку (mock)</button>
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("performer-agreement", "eventDocuments")}>Договорённости с исполнителями (mock)</button>
+            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("program", "eventDocuments")}>Программа (тест)</button>
+            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("venue-right", "eventDocuments")}>Право на площадку (тест)</button>
+            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("performer-agreement", "eventDocuments")}>Договорённости с исполнителями (тест)</button>
             <button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button>
           </div>
           {form.hasForeignPerformers && (
-            <p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей визуально required: документ на площадку и подтверждение договорённостей.</p>
+            <p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей обязательно: документ на площадку и подтверждение договорённостей.</p>
           )}
         </section>
 
@@ -152,7 +159,7 @@ export default function OrganizerEventCompliancePage() {
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.feeExempt} onChange={(e) => setForm((p) => ({ ...p, feeExempt: e.target.checked }))} /> Освобождён от пошлины</label>
               <input className="h-10 w-full rounded px-3 bg-[#111A24] border" placeholder="Основание освобождения" value={form.feeExemptReason} onChange={(e) => setForm((p) => ({ ...p, feeExemptReason: e.target.value }))} />
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.feePaid} onChange={(e) => setForm((p) => ({ ...p, feePaid: e.target.checked }))} /> Пошлина оплачена</label>
-              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("payment-order", "paymentAttachments")}>Платёжка (mock)</button>
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("payment-order", "paymentAttachments")}>Платёжка (тест)</button>
             </div>
           )}
         </section>
@@ -163,7 +170,7 @@ export default function OrganizerEventCompliancePage() {
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.changesDeclared} onChange={(e) => setForm((p) => ({ ...p, changesDeclared: e.target.checked }))} /> Изменены дата / место / состав участников</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.executiveCommitteeNotified} onChange={(e) => setForm((p) => ({ ...p, executiveCommitteeNotified: e.target.checked }))} /> Исполком уведомлён</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.citizensNotified} onChange={(e) => setForm((p) => ({ ...p, citizensNotified: e.target.checked }))} /> Граждане уведомлены</label>
-          <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("notify-proof", "notificationsAttachment")}>Подтверждение уведомления (mock)</button>
+          <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("notify-proof", "notificationsAttachment")}>Подтверждение уведомления (тест)</button>
           <textarea className="w-full min-h-16 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Комментарий" value={form.cancellationComment} onChange={(e) => setForm((p) => ({ ...p, cancellationComment: e.target.value }))} />
         </section>
 
@@ -179,14 +186,14 @@ export default function OrganizerEventCompliancePage() {
         </div>
 
         <section className="space-y-2">
-          <h2 className="font-semibold">Мои compliance-заявки</h2>
+          <h2 className="font-semibold">Мои заявки</h2>
           {myApps.length === 0 ? <div className="text-sm opacity-70">Пока нет заявок.</div> : (
             <div className="space-y-2">
               {myApps.map((app) => (
                 <div key={app.eventComplianceApplicationId} className="rounded border p-3 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.12)" }}>
                   <div>
                     <div className="font-medium">{app.data.title || "Без названия"}</div>
-                    <div className="text-xs opacity-70">{app.eventComplianceApplicationId} · {app.status}</div>
+                    <div className="text-xs opacity-70">{app.eventComplianceApplicationId} · {complianceStatusLabel[app.status] || app.status}</div>
                     {!!app.adminComment && <div className="text-xs mt-1">Комментарий: {app.adminComment}</div>}
                   </div>
                   {app.status === "needs_rework" && (
