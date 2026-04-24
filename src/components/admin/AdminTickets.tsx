@@ -15,18 +15,25 @@ export default function AdminTickets({ state }: Props) {
   const [drawer, setDrawer] = useState<Ticket | null>(null);
 
   const uniqueEvents = [...new Set(state.tickets.map(t => t.eventId))];
+  const eventsById = useMemo(() => new Map(state.events.map(event => [event.eventId, event])), [state.events]);
 
   const filtered = useMemo(() => {
     return state.tickets.filter(t => {
+      const event = eventsById.get(t.eventId);
       if (statusFilter && t.status !== statusFilter) return false;
       if (eventFilter && t.eventId !== eventFilter) return false;
       if (search) {
         const s = search.toLowerCase();
-        return t.ticketId.toLowerCase().includes(s) || t.eventId.toLowerCase().includes(s) || (t.tier || '').toLowerCase().includes(s);
+        return (
+          t.ticketId.toLowerCase().includes(s) ||
+          t.eventId.toLowerCase().includes(s) ||
+          (event?.title || "").toLowerCase().includes(s) ||
+          (t.tier || "").toLowerCase().includes(s)
+        );
       }
       return true;
     });
-  }, [state.tickets, statusFilter, eventFilter, search]);
+  }, [state.tickets, statusFilter, eventFilter, search, eventsById]);
 
   return (
     <div className="space-y-5">
@@ -47,7 +54,11 @@ export default function AdminTickets({ state }: Props) {
           className="h-9 px-3 rounded-lg text-sm outline-none cursor-pointer"
           style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
           <option value="">Все события</option>
-          {uniqueEvents.map(e => <option key={e} value={e}>{e}</option>)}
+          {uniqueEvents.map(eventId => {
+            const event = eventsById.get(eventId);
+            const label = event?.title ? `${event.title} · ${event.date}` : eventId;
+            return <option key={eventId} value={eventId}>{label}</option>;
+          })}
         </select>
         <HelpTooltip text="Используйте фильтры, чтобы быстро найти билеты по статусу или конкретному событию." />
       </div>
@@ -63,13 +74,16 @@ export default function AdminTickets({ state }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: A.tableHeaderBg }}>
-                  {["TicketID", "EventID", "Категория", "Статус", "Канал", "Покупатель", "Обновлён"].map((h, i) => (
+                  {["TicketID", "Мероприятие", "EventID", "Тариф", "Стоимость", "Статус", "Канал", "Покупатель", "Обновлён"].map((h, i) => (
                     <th key={i} className="text-left py-3 px-4 font-medium text-xs" style={{ color: A.textSecondary, borderBottom: `1px solid ${A.border}` }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(t => {
+                  const event = eventsById.get(t.eventId);
+                  const tier = event?.tiers.find(tier => tier.name === t.tier);
+                  const ticketPrice = Number.isFinite(tier?.price) ? `${tier?.price} BYN` : "—";
                   const chip = tktStatusChip(t.status);
                   return (
                     <tr key={t.ticketId} className="transition-colors cursor-pointer"
@@ -78,8 +92,10 @@ export default function AdminTickets({ state }: Props) {
                       onMouseEnter={e => (e.currentTarget.style.background = A.rowHover)}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <td className="py-3 px-4 font-mono text-xs" style={{ color: A.cyan }}>{t.ticketId}</td>
+                      <td className="py-3 px-4" style={{ color: A.textPrimary }}>{event?.title || "—"}</td>
                       <td className="py-3 px-4 font-mono text-xs" style={{ color: A.textMuted }}>{t.eventId}</td>
                       <td className="py-3 px-4" style={{ color: A.textPrimary }}>{t.tier}</td>
+                      <td className="py-3 px-4" style={{ color: A.textPrimary }}>{ticketPrice}</td>
                       <td className="py-3 px-4">
                         <span style={{ background: chip.bg, color: chip.color, borderRadius: 999 }} className="text-xs px-2.5 py-0.5 font-medium">
                           {tktStatusLabel[t.status]}
@@ -99,6 +115,11 @@ export default function AdminTickets({ state }: Props) {
 
       {/* Ticket Drawer */}
       {drawer && (
+        (() => {
+          const event = eventsById.get(drawer.eventId);
+          const tier = event?.tiers.find(tier => tier.name === drawer.tier);
+          const ticketPrice = Number.isFinite(tier?.price) ? `${tier?.price} BYN` : "—";
+          return (
         <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setDrawer(null)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
           <div className="relative w-full max-w-md h-full overflow-y-auto animate-in slide-in-from-right duration-300"
@@ -112,7 +133,7 @@ export default function AdminTickets({ state }: Props) {
               <div className="flex items-center gap-2">
                 {(() => { const c = tktStatusChip(drawer.status); return <span style={{ background: c.bg, color: c.color, borderRadius: 999 }} className="text-xs px-3 py-1 font-semibold">{tktStatusLabel[drawer.status]}</span>; })()}
               </div>
-              {([["EventID", drawer.eventId], ["Категория", drawer.tier], ["Канал", drawer.soldByChannel || "—"], ["Покупатель", drawer.soldToUserId || "—"], ["Создан", drawer.createdAt?.replace("T", " ").slice(0, 16)], ["Обновлён", drawer.updatedAt?.replace("T", " ").slice(0, 16)]] as [string, string][]).map(([k, v]) => (
+              {([["Мероприятие", event?.title || "—"], ["EventID", drawer.eventId], ["Тариф", drawer.tier], ["Стоимость", ticketPrice], ["Канал", drawer.soldByChannel || "—"], ["Покупатель", drawer.soldToUserId || "—"], ["Создан", drawer.createdAt?.replace("T", " ").slice(0, 16)], ["Обновлён", drawer.updatedAt?.replace("T", " ").slice(0, 16)]] as [string, string][]).map(([k, v]) => (
                 <div key={k}>
                   <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
                   <div style={{ color: A.textPrimary }} className="text-sm font-mono">{v}</div>
@@ -139,6 +160,8 @@ export default function AdminTickets({ state }: Props) {
             </div>
           </div>
         </div>
+          );
+        })()
       )}
     </div>
   );
