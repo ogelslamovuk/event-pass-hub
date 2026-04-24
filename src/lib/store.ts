@@ -657,8 +657,6 @@ export function setEventComplianceReview(
     decision: "approved" | "rejected" | "needs_rework";
     comment?: string;
     confirmFeePayment?: boolean;
-    certificateNumber?: string;
-    certificateDate?: string;
   }
 ): boolean {
   const app = state.eventComplianceApplications.find((x) => x.eventComplianceApplicationId === eventComplianceApplicationId);
@@ -672,11 +670,12 @@ export function setEventComplianceReview(
   app.reviewedAt = nowIso();
   app.updatedAt = nowIso();
   app.feePaymentConfirmedByAdmin = Boolean(payload.confirmFeePayment);
-  app.certificateNumber = payload.certificateNumber?.trim() || "";
-  app.certificateDate = payload.certificateDate?.trim() || "";
 
   if (payload.decision === "approved") {
     const now = nowIso();
+    const certificateDate = now.slice(0, 10);
+    app.certificateNumber = app.eventComplianceApplicationId;
+    app.certificateDate = certificateDate;
     const existing = app.linkedEventId ? state.events.find((event) => event.eventId === app.linkedEventId) : null;
     const dateTime = app.data.dateSlots.find(Boolean) || "";
     const capacity = app.data.projectedCapacity || app.data.plannedTicketsForSale || 1;
@@ -684,7 +683,7 @@ export function setEventComplianceReview(
       eventId: nextId(state, "evt", "EVT"),
       organizerId: app.organizerId,
       licenseId: nextId(state, "lic", "LIC"),
-      appId: "",
+      appId: app.linkedLegacyAppId || app.eventComplianceApplicationId,
       complianceApplicationId: app.eventComplianceApplicationId,
       title: "",
       venue: "",
@@ -712,11 +711,15 @@ export function setEventComplianceReview(
     nextEvent.description = app.data.shortDescription;
     nextEvent.poster = "";
     nextEvent.status = "approved";
+    nextEvent.remaining = existing ? Math.min(existing.remaining, capacity) : capacity;
     nextEvent.updatedAt = now;
     if (!existing) {
       state.events.push(nextEvent);
     }
     app.linkedEventId = nextEvent.eventId;
+  } else {
+    app.certificateNumber = "";
+    app.certificateDate = "";
   }
   saveState(state);
   return true;

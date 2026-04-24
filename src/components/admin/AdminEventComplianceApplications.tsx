@@ -9,8 +9,6 @@ interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
 export default function AdminEventComplianceApplications({ state, onUpdate }: Props) {
   const [comment, setComment] = useState<Record<string, string>>({});
-  const [certificateNumber, setCertificateNumber] = useState<Record<string, string>>({});
-  const [certificateDate, setCertificateDate] = useState<Record<string, string>>({});
   const [confirmFee, setConfirmFee] = useState<Record<string, boolean>>({});
 
   const rows = useMemo(() => state.eventComplianceApplications.slice().reverse(), [state.eventComplianceApplications]);
@@ -24,14 +22,13 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
     const ok = setEventComplianceReview(state, id, {
       decision,
       comment: text,
-      certificateNumber: certificateNumber[id] || "",
-      certificateDate: certificateDate[id] || "",
       confirmFeePayment: !!confirmFee[id],
     });
     if (!ok) {
       toast.error("Недопустимый переход статуса.");
       return;
     }
+    if (decision === "approved") toast.success("Заявка одобрена, удостоверение присвоено автоматически.");
     if (decision === "needs_rework") toast.success("Заявка возвращена на доработку.");
     if (decision === "rejected") toast.success("Заявка отклонена.");
     onUpdate({ ...state });
@@ -41,7 +38,7 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
     <div className="space-y-4">
       <div className="flex items-center gap-1.5">
         <h2 className="text-sm" style={{ color: A.textSecondary }}>Event compliance applications</h2>
-        <HelpTooltip text="При одобрении заполните номер и дату удостоверения, а также отметьте подтверждение пошлины." />
+        <HelpTooltip text="При одобрении удостоверение присваивается автоматически, вручную вводить номер и дату не требуется." />
       </div>
       <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 12 }} className="overflow-hidden">
         <table className="w-full text-sm">
@@ -79,21 +76,13 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                   <td className="py-2 px-3">{fee}</td>
                   <td className="py-2 px-3">{r.status}</td>
                   <td className="py-2 px-3 space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        className="h-8 rounded px-2 text-xs"
-                        placeholder="№ удостоверения"
-                        value={certificateNumber[r.eventComplianceApplicationId] || ""}
-                        onChange={(e) => setCertificateNumber((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
-                        style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
-                      />
-                      <input
-                        className="h-8 rounded px-2 text-xs"
-                        type="date"
-                        value={certificateDate[r.eventComplianceApplicationId] || ""}
-                        onChange={(e) => setCertificateDate((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
-                        style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
-                      />
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="h-8 rounded px-2 flex items-center" style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
+                        №: {r.certificateNumber || "—"}
+                      </div>
+                      <div className="h-8 rounded px-2 flex items-center" style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}>
+                        Дата: {r.certificateDate || "—"}
+                      </div>
                     </div>
                     <label className="flex items-center gap-2 text-xs">
                       <input
