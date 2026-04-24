@@ -193,7 +193,7 @@ export default function OrganizerEventCompliancePage() {
             {form.ticketTiers.map((tier, idx) => {
               const hasError = tierErrors.includes(idx);
               return (
-                <div key={`${idx}-${tier.name}`} className="grid md:grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-center">
+                <div key={idx} className="grid md:grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-center">
                   <input
                     className="h-10 rounded px-3 bg-[#0F1620] border"
                     style={hasError ? { borderColor: "#f87171" } : undefined}
@@ -207,7 +207,8 @@ export default function OrganizerEventCompliancePage() {
                     type="number"
                     min={0}
                     placeholder="Количество"
-                    value={Number.isFinite(tier.quantity) ? tier.quantity : 0}
+                    value={Number.isFinite(tier.quantity) ? (tier.quantity === 0 ? "" : tier.quantity) : ""}
+                    onFocus={(e) => e.currentTarget.select()}
                     onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, quantity: e.target.value ? Number(e.target.value) : 0 } : row) }))}
                   />
                   <input
@@ -216,7 +217,8 @@ export default function OrganizerEventCompliancePage() {
                     type="number"
                     min={0}
                     placeholder="Стоимость билета"
-                    value={Number.isFinite(tier.price) ? tier.price : 0}
+                    value={Number.isFinite(tier.price) ? (tier.price === 0 ? "" : tier.price) : ""}
+                    onFocus={(e) => e.currentTarget.select()}
                     onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, price: e.target.value ? Number(e.target.value) : 0 } : row) }))}
                   />
                   <button
