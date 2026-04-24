@@ -165,8 +165,8 @@ export default function OrganizerRegistrationStubPage() {
         <section className="space-y-2">
           <h2 className="font-semibold">Работники и учредители</h2>
           <div className="flex gap-2 flex-wrap">
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, workers: [...p.workers, emptyPerson()] }))}>+ Добавить сотрудника</button>
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, founders: [...p.founders, emptyPerson()] }))}>+ Добавить учредителя</button>
+            <button title="Добавить нового работника в заявку." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, workers: [...p.workers, emptyPerson()] }))}>+ Добавить сотрудника</button>
+            <button title="Добавить учредителя в заявку." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, founders: [...p.founders, emptyPerson()] }))}>+ Добавить учредителя</button>
           </div>
           <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Демо-блок. Для подачи заявки в MVP заполнение не требуется.</p>
         </section>
@@ -182,6 +182,7 @@ export default function OrganizerRegistrationStubPage() {
             ].map((item) => (
               <label key={item} className="flex items-center gap-2">
                 <input
+                  title={item === "Концерты" ? "Выберите, если организатор проводит концерты." : item === "Фестивали" ? "Выберите, если организатор проводит фестивали." : item === "Театр" ? "Выберите, если организатор проводит театральные постановки." : "Выберите, если организатор проводит выставки."}
                   type="checkbox"
                   checked={form.activities.includes(item)}
                   onChange={() =>

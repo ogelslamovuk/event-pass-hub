@@ -287,8 +287,8 @@ export default function OrganizerEventCompliancePage() {
         </section>
 
         <section className="space-y-2 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={form.adRestrictionConfirmed} onChange={(e) => setForm((p) => ({ ...p, adRestrictionConfirmed: e.target.checked }))} /> Подтверждаю ограничение на рекламу до получения удостоверения</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={form.cancelled} onChange={(e) => setForm((p) => ({ ...p, cancelled: e.target.checked }))} /> Мероприятие отменено</label>
+          <label className="flex items-center gap-2"><input title="Отметьте, что реклама не будет размещаться до получения удостоверения." type="checkbox" checked={form.adRestrictionConfirmed} onChange={(e) => setForm((p) => ({ ...p, adRestrictionConfirmed: e.target.checked }))} /> Подтверждаю ограничение на рекламу до получения удостоверения</label>
+          <label className="flex items-center gap-2"><input title="Отметьте, если мероприятие отменено." type="checkbox" checked={form.cancelled} onChange={(e) => setForm((p) => ({ ...p, cancelled: e.target.checked }))} /> Мероприятие отменено</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.changesDeclared} onChange={(e) => setForm((p) => ({ ...p, changesDeclared: e.target.checked }))} /> Изменены дата / место / состав участников</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.executiveCommitteeNotified} onChange={(e) => setForm((p) => ({ ...p, executiveCommitteeNotified: e.target.checked }))} /> Исполком уведомлён</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={form.citizensNotified} onChange={(e) => setForm((p) => ({ ...p, citizensNotified: e.target.checked }))} /> Граждане уведомлены</label>

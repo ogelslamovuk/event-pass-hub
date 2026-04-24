@@ -95,7 +95,7 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                     </label>
                     <textarea
                       className="w-full min-h-14 rounded px-2 py-1 text-xs"
-                      placeholder="Комментарий (обязателен при reject и needs rework)"
+                      placeholder="Комментарий (обязателен при отклонении и возврате на доработку)"
                       value={comment[r.eventComplianceApplicationId] || ""}
                       onChange={(e) => setComment((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
                       style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
