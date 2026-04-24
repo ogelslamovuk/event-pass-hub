@@ -32,12 +32,13 @@ function getPriceFrom(event: DemoEvent): number | null {
 function getAvailability(state: AppState, event: DemoEvent): "Available" | "Sold out" {
   if (!event.tiers.length) return "Available";
   const soldOut = event.tiers.every((tier) => {
-    const issuedForTier = state.tickets.filter(
-      (ticket) => ticket.eventId === event.eventId && ticket.tier === tier.name && ticket.status === "issued"
-    ).length;
-    return issuedForTier === 0;
+    return getTierIssuedCount(state, event.eventId, tier.name) === 0;
   });
   return soldOut ? "Sold out" : "Available";
+}
+
+function getTierIssuedCount(state: AppState, eventId: string, tierName: string): number {
+  return state.tickets.filter((ticket) => ticket.eventId === eventId && ticket.tier === tierName && ticket.status === "issued").length;
 }
 
 function formatDateTime(dateTime: string): { date: string; time: string } {
@@ -128,8 +129,9 @@ export default function B2CView({ state, onUpdate }: Props) {
   }, [state.demoPurchases]);
 
   const openDetails = (event: DemoEvent) => {
+    const firstAvailableTier = event.tiers.find((tier) => getTierIssuedCount(state, event.eventId, tier.name) > 0)?.name || event.tiers[0]?.name || "";
     setDetailsEventId(event.eventId);
-    setSelectedTier(event.tiers[0]?.name || "");
+    setSelectedTier(firstAvailableTier);
     setQuantity(1);
     setBuyerName("");
     setCheckoutOpen(false);
@@ -139,6 +141,10 @@ export default function B2CView({ state, onUpdate }: Props) {
   const openCheckout = () => {
     if (!detailsEvent || !selectedTier) {
       toast.error("Выберите ценовую категорию");
+      return;
+    }
+    if (getTierIssuedCount(state, detailsEvent.eventId, selectedTier) < quantity) {
+      toast.error("По выбранному тарифу нет доступных билетов");
       return;
     }
     setCheckoutOpen(true);
@@ -555,7 +561,10 @@ export default function B2CView({ state, onUpdate }: Props) {
                     <select value={selectedTier} onChange={(e) => setSelectedTier(e.target.value)}
                       className="h-10 w-full rounded-xl px-3 text-sm outline-none"
                       style={{ background: D.surfaceBg, border: `1px solid ${D.border}`, color: D.text }}>
-                      {detailsEvent.tiers.map((tier) => <option key={tier.name} value={tier.name}>{tier.name} — {tier.price} BYN</option>)}
+                      {detailsEvent.tiers.map((tier) => {
+                        const available = getTierIssuedCount(state, detailsEvent.eventId, tier.name);
+                        return <option key={tier.name} value={tier.name} disabled={available === 0}>{tier.name} — {tier.price} BYN{available === 0 ? " (Sold out)" : ""}</option>;
+                      })}
                     </select>
                   </div>
                   <div>

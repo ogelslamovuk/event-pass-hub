@@ -67,7 +67,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 7,
     time: "19:00",
     poster: "/demo/poster-1.svg",
-    tiers: [{ name: "Партер", price: 95 }, { name: "Балкон", price: 70 }, { name: "Галерея", price: 45 }],
+    tiers: [{ name: "Партер", price: 95, quantity: 45 }, { name: "Балкон", price: 70, quantity: 35 }, { name: "Галерея", price: 45, quantity: 20 }],
   },
   {
     organizerId: "demo_org_1",
@@ -79,7 +79,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 14,
     time: "20:00",
     poster: "/demo/poster-2.svg",
-    tiers: [{ name: "Стандарт", price: 80 }, { name: "Комфорт", price: 110 }, { name: "VIP", price: 150 }],
+    tiers: [{ name: "Стандарт", price: 80, quantity: 50 }, { name: "Комфорт", price: 110, quantity: 30 }, { name: "VIP", price: 150, quantity: 20 }],
   },
   {
     organizerId: "demo_org_1",
@@ -91,7 +91,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 21,
     time: "16:00",
     poster: "/demo/poster-3.svg",
-    tiers: [{ name: "Стандарт", price: 50 }, { name: "Фан-зона", price: 75 }, { name: "Премиум", price: 110 }],
+    tiers: [{ name: "Стандарт", price: 50, quantity: 60 }, { name: "Фан-зона", price: 75, quantity: 25 }, { name: "Премиум", price: 110, quantity: 15 }],
   },
   {
     organizerId: "demo_org_2",
@@ -103,7 +103,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 10,
     time: "18:30",
     poster: "/demo/poster-4.svg",
-    tiers: [{ name: "Партер", price: 65 }, { name: "Амфитеатр", price: 50 }, { name: "Балкон", price: 35 }],
+    tiers: [{ name: "Партер", price: 65, quantity: 40 }, { name: "Амфитеатр", price: 50, quantity: 35 }, { name: "Балкон", price: 35, quantity: 25 }],
   },
   {
     organizerId: "demo_org_2",
@@ -115,7 +115,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 17,
     time: "12:00",
     poster: "/demo/poster-5.svg",
-    tiers: [{ name: "Семейный", price: 40 }, { name: "Комфорт", price: 60 }, { name: "Премиум", price: 85 }],
+    tiers: [{ name: "Семейный", price: 40, quantity: 55 }, { name: "Комфорт", price: 60, quantity: 30 }, { name: "Премиум", price: 85, quantity: 15 }],
   },
   {
     organizerId: "demo_org_2",
@@ -127,7 +127,7 @@ const DEMO_APPS: DemoAppSeed[] = [
     daysOffset: 28,
     time: "19:30",
     poster: "/demo/poster-6.svg",
-    tiers: [{ name: "Стандарт", price: 55 }, { name: "Партер", price: 78 }, { name: "VIP", price: 120 }],
+    tiers: [{ name: "Стандарт", price: 55, quantity: 50 }, { name: "Партер", price: 78, quantity: 35 }, { name: "VIP", price: 120, quantity: 15 }],
   },
 ];
 
@@ -169,7 +169,7 @@ function seedDemoCatalog(state: AppState): AppState {
         title: seed.title,
         venue: seed.venue,
         dateTime: toDateTime(seed.daysOffset, seed.time),
-        capacity: 100,
+        capacity: seed.tiers.reduce((acc, tier) => acc + tier.quantity, 0),
         tiers: seed.tiers,
         city: seed.city,
         category: seed.category,
