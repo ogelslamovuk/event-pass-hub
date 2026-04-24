@@ -23,6 +23,7 @@ export default function OrganizerEventCompliancePage() {
   const approved = useMemo(() => selectIsCurrentOrganizerApproved(state), [state]);
   const myApps = useMemo(() => selectMyEventComplianceApplications(state), [state]);
   const [form, setForm] = useState(defaultEventComplianceData());
+  const [tierErrors, setTierErrors] = useState<number[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const complianceStatusLabel: Record<string, string> = {
     draft: "Черновик",
@@ -37,13 +38,17 @@ export default function OrganizerEventCompliancePage() {
   useEffect(() => {
     if (!organizer || !approved || !editId || !editingApplication) return;
     setEditingId(editId);
-    setForm(editingApplication.data);
+    setForm({
+      ...editingApplication.data,
+      ticketTiers: editingApplication.data.ticketTiers?.length ? editingApplication.data.ticketTiers : [{ name: "Стандарт", quantity: 0, price: 0 }],
+    });
   }, [approved, editId, editingApplication, organizer]);
 
   if (!organizer) return <Navigate to="/organizer/login" replace />;
   if (!approved) return <Navigate to="/organizer" replace />;
 
-  const fee = calculateComplianceFee(form.projectedCapacity, form.plannedTicketsForSale);
+  const totalPlannedTickets = form.ticketTiers.reduce((acc, tier) => acc + (Number.isFinite(tier.quantity) ? Math.max(0, Math.floor(tier.quantity)) : 0), 0);
+  const fee = calculateComplianceFee(form.projectedCapacity, totalPlannedTickets, form.ticketTiers);
 
   const normalizeDateTimeLocal = (value: string | null | undefined): string => {
     const raw = (value || "").trim();
@@ -63,11 +68,30 @@ export default function OrganizerEventCompliancePage() {
   const normalizeFormPayload = () => {
     const normalizedTitle = (form.title || "").replace(/\s+/g, " ").trim();
     const firstDateSlot = normalizeDateTimeLocal(form.dateSlots[0]);
+    const normalizedTiers = (form.ticketTiers || []).map((tier) => ({
+      name: (tier.name || "").trim(),
+      quantity: Number.isFinite(tier.quantity) ? Math.max(0, Math.floor(tier.quantity)) : 0,
+      price: Number.isFinite(tier.price) ? Math.max(0, tier.price) : 0,
+    }));
     return {
       ...form,
       title: normalizedTitle,
       dateSlots: [firstDateSlot, ...form.dateSlots.slice(1)],
+      ticketTiers: normalizedTiers,
+      plannedTicketsForSale: normalizedTiers.reduce((acc, tier) => acc + tier.quantity, 0),
     };
+  };
+
+  const validateTicketTiers = () => {
+    const rows = form.ticketTiers || [];
+    const invalidRows = rows.reduce<number[]>((acc, tier, index) => {
+      if (!tier.name?.trim() || !Number.isFinite(tier.quantity) || tier.quantity <= 0 || !Number.isFinite(tier.price) || tier.price < 0) {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+    setTierErrors(invalidRows);
+    return rows.length > 0 && totalPlannedTickets > 0 && invalidRows.length === 0;
   };
 
   const addMockAttachment = (kind: string, target: "eventDocuments" | "paymentAttachments" | "notificationsAttachment", sample = false) => {
@@ -82,6 +106,10 @@ export default function OrganizerEventCompliancePage() {
   };
 
   const save = (submit: boolean) => {
+    if (submit && !validateTicketTiers()) {
+      toast.error("Заполните тарифы билетов: название, количество и стоимость.");
+      return;
+    }
     const payload = normalizeFormPayload();
     if (submit && !payload.title) {
       toast.error("Укажите наименование мероприятия");
@@ -101,6 +129,7 @@ export default function OrganizerEventCompliancePage() {
     if (submit) {
       setEditingId(null);
       setForm(defaultEventComplianceData());
+      setTierErrors([]);
     }
   };
 
@@ -151,10 +180,64 @@ export default function OrganizerEventCompliancePage() {
 
         <section className="space-y-3">
           <h2 className="font-semibold">Площадка и вместимость</h2>
-          <div className="grid md:grid-cols-3 gap-3">
+          <div className="grid md:grid-cols-2 gap-3">
             <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Тип площадки" value={form.venueType} onChange={(e) => setForm((p) => ({ ...p, venueType: e.target.value }))} />
             <input className="h-10 rounded px-3 bg-[#0F1620] border" type="number" placeholder="Проектная вместимость" value={form.projectedCapacity ?? ""} onChange={(e) => setForm((p) => ({ ...p, projectedCapacity: e.target.value ? Number(e.target.value) : null }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="number" placeholder="Планируемые билеты" value={form.plannedTicketsForSale ?? ""} onChange={(e) => setForm((p) => ({ ...p, plannedTicketsForSale: e.target.value ? Number(e.target.value) : null }))} />
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-semibold">Тарифы билетов</h2>
+          <p className="text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Количество билетов и стоимость задаются по каждому тарифу отдельно.</p>
+          <div className="space-y-2">
+            {form.ticketTiers.map((tier, idx) => {
+              const hasError = tierErrors.includes(idx);
+              return (
+                <div key={`${idx}-${tier.name}`} className="grid md:grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-center">
+                  <input
+                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                    style={hasError ? { borderColor: "#f87171" } : undefined}
+                    placeholder="Тариф"
+                    value={tier.name}
+                    onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, name: e.target.value } : row) }))}
+                  />
+                  <input
+                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                    style={hasError ? { borderColor: "#f87171" } : undefined}
+                    type="number"
+                    min={0}
+                    placeholder="Количество"
+                    value={Number.isFinite(tier.quantity) ? tier.quantity : 0}
+                    onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, quantity: e.target.value ? Number(e.target.value) : 0 } : row) }))}
+                  />
+                  <input
+                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                    style={hasError ? { borderColor: "#f87171" } : undefined}
+                    type="number"
+                    min={0}
+                    placeholder="Стоимость билета"
+                    value={Number.isFinite(tier.price) ? tier.price : 0}
+                    onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, price: e.target.value ? Number(e.target.value) : 0 } : row) }))}
+                  />
+                  <button
+                    className="h-10 px-3 rounded bg-[#1d2a3b] disabled:opacity-50"
+                    disabled={form.ticketTiers.length <= 1}
+                    onClick={() => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.filter((_, rowIdx) => rowIdx !== idx) }))}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              className="px-3 h-9 rounded bg-[#1d2a3b]"
+              onClick={() => setForm((p) => ({ ...p, ticketTiers: [...p.ticketTiers, { name: "", quantity: 0, price: 0 }] }))}
+            >
+              Добавить тариф
+            </button>
+            <div className="text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Итого планируемых билетов: {totalPlannedTickets}</div>
           </div>
         </section>
 
@@ -238,7 +321,11 @@ export default function OrganizerEventCompliancePage() {
                       className="px-3 py-2 rounded bg-[#1d2a3b]"
                       onClick={() => {
                         setEditingId(app.eventComplianceApplicationId);
-                        setForm(app.data);
+                        setForm({
+                          ...app.data,
+                          ticketTiers: app.data.ticketTiers?.length ? app.data.ticketTiers : [{ name: "Стандарт", quantity: 0, price: 0 }],
+                        });
+                        setTierErrors([]);
                       }}
                     >
                       {app.status === "draft" ? "Продолжить" : "Доработать"}

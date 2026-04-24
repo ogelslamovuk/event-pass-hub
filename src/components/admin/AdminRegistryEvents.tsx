@@ -40,6 +40,13 @@ export default function AdminRegistryEvents({ state }: Props) {
       ),
     [state.eventComplianceApplications]
   );
+  const getTierStats = (eventId: string, tierName: string) => {
+    const tierTickets = state.tickets.filter((ticket) => ticket.eventId === eventId && ticket.tier === tierName);
+    const issued = tierTickets.length;
+    const sold = tierTickets.filter((ticket) => ticket.status === "sold" || ticket.status === "redeemed").length;
+    const remaining = tierTickets.filter((ticket) => ticket.status === "issued").length;
+    return { issued, sold, remaining };
+  };
 
   return (
     <div className="space-y-5">
@@ -155,6 +162,20 @@ export default function AdminRegistryEvents({ state }: Props) {
                         <div style={{ color: A.textPrimary }} className="text-sm font-mono">{v}</div>
                       </div>
                     ))}
+                    <div>
+                      <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">Тарифы</div>
+                      <div className="space-y-1">
+                        {drawer.tiers.map((tier, index) => {
+                          const stats = getTierStats(drawer.eventId, tier.name);
+                          return (
+                            <div key={`${tier.name}-${index}`} className="rounded px-2 py-1.5 text-xs" style={{ background: A.surfaceBg, color: A.textPrimary }}>
+                              <div className="flex justify-between"><span>{tier.name}</span><span>{tier.price} BYN</span></div>
+                              <div style={{ color: A.textSecondary }}>Количество: {tier.quantity} · Выпущено: {stats.issued} · Продано: {stats.sold} · Остаток: {stats.remaining}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </>
                 );
               })()}

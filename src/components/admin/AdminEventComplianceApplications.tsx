@@ -62,8 +62,9 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
           <tbody>
             {rows.map((r) => {
               const organizerName = state.organizers.find((o) => o.organizerId === r.organizerId)?.name || r.organizerId;
+              const totalTickets = (r.data.ticketTiers || []).reduce((acc, tier) => acc + (tier.quantity || 0), 0);
               const fee = r.data.approvalMode === "certificate_required"
-                ? `${calculateComplianceFee(r.data.projectedCapacity, r.data.plannedTicketsForSale)} БВ`
+                ? `${calculateComplianceFee(r.data.projectedCapacity, r.data.plannedTicketsForSale, r.data.ticketTiers)} БВ`
                 : "—";
               return (
                 <tr key={r.eventComplianceApplicationId} style={{ borderTop: `1px solid ${A.border}` }}>
@@ -99,6 +100,16 @@ export default function AdminEventComplianceApplications({ state, onUpdate }: Pr
                       onChange={(e) => setComment((p) => ({ ...p, [r.eventComplianceApplicationId]: e.target.value }))}
                       style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                     />
+                    <div className="rounded border p-2 text-xs space-y-1" style={{ borderColor: A.border, background: A.surfaceBg, color: A.textPrimary }}>
+                      <div style={{ color: A.textSecondary }}>Тарифы билетов</div>
+                      {(r.data.ticketTiers || []).map((tier, index) => (
+                        <div key={`${tier.name}-${index}`} className="flex items-center justify-between gap-2">
+                          <span>{tier.name || "—"}</span>
+                          <span>{tier.quantity || 0} × {tier.price || 0}</span>
+                        </div>
+                      ))}
+                      <div className="pt-1" style={{ color: A.textSecondary }}>Итого билетов: {totalTickets}</div>
+                    </div>
                     <div className="flex gap-2 flex-wrap">
                       <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.eventComplianceApplicationId, "approved")}>Одобрить заявку</button>
                       <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.eventComplianceApplicationId, "needs_rework")}>Вернуть на доработку</button>

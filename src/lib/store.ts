@@ -12,6 +12,7 @@ export type OpResult = "ok" | "error";
 export interface PriceTier {
   name: string;
   price: number;
+  quantity: number;
 }
 
 export interface Application {
@@ -195,6 +196,7 @@ export interface EventComplianceData {
   venueType: string;
   projectedCapacity: number | null;
   plannedTicketsForSale: number | null;
+  ticketTiers: PriceTier[];
   ageCategory: "0+" | "6+" | "12+" | "16+" | "18+";
   ageComment: string;
   approvalMode: "certificate_required" | "notice_only" | "certificate_not_required";
@@ -349,12 +351,21 @@ function migrateState(parsed: Partial<AppState>): AppState {
       if (!app.organizerId || !knownOrganizerIds.has(app.organizerId)) {
         app.organizerId = LEGACY_DEFAULT_ORGANIZER_ID;
       }
+      app.tiers = normalizeTierRows(app.tiers, app.capacity);
+      app.capacity = sumTierQuantity(app.tiers) || app.capacity || 0;
     }
     for (const event of state.events) {
       if (!event.organizerId || !knownOrganizerIds.has(event.organizerId)) {
         const fromApp = state.applications.find((a) => a.appId === event.appId)?.organizerId;
         event.organizerId = fromApp && knownOrganizerIds.has(fromApp) ? fromApp : LEGACY_DEFAULT_ORGANIZER_ID;
       }
+      event.tiers = normalizeTierRows(event.tiers, event.capacity);
+      event.capacity = sumTierQuantity(event.tiers) || event.capacity || 0;
+    }
+    for (const app of state.eventComplianceApplications) {
+      const tiers = normalizeComplianceTicketTiers(app.data);
+      app.data.ticketTiers = tiers;
+      app.data.plannedTicketsForSale = sumTierQuantity(tiers);
     }
     if (state.currentOrganizerId && !knownOrganizerIds.has(state.currentOrganizerId)) {
       state.currentOrganizerId = null;
@@ -416,6 +427,73 @@ function recalcRemaining(state: AppState, eventId: string) {
   evt.remaining = state.tickets.filter((t) => t.eventId === eventId && t.status === "issued").length;
 }
 
+function parseTierName(value: unknown): string {
+  const name = typeof value === "string" ? value.trim() : "";
+  return name || "Стандарт";
+}
+
+function parseTierPrice(value: unknown): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return parsed;
+}
+
+function parseTierQuantity(value: unknown): number | null {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.floor(parsed));
+}
+
+function sumTierQuantity(tiers: PriceTier[]): number {
+  return tiers.reduce((acc, tier) => acc + Math.max(0, Math.floor(tier.quantity || 0)), 0);
+}
+
+function normalizeTierRows(rawTiers: unknown, fallbackTotal = 0): PriceTier[] {
+  const source = Array.isArray(rawTiers) ? rawTiers : [];
+  if (source.length === 0) {
+    return [{ name: "Стандарт", price: 0, quantity: Math.max(0, Math.floor(fallbackTotal || 0)) }];
+  }
+  const missingIndexes: number[] = [];
+  const tiers: PriceTier[] = source.map((tier, index) => {
+    const row = tier && typeof tier === "object" ? (tier as Record<string, unknown>) : {};
+    const quantity = parseTierQuantity(row.quantity);
+    if (quantity === null) missingIndexes.push(index);
+    return {
+      name: parseTierName(row.name),
+      price: parseTierPrice(row.price),
+      quantity: quantity ?? 0,
+    };
+  });
+  if (missingIndexes.length > 0 && fallbackTotal > 0) {
+    const knownTotal = tiers.reduce((acc, tier, index) => acc + (missingIndexes.includes(index) ? 0 : tier.quantity), 0);
+    let remaining = Math.max(0, Math.floor(fallbackTotal) - knownTotal);
+    const chunk = Math.floor(remaining / missingIndexes.length);
+    missingIndexes.forEach((index, i) => {
+      const delta = i === missingIndexes.length - 1 ? remaining : chunk;
+      tiers[index].quantity = delta;
+      remaining -= delta;
+    });
+  }
+  return tiers;
+}
+
+function normalizeComplianceTicketTiers(data: EventComplianceData): PriceTier[] {
+  const fallbackLegacy = data.plannedTicketsForSale && data.plannedTicketsForSale > 0 ? data.plannedTicketsForSale : 0;
+  return normalizeTierRows((data as EventComplianceData & { ticketTiers?: PriceTier[] }).ticketTiers, fallbackLegacy);
+}
+
+function validateTicketTiers(tiers: PriceTier[]): boolean {
+  if (!tiers.length) return false;
+  if (sumTierQuantity(tiers) <= 0) return false;
+  return tiers.every((tier) =>
+    Boolean(tier.name.trim()) &&
+    Number.isFinite(tier.price) &&
+    tier.price >= 0 &&
+    Number.isFinite(tier.quantity) &&
+    tier.quantity > 0
+  );
+}
+
 export function defaultIdentityRecord(): IdentityRecord {
   return { fullName: "", docType: "", docNumber: "", issueDate: "", issueAuthority: "" };
 }
@@ -463,6 +541,7 @@ export function defaultEventComplianceData(): EventComplianceData {
     venueType: "",
     projectedCapacity: null,
     plannedTicketsForSale: null,
+    ticketTiers: [{ name: "Стандарт", price: 0, quantity: 0 }],
     ageCategory: "0+",
     ageComment: "",
     approvalMode: "certificate_required",
@@ -484,8 +563,9 @@ export function defaultEventComplianceData(): EventComplianceData {
   };
 }
 
-export function calculateComplianceFee(capacity: number | null, plannedTicketsForSale: number | null): number {
-  const basis = capacity && capacity > 0 ? capacity : (plannedTicketsForSale && plannedTicketsForSale > 0 ? plannedTicketsForSale : 0);
+export function calculateComplianceFee(capacity: number | null, plannedTicketsForSale: number | null, ticketTiers?: PriceTier[]): number {
+  const tierTotal = ticketTiers ? sumTierQuantity(ticketTiers) : 0;
+  const basis = capacity && capacity > 0 ? capacity : (tierTotal > 0 ? tierTotal : (plannedTicketsForSale && plannedTicketsForSale > 0 ? plannedTicketsForSale : 0));
   if (basis <= 0) return 3;
   if (basis <= 150) return 3;
   if (basis <= 300) return 10;
@@ -610,11 +690,18 @@ export function createEventComplianceApplication(
   data: EventComplianceData,
   submit: boolean
 ): EventComplianceApplicationRecord {
+  const normalizedTiers = normalizeComplianceTicketTiers(data);
+  const canSubmit = !submit || validateTicketTiers(normalizedTiers);
+  const nextData: EventComplianceData = {
+    ...data,
+    ticketTiers: normalizedTiers,
+    plannedTicketsForSale: sumTierQuantity(normalizedTiers),
+  };
   const rec: EventComplianceApplicationRecord = {
     eventComplianceApplicationId: quickId("EVAPP"),
     organizerId,
-    status: submit ? "submitted" : "draft",
-    submittedAt: submit ? nowIso() : null,
+    status: canSubmit ? "submitted" : "draft",
+    submittedAt: canSubmit ? nowIso() : null,
     reviewedAt: null,
     adminComment: "",
     feePaymentConfirmedByAdmin: false,
@@ -622,7 +709,7 @@ export function createEventComplianceApplication(
     certificateDate: "",
     linkedLegacyAppId: null,
     linkedEventId: null,
-    data,
+    data: nextData,
     createdAt: nowIso(),
     updatedAt: nowIso(),
   };
@@ -641,7 +728,14 @@ export function updateEventComplianceApplication(
   if (!app) return false;
   if (app.status === "approved" || app.status === "rejected") return false;
   if (app.status === "submitted" && !submit) return false;
-  app.data = data;
+  const normalizedTiers = normalizeComplianceTicketTiers(data);
+  if (submit && !validateTicketTiers(normalizedTiers)) return false;
+  const nextData: EventComplianceData = {
+    ...data,
+    ticketTiers: normalizedTiers,
+    plannedTicketsForSale: sumTierQuantity(normalizedTiers),
+  };
+  app.data = nextData;
   app.status = submit ? "submitted" : app.status === "needs_rework" ? "needs_rework" : "draft";
   app.submittedAt = submit ? nowIso() : app.submittedAt;
   app.updatedAt = nowIso();
@@ -664,6 +758,10 @@ export function setEventComplianceReview(
   if (app.status !== "submitted") return false;
   const comment = payload.comment?.trim() || "";
   if ((payload.decision === "rejected" || payload.decision === "needs_rework") && !comment) return false;
+  if (payload.decision === "approved") {
+    const normalizedTiers = normalizeComplianceTicketTiers(app.data);
+    if (!validateTicketTiers(normalizedTiers)) return false;
+  }
 
   app.status = payload.decision;
   app.adminComment = comment;
@@ -678,7 +776,8 @@ export function setEventComplianceReview(
     app.certificateDate = certificateDate;
     const existing = app.linkedEventId ? state.events.find((event) => event.eventId === app.linkedEventId) : null;
     const dateTime = app.data.dateSlots.find(Boolean) || "";
-    const capacity = app.data.projectedCapacity || app.data.plannedTicketsForSale || 1;
+    const normalizedTiers = normalizeComplianceTicketTiers(app.data);
+    const capacity = sumTierQuantity(normalizedTiers);
     const nextEvent: EventRecord = existing || {
       eventId: nextId(state, "evt", "EVT"),
       organizerId: app.organizerId,
@@ -689,7 +788,7 @@ export function setEventComplianceReview(
       venue: "",
       dateTime: "",
       capacity: 0,
-      tiers: [{ name: "Стандарт", price: 50 }],
+      tiers: [{ name: "Стандарт", price: 50, quantity: 1 }],
       city: "",
       category: "",
       description: "",
@@ -705,13 +804,13 @@ export function setEventComplianceReview(
     nextEvent.venue = app.data.venueName || "Площадка не указана";
     nextEvent.dateTime = dateTime;
     nextEvent.capacity = capacity;
-    nextEvent.tiers = [{ name: "Стандарт", price: 50 }];
+    nextEvent.tiers = normalizedTiers;
     nextEvent.city = "";
     nextEvent.category = app.data.eventType || "Иное";
     nextEvent.description = app.data.shortDescription;
     nextEvent.poster = "";
     nextEvent.status = "approved";
-    nextEvent.remaining = existing ? Math.min(existing.remaining, capacity) : capacity;
+    nextEvent.remaining = existing ? state.tickets.filter((ticket) => ticket.eventId === existing.eventId && ticket.status === "issued").length : 0;
     nextEvent.updatedAt = now;
     if (!existing) {
       state.events.push(nextEvent);
@@ -732,7 +831,7 @@ export function createApplication(
     venue: string;
     dateTime: string;
     capacity: number;
-    tiers: PriceTier[];
+    tiers: Array<{ name: string; price: number; quantity?: number }>;
     city?: string;
     category?: string;
     description?: string;
@@ -746,6 +845,7 @@ export function createApplication(
     appId: nextId(state, "app", "APP"),
     organizerId: effectiveOrganizerId,
     ...data,
+    tiers: normalizeTierRows(data.tiers, data.capacity),
     city: data.city || "",
     category: data.category || "",
     description: data.description || "",
@@ -786,7 +886,7 @@ export function approveApplication(state: AppState, appId: string): { licenseId:
     venue: app.venue,
     dateTime: app.dateTime,
     capacity: app.capacity,
-    tiers: [...app.tiers],
+    tiers: normalizeTierRows(app.tiers, app.capacity),
     city: app.city,
     category: app.category,
     description: app.description,
@@ -824,20 +924,12 @@ export function issueMarks(state: AppState, eventId: string): number {
   if (!evt || evt.status !== "published") return 0;
   const existing = state.tickets.filter((t) => t.eventId === eventId);
   if (existing.length > 0) return 0;
-  const { capacity, tiers } = evt;
-  let distribution: number[];
-  if (tiers.length === 2) {
-    distribution = [Math.ceil(capacity * 0.5), Math.floor(capacity * 0.5)];
-  } else if (tiers.length === 3) {
-    const a = Math.ceil(capacity * 0.4);
-    const b = Math.ceil(capacity * 0.3);
-    distribution = [a, b, capacity - a - b];
-  } else {
-    distribution = [capacity];
-  }
+  const tiers = normalizeTierRows(evt.tiers, evt.capacity).filter((tier) => tier.quantity > 0);
+  const totalToIssue = sumTierQuantity(tiers);
+  if (totalToIssue <= 0) return 0;
   const now = new Date().toISOString();
   for (let i = 0; i < tiers.length; i++) {
-    for (let j = 0; j < distribution[i]; j++) {
+    for (let j = 0; j < tiers[i].quantity; j++) {
       state.tickets.push({
         ticketId: nextId(state, "tck", "TCK"),
         eventId,
@@ -849,9 +941,11 @@ export function issueMarks(state: AppState, eventId: string): number {
     }
   }
   recalcRemaining(state, eventId);
+  evt.capacity = totalToIssue;
+  evt.tiers = tiers;
   evt.updatedAt = now;
   saveState(state);
-  return capacity;
+  return totalToIssue;
 }
 
 export interface OpOutcome {

@@ -187,6 +187,8 @@ export default function ChannelView({ state }: Props) {
     () => state.events.find((e) => e.eventId === selectedEventId) || null,
     [selectedEventId, state.events],
   );
+  const tierRemaining = (eventId: string, tierName: string) =>
+    state.tickets.filter((ticket) => ticket.eventId === eventId && ticket.tier === tierName && ticket.status === "issued").length;
 
   const today = new Date().toISOString().slice(0, 10);
   const todayOps = channelOps.filter((op) => op.ts.startsWith(today));
@@ -335,6 +337,14 @@ export default function ChannelView({ state }: Props) {
           {selectedEvent && (
             <div className="mt-3 rounded-lg border border-cyan-300/20 bg-cyan-500/5 p-3 text-xs text-slate-200">
               Выбрано событие: <span className="font-semibold">{selectedEvent.title}</span> · EventID: {selectedEvent.eventId}
+              <div className="mt-2 space-y-1">
+                {selectedEvent.tiers.map((tier, index) => (
+                  <div key={`${tier.name}-${index}`} className="flex items-center justify-between rounded border border-cyan-200/20 bg-slate-900/55 px-2 py-1">
+                    <span>{tier.name} · {tier.price} BYN</span>
+                    <span>Остаток: {tierRemaining(selectedEvent.eventId, tier.name)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </article>

@@ -43,6 +43,13 @@ export default function AdminEvents({ state, onUpdate }: Props) {
   const hasTickets = (eid: string) => state.tickets.some(t => t.eventId === eid);
   const getComplianceByEvent = (eid: string) =>
     state.eventComplianceApplications.find((app) => app.linkedEventId === eid);
+  const getTierStats = (eventId: string, tierName: string) => {
+    const tierTickets = state.tickets.filter((ticket) => ticket.eventId === eventId && ticket.tier === tierName);
+    const issued = tierTickets.length;
+    const sold = tierTickets.filter((ticket) => ticket.status === "sold" || ticket.status === "redeemed").length;
+    const remaining = tierTickets.filter((ticket) => ticket.status === "issued").length;
+    return { issued, sold, remaining };
+  };
 
   return (
     <div className="space-y-5">
@@ -151,11 +158,15 @@ export default function AdminEvents({ state, onUpdate }: Props) {
               })()}
               <div>
                 <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">Категории</div>
-                {drawer.tiers.map(t => (
-                  <div key={t.name} className="flex justify-between text-sm py-1" style={{ color: A.textPrimary }}>
-                    <span>{t.name}</span><span>{t.price.toLocaleString()}₽</span>
-                  </div>
-                ))}
+                {drawer.tiers.map((t, index) => {
+                  const stats = getTierStats(drawer.eventId, t.name);
+                  return (
+                    <div key={`${t.name}-${index}`} className="rounded px-2 py-1.5 mb-1 text-xs" style={{ color: A.textPrimary, background: A.surfaceBg }}>
+                      <div className="flex justify-between"><span>{t.name}</span><span>{t.price.toLocaleString()} BYN</span></div>
+                      <div style={{ color: A.textSecondary }}>Количество: {t.quantity} · Выпущено: {stats.issued} · Продано: {stats.sold} · Остаток: {stats.remaining}</div>
+                    </div>
+                  );
+                })}
               </div>
               <div>
                 <div style={{ color: A.textMuted }} className="text-xs font-medium mb-2">Билеты по статусу</div>
