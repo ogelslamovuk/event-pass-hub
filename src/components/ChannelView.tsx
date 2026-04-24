@@ -360,7 +360,7 @@ export default function ChannelView({ state }: Props) {
             ))}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <button onClick={() => toast.info("API ключ: ********-sandbox")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Показать ключ</button>
+            <button onClick={() => toast.info("API-ключ тестовой среды: ********")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Показать ключ</button>
             <button onClick={() => toast.info("Открываем документацию партнёра")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Документация</button>
             <button onClick={() => toast.info("Открываем OpenAPI")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">OpenAPI</button>
             <button onClick={() => toast.info("Настройки webhook")} className="h-10 rounded-lg border border-white/15 bg-slate-900 text-slate-100 hover:bg-slate-800">Webhook</button>
