@@ -41,6 +41,8 @@ export default function AdminEvents({ state, onUpdate }: Props) {
   };
 
   const hasTickets = (eid: string) => state.tickets.some(t => t.eventId === eid);
+  const getComplianceByEvent = (eid: string) =>
+    state.eventComplianceApplications.find((app) => app.linkedEventId === eid);
 
   return (
     <div className="space-y-5">
@@ -132,6 +134,21 @@ export default function AdminEvents({ state, onUpdate }: Props) {
                   <div style={{ color: A.textPrimary }} className="text-sm font-mono">{v}</div>
                 </div>
               ))}
+              {(() => {
+                const compliance = getComplianceByEvent(drawer.eventId);
+                return (
+                  <>
+                    <div>
+                      <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">Номер удостоверения</div>
+                      <div style={{ color: A.textPrimary }} className="text-sm font-mono">{compliance?.certificateNumber || "—"}</div>
+                    </div>
+                    <div>
+                      <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">Дата удостоверения</div>
+                      <div style={{ color: A.textPrimary }} className="text-sm font-mono">{compliance?.certificateDate || "—"}</div>
+                    </div>
+                  </>
+                );
+              })()}
               <div>
                 <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">Категории</div>
                 {drawer.tiers.map(t => (
