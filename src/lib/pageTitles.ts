@@ -10,6 +10,8 @@ export const ROUTE_TITLES: Record<string, string> = {
   "/demo": "Демо-портал",
   "/channel": "Партнёрский кабинет",
   "/platform": "Демо-платформа",
+  "/main": "Описание проекта",
+  "/proto": "Прототип платформы",
 };
 
 export const NOT_FOUND_TITLE = "Страница не найдена";
