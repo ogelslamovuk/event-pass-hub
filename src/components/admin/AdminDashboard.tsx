@@ -4,6 +4,7 @@ import { A, appStatusChip, opResultChip } from "./adminStyles";
 import {
   LayoutDashboard, FileText, Calendar, Ticket, AlertTriangle, Activity,
 } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onNavigate: (tab: any) => void; }
 
@@ -11,6 +12,14 @@ const statusLabel: Record<string, string> = {
   draft: "Черновик", submitted: "Отправлена", approved: "Одобрена", rejected: "Отклонена",
 };
 const opTypeLabel: Record<string, string> = { sell: "Продажа", refund: "Возврат", redeem: "Погашение", verify: "Проверка" };
+
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
 
 export default function AdminDashboard({ state, onNavigate }: Props) {
   const kpi = useMemo(() => {
@@ -45,12 +54,12 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
   }, [state.events]);
 
   const kpiCards = [
-    { label: "Новые заявки", value: kpi.newApps, icon: FileText, accent: A.cyan },
-    { label: "На проверке", value: kpi.reviewing, icon: Activity, accent: A.blue },
-    { label: "Активные события", value: kpi.activeEvents, icon: Calendar, accent: A.violet },
-    { label: "Билеты выпущено", value: kpi.totalTickets, icon: Ticket, accent: A.gold },
-    { label: "Нарушения", value: kpi.errorOps, icon: AlertTriangle, accent: A.statusError },
-    { label: "Подозрительные", value: kpi.suspiciousOps, icon: Activity, accent: A.statusWarn },
+    { label: "Новые заявки", value: kpi.newApps, icon: FileText, accent: A.cyan, tooltip: "Количество новых заявок, ожидающих первичного рассмотрения." },
+    { label: "На проверке", value: kpi.reviewing, icon: Activity, accent: A.blue, tooltip: "Количество заявок, находящихся на проверке." },
+    { label: "Активные события", value: kpi.activeEvents, icon: Calendar, accent: A.violet, tooltip: "Количество опубликованных событий, доступных в системе." },
+    { label: "Билеты выпущено", value: kpi.totalTickets, icon: Ticket, accent: A.gold, tooltip: "Общее количество выпущенных билетов по всем событиям." },
+    { label: "Нарушения", value: kpi.errorOps, icon: AlertTriangle, accent: A.statusError, tooltip: "Количество ошибок и нарушений, требующих внимания." },
+    { label: "Подозрительные", value: kpi.suspiciousOps, icon: Activity, accent: A.statusWarn, tooltip: "Количество подозрительных операций, требующих проверки." },
   ];
 
   return (
@@ -63,9 +72,10 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
             border: `1px solid ${A.border}`,
             boxShadow: A.glassShadow,
             borderRadius: 16,
-          }} className="p-5 transition-all duration-200 hover:-translate-y-0.5"
+          }} className="relative p-5 transition-all duration-200 hover:-translate-y-0.5"
             onMouseEnter={e => (e.currentTarget.style.borderColor = k.accent + '40')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = A.border)}>
+            <CardHelp text={k.tooltip} />
             <div className="flex items-center gap-3 mb-3">
               <div style={{ background: k.accent + '18', borderRadius: 10 }} className="w-9 h-9 flex items-center justify-center">
                 <k.icon size={18} style={{ color: k.accent }} />
@@ -80,10 +90,14 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
       {/* Mid row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Applications */}
-        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="p-5">
+        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative p-5">
+          <CardHelp text="Последние заявки, поступившие в центр управления." />
           <div className="flex items-center justify-between mb-4">
             <h3 style={{ color: A.textPrimary }} className="text-sm font-semibold tracking-tight">Последние заявки</h3>
-            <button onClick={() => onNavigate("applications")} style={{ color: A.cyan }} className="text-xs hover:underline">Все заявки →</button>
+            <div className="inline-flex items-center gap-1">
+              <button onClick={() => onNavigate("applications")} style={{ color: A.cyan }} className="text-xs hover:underline">Все заявки →</button>
+              <HelpTooltip text="Перейти к разделу всех заявок." />
+            </div>
           </div>
           {recentApps.length === 0 ? (
             <p style={{ color: A.textMuted }} className="text-sm py-6 text-center">Нет заявок</p>
@@ -111,10 +125,14 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
         </div>
 
         {/* Recent Operations */}
-        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="p-5">
+        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative p-5">
+          <CardHelp text="Последние операции с билетами и событиями." />
           <div className="flex items-center justify-between mb-4">
             <h3 style={{ color: A.textPrimary }} className="text-sm font-semibold tracking-tight">Последние операции</h3>
-            <button onClick={() => onNavigate("operations")} style={{ color: A.cyan }} className="text-xs hover:underline">Все операции →</button>
+            <div className="inline-flex items-center gap-1">
+              <button onClick={() => onNavigate("operations")} style={{ color: A.cyan }} className="text-xs hover:underline">Все операции →</button>
+              <HelpTooltip text="Перейти к журналу операций." />
+            </div>
           </div>
           {recentOps.length === 0 ? (
             <p style={{ color: A.textMuted }} className="text-sm py-6 text-center">Нет операций</p>
@@ -146,7 +164,8 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
       {/* Bottom row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Critical flags */}
-        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="p-5">
+        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative p-5">
+          <CardHelp text="Критические ошибки, нарушения и аномалии, найденные системой." />
           <h3 style={{ color: A.textPrimary }} className="text-sm font-semibold tracking-tight mb-4">Критические флаги</h3>
           {criticalFlags.length === 0 ? (
             <div className="flex flex-col items-center py-6">
@@ -167,7 +186,8 @@ export default function AdminDashboard({ state, onNavigate }: Props) {
         </div>
 
         {/* Today events */}
-        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="p-5">
+        <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative p-5">
+          <CardHelp text="Мероприятия, запланированные на текущую дату." />
           <h3 style={{ color: A.textPrimary }} className="text-sm font-semibold tracking-tight mb-4">События сегодня</h3>
           {todayEvents.length === 0 ? (
             <div className="flex flex-col items-center py-6">
