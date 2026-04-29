@@ -248,7 +248,7 @@ export default function OrganizerRegistrationStubPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-semibold">Ранее проведённые мероприятия</h2>
+          <h2 className="font-semibold">Ранее проведённые мероприятия (при наличии)</h2>
           <div className="relative">
             <textarea className="w-full min-h-24 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Описание" value={form.pastEventsDescription} onChange={(e) => setForm((p) => ({ ...p, pastEventsDescription: e.target.value }))} />
             <div className="absolute right-2 top-3"><HelpTooltip text="Опишите прошлые мероприятия, проведённые организатором." /></div>

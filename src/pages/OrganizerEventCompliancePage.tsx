@@ -304,16 +304,27 @@ export default function OrganizerEventCompliancePage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="font-semibold">Документы по мероприятию</h2>
-          <div className="flex gap-2 flex-wrap">
-            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("program", "eventDocuments")}>Программа (тестовый файл)</button><HelpTooltip text="Загрузите программу мероприятия." /></div>
-            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("venue-right", "eventDocuments")}>Право на площадку (тестовый файл)</button><HelpTooltip text="Прикрепите подтверждение права на площадку." /></div>
-            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("performer-agreement", "eventDocuments")}>Договорённости с исполнителями (тестовый файл)</button><HelpTooltip text="Загрузите договорённости между сторонами." /></div>
-            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button><HelpTooltip text="Скачать образец документа для заполнения." /></div>
+          <h2 className="font-semibold">Документы и материалы по мероприятию</h2>
+          <div className="space-y-2">
+            <h3 className="font-semibold">Документы</h3>
+            <div className="flex gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("registry-statement", "eventDocuments")}>Загрузить заявление (тестовый файл)</button><HelpTooltip text="Прикрепить заявление по мероприятию." /></div>
+              <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("registry-appendix", "eventDocuments")}>Загрузить приложение (тестовый файл)</button><HelpTooltip text="Прикрепить приложение к заявлению." /></div>
+              <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button><HelpTooltip text="Скачать образец документа для заполнения." /></div>
+            </div>
           </div>
-          {form.hasForeignPerformers && (
-            <div className="inline-flex items-center gap-1"><p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей обязательно: документ на площадку и подтверждение договорённостей.</p><HelpTooltip text="При участии зарубежных исполнителей нужны документы на площадку и подтверждение договорённостей с исполнителями." /></div>
-          )}
+          <div className="space-y-2">
+            <h3 className="font-semibold">Материалы мероприятия</h3>
+            <div className="flex gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1"><button type="button" className="px-3 py-2 rounded bg-[#1d2a3b]">Загрузить программу мероприятия (тестовый файл)</button><HelpTooltip text="Демонстрационная загрузка программы мероприятия. В MVP файл не сохраняется." /></div>
+              <div className="inline-flex items-center gap-1"><button type="button" className="px-3 py-2 rounded bg-[#1d2a3b]">Загрузить постер (тестовый файл)</button><HelpTooltip text="Демонстрационная загрузка постера мероприятия. В MVP файл не сохраняется." /></div>
+              <div className="inline-flex items-center gap-1"><button type="button" className="px-3 py-2 rounded bg-[#1d2a3b]">Загрузить видео (тестовый файл)</button><HelpTooltip text="Демонстрационная загрузка видеоматериала мероприятия. В MVP файл не сохраняется." /></div>
+              <div className="inline-flex items-center gap-1"><button type="button" className="px-3 py-2 rounded bg-[#1d2a3b]">Загрузить аудио (тестовый файл)</button><HelpTooltip text="Демонстрационная загрузка аудиоматериала мероприятия. В MVP файл не сохраняется." /></div>
+              <div className="inline-flex items-center gap-1"><button type="button" className="px-3 py-2 rounded bg-[#1d2a3b]">Загрузить рекламные материалы (тестовый файл)</button><HelpTooltip text="Демонстрационная загрузка рекламных материалов мероприятия. В MVP файл не сохраняется." /></div>
+            </div>
+            <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Программа мероприятия: PDF, DOC или DOCX. Постер: JPG, PNG или WEBP. Видео: MP4 или AVI, до 100 ГБ. Аудио: MP3 или WAV. Рекламные материалы: PDF, JPG или PNG.</p>
+          </div>
+          <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Демонстрационный блок. В MVP файлы не загружаются и используются только для визуализации процесса подачи заявки.</p>
         </section>
 
         <section className="space-y-3">
