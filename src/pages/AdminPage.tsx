@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useStorageSync } from "@/hooks/useStorageSync";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import HelpTooltip from "@/components/ui/help-tooltip";
 import { A } from "@/components/admin/adminStyles";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminOrganizerApplications from "@/components/admin/AdminOrganizerApplications";
@@ -28,14 +27,14 @@ type AdminTab =
 const sidebarSections: { label?: string; items: { key: AdminTab; label: string; icon: React.ElementType }[] }[] = [
   {
     items: [
-      { key: "dashboard", label: "Панель", icon: LayoutDashboard },
+      { key: "dashboard", label: "Дашборд", icon: LayoutDashboard },
     ],
   },
   {
     label: "Регулятор",
     items: [
       { key: "organizerApplications", label: "Заявки организаторов", icon: FileText },
-      { key: "eventComplianceApplications", label: "Заявки на согласование мероприятий", icon: FileText },
+      { key: "eventComplianceApplications", label: "Заявки мероприятий", icon: FileText },
       { key: "calendar", label: "Календарь", icon: Calendar },
       { key: "control", label: "Контроль", icon: ShieldAlert },
       { key: "decisions", label: "Журнал решений", icon: BookOpen },
@@ -44,13 +43,13 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
   {
     label: "Реестры",
     items: [
-      { key: "orgRegistry", label: "Реестр организаторов", icon: Building2 },
-      { key: "venueRegistry", label: "Реестр площадок", icon: MapPin },
-      { key: "registryEvents", label: "Реестр мероприятий", icon: Calendar },
+      { key: "orgRegistry", label: "Организаторы", icon: Building2 },
+      { key: "venueRegistry", label: "Площадки", icon: MapPin },
+      { key: "registryEvents", label: "Мероприятия", icon: Calendar },
     ],
   },
   {
-    label: "Buy Cinema Lab",
+    label: "TicketHub",
     items: [
       { key: "events", label: "События", icon: Globe },
       { key: "tickets", label: "Билеты", icon: Ticket },
@@ -65,35 +64,19 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
 ];
 
 const tabTitles: Record<AdminTab, string> = {
-  dashboard: "Панель",
+  dashboard: "Дашборд",
   organizerApplications: "Заявки организаторов",
-  eventComplianceApplications: "Заявки на согласование мероприятий",
+  eventComplianceApplications: "Заявки мероприятий",
   calendar: "Календарь мероприятий",
   control: "Контроль и нарушения",
   decisions: "Журнал решений",
   orgRegistry: "Реестр организаторов",
   venueRegistry: "Реестр площадок",
-  registryEvents: "Реестр мероприятий",
-  events: "События",
+  registryEvents: "Мероприятия",
+  events: "Реестр событий",
   tickets: "Реестр билетов",
   operations: "Журнал операций",
   reports: "Отчёты",
-};
-
-const menuTooltip: Record<AdminTab, string> = {
-  dashboard: "Обзорная панель с ключевыми показателями, последними заявками, операциями и флагами.",
-  organizerApplications: "Заявки организаций на включение в реестр организаторов мероприятий.",
-  eventComplianceApplications: "Заявки организаторов на согласование конкретных мероприятий.",
-  calendar: "Календарь мероприятий по датам и выбранному месяцу.",
-  control: "Контроль нарушений, ошибок операций и подозрительных действий.",
-  decisions: "Журнал решений по заявкам, публикациям и регуляторным действиям.",
-  orgRegistry: "Реестр зарегистрированных организаторов и их статусов.",
-  venueRegistry: "Реестр площадок, на которых проводятся мероприятия.",
-  registryEvents: "Реестр мероприятий, прошедших согласование.",
-  events: "События платформы, публикация и выпуск билетных марок.",
-  tickets: "Реестр выпущенных билетов и их текущих статусов.",
-  operations: "Журнал операций с билетами: продажи, возвраты, погашения и проверки.",
-  reports: "Отчёты по мероприятиям, организаторам, билетам, операциям и нарушениям.",
 };
 
 export default function AdminPage() {
@@ -122,8 +105,8 @@ export default function AdminPage() {
               <Zap size={14} style={{ color: A.cyan }} />
             </div>
             <div>
-              <div className="text-sm font-bold tracking-tight" style={{ color: A.textPrimary, letterSpacing: '-0.2px' }}>Центр управления</div>
-              <div className="text-[10px]" style={{ color: A.textMuted }}>Buy Cinema Lab</div>
+              <div className="text-sm font-bold tracking-tight" style={{ color: A.textPrimary, letterSpacing: '-0.2px' }}>Admin Console</div>
+              <div className="text-[10px]" style={{ color: A.textMuted }}>TicketHub Platform</div>
             </div>
           </div>
         </div>
@@ -139,26 +122,18 @@ export default function AdminPage() {
                 {section.items.map(item => {
                   const isActive = tab === item.key;
                   return (
-                    <div key={item.key} className="relative">
-                      <button
-                        onClick={() => setTab(item.key)}
-                        className="w-full flex items-center gap-2.5 px-3 pr-8 py-2 rounded-lg text-[13px] font-medium transition-all relative"
-                        style={{
-                          background: isActive ? A.selectedBg : 'transparent',
-                          color: isActive ? A.textPrimary : A.textSecondary,
-                        }}
-                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" style={{ background: A.cyan }} />}
-                        <item.icon size={16} style={{ color: isActive ? A.cyan : A.textSecondary }} />
-                        <span>{item.label}</span>
-                      </button>
-
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-                        <HelpTooltip text={menuTooltip[item.key]} />
-                      </div>
-                    </div>
+                    <button key={item.key} onClick={() => setTab(item.key)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all relative"
+                      style={{
+                        background: isActive ? A.selectedBg : 'transparent',
+                        color: isActive ? A.textPrimary : A.textSecondary,
+                      }}
+                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
+                      {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" style={{ background: A.cyan }} />}
+                      <item.icon size={16} style={{ color: isActive ? A.cyan : A.textSecondary }} />
+                      <span>{item.label}</span>
+                    </button>
                   );
                 })}
               </div>
@@ -170,8 +145,7 @@ export default function AdminPage() {
         <div className="px-4 py-3" style={{ borderTop: `1px solid ${A.border}` }}>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full" style={{ background: A.statusOk }} />
-            <span className="text-[11px]" style={{ color: A.textMuted }}>Синхронизация: {syncTime}</span>
-            <HelpTooltip text="Время последней синхронизации данных в демонстрационном хранилище." />
+            <span className="text-[11px]" style={{ color: A.textMuted }}>Sync: {syncTime}</span>
           </div>
         </div>
       </aside>
@@ -184,25 +158,16 @@ export default function AdminPage() {
           <h1 className="text-base font-semibold" style={{ letterSpacing: '-0.3px' }}>{tabTitles[tab]}</h1>
           <div className="flex items-center gap-3">
             {/* Counts */}
-            <div className="inline-flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-4 mr-2">
-                <span className="text-xs" style={{ color: A.textMuted }}>{state.applications.length} заявок</span>
-                <span className="text-xs" style={{ color: A.textMuted }}>{state.events.length} событий</span>
-                <span className="text-xs" style={{ color: A.textMuted }}>{state.tickets.length} билетов</span>
-              </div>
-              <HelpTooltip text="Сводные количества заявок, событий и билетов в текущем состоянии платформы." />
+            <div className="hidden md:flex items-center gap-4 mr-2">
+              <span className="text-xs" style={{ color: A.textMuted }}>{state.applications.length} заявок</span>
+              <span className="text-xs" style={{ color: A.textMuted }}>{state.events.length} событий</span>
+              <span className="text-xs" style={{ color: A.textMuted }}>{state.tickets.length} билетов</span>
             </div>
-            <div className="inline-flex items-center gap-1">
-              <button
-                className="p-2 rounded-lg transition-colors"
-                style={{ color: A.textSecondary }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <Bell size={16} />
-              </button>
-              <HelpTooltip text="Уведомления центра управления. В демонстрационном режиме используется как визуальный индикатор." />
-            </div>
+            <button className="p-2 rounded-lg transition-colors" style={{ color: A.textSecondary }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              <Bell size={16} />
+            </button>
           </div>
         </header>
 
