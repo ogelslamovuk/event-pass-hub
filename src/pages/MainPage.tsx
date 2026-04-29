@@ -3,7 +3,6 @@ import {
   BarChart3,
   Building2,
   CheckCircle2,
-  FileText,
   Link2,
   ShieldCheck,
   Store,
@@ -221,15 +220,131 @@ export default function MainPage() {
           <p className="mt-4 leading-8 text-[rgba(203,213,225,0.82)]">Мероприятие перестает быть набором отдельных документов, договоров и продаж. Оно становится управляемым объектом с понятным статусом, историей, билетным фондом, каналами реализации и финансовым следом.</p>
         </section>
 
-        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}><h2 className="text-[28px] font-semibold">Почему участники согласятся</h2><p className="mt-2 text-[rgba(203,213,225,0.78)]">Платформа работает только в том случае, если каждый участник получает свою выгоду.</p><div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">{[{t:"Государство / Минкульт",d:"Получает контрольный контур рынка: кто проводит мероприятия, какие события согласованы, сколько билетов выпущено, сколько продано, через какие каналы и в каких разрезах.",a:accents.blue},{t:"Организатор",d:"Получает единый рабочий маршрут: регистрация, заявка, документы, публикация мероприятия, подключение каналов продаж, отчетность. Организатор меньше зависит от одного реселлера и получает доступ к более широкому рынку продаж.",a:accents.violet},{t:"Реселлер",d:"Реселлер может потерять часть комиссии, но получает взамен больший доступ к мероприятиям, единый технический стандарт и возможность продавать больше. Платформа заменяет ручную модель квотирования на более ликвидный и масштабируемый доступ к билетному фонду.",a:accents.emerald},{t:"Покупатель",d:"Получает больше доступных мероприятий, понятный цифровой билет, прозрачную покупку, возврат и проверку.",a:accents.amber}].map((x)=><article key={x.t} className="rounded-[20px] border p-4" style={{borderColor:x.a.border, background:"rgba(255,255,255,0.02)"}}><h3 className="text-[20px] font-semibold break-words">{x.t}</h3><p className="mt-2 leading-7 text-[rgba(203,213,225,0.82)] break-words">{x.d}</p></article>)}</div><p className="mt-4 leading-8 text-[rgba(233,238,255,0.92)]">Платформа не ломает рынок. Она перераспределяет существующую комиссию за счет того, что дает рынку больше ликвидности, контроля и прозрачности.</p></section>
+        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}>
+          <h2 className="text-[28px] font-semibold">Почему участники согласятся</h2>
+          <p className="mt-2 text-[rgba(203,213,225,0.78)]">Платформа работает только в том случае, если каждый участник получает свою выгоду.</p>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[
+              { t: "Государство / Минкульт", d: "Получает контрольный контур рынка: кто проводит мероприятия, какие события согласованы, сколько билетов выпущено, сколько продано, через какие каналы и в каких разрезах.", a: accents.blue },
+              { t: "Организатор", d: "Получает единый рабочий маршрут: регистрация, заявка, документы, публикация мероприятия, подключение каналов продаж, отчетность. Организатор меньше зависит от одного реселлера и получает доступ к более широкому рынку продаж.", a: accents.violet },
+              { t: "Реселлер", d: "Реселлер может потерять часть комиссии, но получает взамен больший доступ к мероприятиям, единый технический стандарт и возможность продавать больше. Платформа заменяет ручную модель квотирования на более ликвидный и масштабируемый доступ к билетному фонду.", a: accents.emerald },
+              { t: "Покупатель", d: "Получает больше доступных мероприятий, понятный цифровой билет, прозрачную покупку, возврат и проверку.", a: accents.amber },
+            ].map((x) => (
+              <article key={x.t} className="rounded-[20px] border p-4" style={{ borderColor: x.a.border, background: "rgba(255,255,255,0.02)" }}>
+                <h3 className="text-[20px] font-semibold break-words">{x.t}</h3>
+                <p className="mt-2 break-words leading-7 text-[rgba(203,213,225,0.82)]">{x.d}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 leading-8 text-[rgba(233,238,255,0.92)]">Платформа не ломает рынок. Она перераспределяет существующую комиссию за счет того, что дает рынку больше ликвидности, контроля и прозрачности.</p>
+        </section>
 
-        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}><h2 className="text-[28px] font-semibold">Один рынок — четыре рабочих контура</h2><div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">{[{t:"Кабинет организатора",d:"Регистрация, заявки, документы, мероприятия, статусы, история взаимодействия.",i:Building2,a:accents.violet},{t:"Регуляторный контур",d:"Рассмотрение заявок, реестры, решения, журнал действий, контроль и аналитика.",i:ShieldCheck,a:accents.blue},{t:"Каналы продаж",d:"Подключение реселлеров, API/виджет, продажи, возвраты, проверки, синхронизация билетного фонда.",i:Ticket,a:accents.emerald},{t:"Публичный контур",d:"Афиша, покупка билета, цифровой билет, возврат и проверка на входе.",i:Users,a:accents.orange}].map(({t,d,i,a})=>{const Icon=i; return <article key={t} className="rounded-[20px] border p-4" style={{borderColor:"rgba(255,255,255,0.08)"}}><AccentIcon icon={Icon} accent={a}/><h3 className="mt-3 text-[20px] font-semibold">{t}</h3><p className="mt-2 leading-7 text-[rgba(203,213,225,0.82)]">{d}</p></article>;})}</div><p className="mt-4 leading-8 text-[rgba(203,213,225,0.82)]">Прототип демонстрирует не отдельную страницу и не кабинет ради кабинета. Он показывает модель будущей инфраструктуры: как мероприятие проходит путь от организатора и регулятора до продажи билета и отражения операции в системе.</p></section>
+        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}>
+          <h2 className="text-[28px] font-semibold">Один рынок — четыре рабочих контура</h2>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[
+              { t: "Кабинет организатора", d: "Регистрация, заявки, документы, мероприятия, статусы, история взаимодействия.", i: Building2, a: accents.violet },
+              { t: "Регуляторный контур", d: "Рассмотрение заявок, реестры, решения, журнал действий, контроль и аналитика.", i: ShieldCheck, a: accents.blue },
+              { t: "Каналы продаж", d: "Подключение реселлеров, API/виджет, продажи, возвраты, проверки, синхронизация билетного фонда.", i: Ticket, a: accents.emerald },
+              { t: "Публичный контур", d: "Афиша, покупка билета, цифровой билет, возврат и проверка на входе.", i: Users, a: accents.orange },
+            ].map(({ t, d, i, a }) => {
+              const Icon = i;
+              return (
+                <article key={t} className="rounded-[20px] border p-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                  <AccentIcon icon={Icon} accent={a} />
+                  <h3 className="mt-3 text-[20px] font-semibold">{t}</h3>
+                  <p className="mt-2 leading-7 text-[rgba(203,213,225,0.82)]">{d}</p>
+                </article>
+              );
+            })}
+          </div>
+          <p className="mt-4 leading-8 text-[rgba(203,213,225,0.82)]">Прототип демонстрирует не отдельную страницу и не кабинет ради кабинета. Он показывает модель будущей инфраструктуры: как мероприятие проходит путь от организатора и регулятора до продажи билета и отражения операции в системе.</p>
+        </section>
 
-        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}><h2 className="text-[28px] font-semibold">Деньги уже есть в рынке</h2><p className="mt-4 leading-8 text-[rgba(203,213,225,0.82)]">Сегодня организатор передает билеты реселлеру. Реселлер продает билет покупателю и удерживает комиссию.</p><div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">{[{l:"Номинал билета",v:"100 BYN",a:accents.blue},{l:"Возврат организатору",v:"90 BYN",a:accents.emerald},{l:"Комиссия реселлера",v:"10 BYN",a:accents.amber}].map((m)=><div key={m.l} className="rounded-[20px] border p-4" style={{borderColor:m.a.border,background:"rgba(255,255,255,0.02)"}}><p className="text-[14px] text-[rgba(203,213,225,0.78)]">{m.l}</p><p className="mt-2 text-[30px] font-semibold break-words">{m.v}</p></div>)}</div><p className="mt-3 leading-8 text-[rgba(203,213,225,0.82)]">Именно эта комиссия — существующий денежный слой рынка.</p><h3 className="mt-4 text-[22px] font-semibold">Что меняет платформа</h3><p className="mt-3 leading-8 text-[rgba(203,213,225,0.82)]">Платформа не строит бизнес-модель на госпошлинах, регистрационных платежах или административных сборах. Эти платежи выносятся за скобки.</p><p className="mt-2 leading-8 text-[rgba(203,213,225,0.82)]">Доход платформы возникает из существующей комиссии за продажу билетов.</p><p className="mt-2 leading-8 text-[rgba(203,213,225,0.82)]">Организатор, реселлеры и платформа делят комиссионный поток, который уже существует на рынке.</p><div className="mt-5 rounded-[22px] border p-5 text-[20px] font-semibold leading-9 break-words" style={{borderColor:"rgba(255,255,255,0.1)",background:"linear-gradient(90deg, rgba(79,123,255,0.16), rgba(176,89,255,0.1))"}}>Доход платформы = GMV × средняя комиссия продаж × доля платформы</div><div className="mt-4 space-y-2 text-[rgba(203,213,225,0.82)]"><p>GMV — общий объем проданных билетов.</p><p>Средняя комиссия продаж — комиссия, которую рынок уже платит реселлерам.</p><p>Доля платформы — часть комиссии за инфраструктуру, доступ, контроль и обработку операций.</p></div></section>
+        <section className="mt-5 rounded-[28px] px-5 py-6 md:px-6" style={panelBase}>
+          <h2 className="text-[28px] font-semibold">Деньги уже есть в рынке</h2>
+          <p className="mt-4 leading-8 text-[rgba(203,213,225,0.82)]">Сегодня организатор передает билеты реселлеру. Реселлер продает билет покупателю и удерживает комиссию.</p>
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[
+              { l: "Номинал билета", v: "100 BYN", a: accents.blue },
+              { l: "Возврат организатору", v: "90 BYN", a: accents.emerald },
+              { l: "Комиссия реселлера", v: "10 BYN", a: accents.amber },
+            ].map((m) => (
+              <div key={m.l} className="rounded-[20px] border p-4" style={{ borderColor: m.a.border, background: "rgba(255,255,255,0.02)" }}>
+                <p className="text-[14px] text-[rgba(203,213,225,0.78)]">{m.l}</p>
+                <p className="mt-2 text-[30px] font-semibold break-words">{m.v}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 leading-8 text-[rgba(203,213,225,0.82)]">Именно эта комиссия — существующий денежный слой рынка.</p>
+          <h3 className="mt-4 text-[22px] font-semibold">Что меняет платформа</h3>
+          <p className="mt-3 leading-8 text-[rgba(203,213,225,0.82)]">Платформа не строит бизнес-модель на госпошлинах, регистрационных платежах или административных сборах. Эти платежи выносятся за скобки.</p>
+          <p className="mt-2 leading-8 text-[rgba(203,213,225,0.82)]">Доход платформы возникает из существующей комиссии за продажу билетов.</p>
+          <p className="mt-2 leading-8 text-[rgba(203,213,225,0.82)]">Организатор, реселлеры и платформа делят комиссионный поток, который уже существует на рынке.</p>
+          <div className="mt-5 rounded-[22px] border p-5 text-[20px] font-semibold leading-9 break-words" style={{ borderColor: "rgba(255,255,255,0.1)", background: "linear-gradient(90deg, rgba(79,123,255,0.16), rgba(176,89,255,0.1))" }}>
+            Доход платформы = GMV × средняя комиссия продаж × доля платформы
+          </div>
+          <div className="mt-4 space-y-2 text-[rgba(203,213,225,0.82)]">
+            <p>GMV — общий объем проданных билетов.</p>
+            <p>Средняя комиссия продаж — комиссия, которую рынок уже платит реселлерам.</p>
+            <p>Доля платформы — часть комиссии за инфраструктуру, доступ, контроль и обработку операций.</p>
+          </div>
+        </section>
 
-        <section className="mt-5 rounded-[30px] px-5 py-6 md:px-6" style={{ ...panelBase, border: "1px solid rgba(79,123,255,0.28)", boxShadow: "0 32px 88px rgba(0,0,0,0.42), 0 0 0 1px rgba(125,106,255,0.14)" }}><div className="flex items-center gap-3"><AccentIcon icon={BarChart3} accent={accents.indigo}/><h2 className="text-[30px] font-semibold">Потенциал монетизации</h2></div><div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[{l:"Мероприятий в год",v:"..."},{l:"Проданных билетов в год",v:"..."},{l:"Расчетный GMV рынка",v:"... BYN"},{l:"Средняя комиссия продаж",v:"8–10%"},{l:"Потенциальная доля платформы в комиссии",v:"...%"},{l:"Оценочная выручка платформы",v:"... BYN / год"}].map((m)=><div key={m.l} className="rounded-[20px] border p-4" style={{borderColor:"rgba(255,255,255,0.08)",background:"linear-gradient(180deg, rgba(9,17,31,0.96) 0%, rgba(6,12,25,0.94) 100%)"}}><p className="text-[14px] leading-6 text-[rgba(203,213,225,0.78)]">{m.l}</p><p className="mt-2 text-[24px] font-semibold break-words">{m.v}</p></div>)}</div><p className="mt-5 leading-8 text-[rgba(233,238,255,0.9)]">Даже небольшая доля в существующей комиссии может формировать значимую выручку, если платформа становится обязательным цифровым маршрутом для рынка мероприятий.</p></section>
+        <section
+          className="mt-5 rounded-[30px] px-5 py-6 md:px-6"
+          style={{
+            ...panelBase,
+            border: "1px solid rgba(79,123,255,0.28)",
+            boxShadow: "0 32px 88px rgba(0,0,0,0.42), 0 0 0 1px rgba(125,106,255,0.14)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <AccentIcon icon={BarChart3} accent={accents.indigo} />
+            <h2 className="text-[30px] font-semibold">Потенциал монетизации</h2>
+          </div>
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[
+              { l: "Мероприятий в год", v: "..." },
+              { l: "Проданных билетов в год", v: "..." },
+              { l: "Расчетный GMV рынка", v: "... BYN" },
+              { l: "Средняя комиссия продаж", v: "8–10%" },
+              { l: "Потенциальная доля платформы в комиссии", v: "...%" },
+              { l: "Оценочная выручка платформы", v: "... BYN / год" },
+            ].map((m) => (
+              <div
+                key={m.l}
+                className="rounded-[20px] border p-4"
+                style={{
+                  borderColor: "rgba(255,255,255,0.08)",
+                  background: "linear-gradient(180deg, rgba(9,17,31,0.96) 0%, rgba(6,12,25,0.94) 100%)",
+                }}
+              >
+                <p className="text-[14px] leading-6 text-[rgba(203,213,225,0.78)]">{m.l}</p>
+                <p className="mt-2 text-[24px] font-semibold break-words">{m.v}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 leading-8 text-[rgba(233,238,255,0.9)]">
+            Даже небольшая доля в существующей комиссии может формировать значимую выручку, если платформа становится
+            обязательным цифровым маршрутом для рынка мероприятий.
+          </p>
+        </section>
 
-        <footer className="mt-5 rounded-[24px] px-5 py-5" style={panelBase}><div className="flex items-start gap-3"><AccentIcon icon={Wallet} accent={accents.violet}/><div><p className="leading-8 text-[rgba(233,238,255,0.9)]">Платформа соединяет обязательный регуляторный процесс с реальным коммерческим оборотом рынка.</p><p className="mt-2 leading-8 text-[rgba(233,238,255,0.9)]">Кто контролирует цифровой маршрут мероприятия — тот контролирует данные, доступ к рынку и часть комиссионного потока.</p></div></div></footer>
+        <footer className="mt-5 rounded-[24px] px-5 py-5" style={panelBase}>
+          <div className="flex items-start gap-3">
+            <AccentIcon icon={Wallet} accent={accents.violet} />
+            <div>
+              <p className="leading-8 text-[rgba(233,238,255,0.9)]">
+                Платформа соединяет обязательный регуляторный процесс с реальным коммерческим оборотом рынка.
+              </p>
+              <p className="mt-2 leading-8 text-[rgba(233,238,255,0.9)]">
+                Кто контролирует цифровой маршрут мероприятия — тот контролирует данные, доступ к рынку и часть
+                комиссионного потока.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
