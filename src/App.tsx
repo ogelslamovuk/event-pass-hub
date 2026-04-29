@@ -10,6 +10,8 @@ import OrganizerLoginPage from "./pages/OrganizerLoginPage";
 import OrganizerRegistrationStubPage from "./pages/OrganizerRegistrationStubPage";
 import OrganizerEventCompliancePage from "./pages/OrganizerEventCompliancePage";
 import PlatformLandingPage from "./pages/PlatformLandingPage";
+import MainPage from "./pages/MainPage";
+import ProtoPage from "./pages/ProtoPage";
 import { useStorageSync } from "./hooks/useStorageSync";
 import RouteTitleManager from "./components/RouteTitleManager";
 
@@ -37,6 +39,8 @@ const App = () => (
           <Route path="/channel" element={<ChannelPage />} />
           <Route path="/demo" element={<DemoPage />} />
           <Route path="/platform" element={<PlatformLandingPage />} />
+          <Route path="/main" element={<MainPage />} />
+          <Route path="/proto" element={<ProtoPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
