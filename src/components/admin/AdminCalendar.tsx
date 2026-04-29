@@ -2,8 +2,17 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { A, statusChip } from "./adminStyles";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; }
+
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
 
 export default function AdminCalendar({ state }: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -40,21 +49,28 @@ export default function AdminCalendar({ state }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* Calendar grid */}
-      <div className="lg:col-span-2" style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }}>
+      <div className="lg:col-span-2 relative" style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }}>
+        <CardHelp text="Календарь показывает мероприятия по датам. Дни с точками содержат одно или несколько мероприятий." />
         <div className="flex items-center justify-between p-5" style={{ borderBottom: `1px solid ${A.border}` }}>
-          <button onClick={prev} className="p-1.5 rounded-lg transition-colors" style={{ color: A.textSecondary }}
+          <span className="inline-flex items-center gap-1">
+            <button onClick={prev} className="p-1.5 rounded-lg transition-colors" style={{ color: A.textSecondary }}
             onMouseEnter={e => (e.currentTarget.style.background = A.rowHover)}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             <ChevronLeft size={18} />
-          </button>
+            </button>
+            <HelpTooltip text="Показать предыдущий месяц." />
+          </span>
           <h3 style={{ color: A.textPrimary }} className="text-base font-semibold">
             {monthNames[currentMonth.month]} {currentMonth.year}
           </h3>
-          <button onClick={next} className="p-1.5 rounded-lg transition-colors" style={{ color: A.textSecondary }}
+          <span className="inline-flex items-center gap-1">
+            <button onClick={next} className="p-1.5 rounded-lg transition-colors" style={{ color: A.textSecondary }}
             onMouseEnter={e => (e.currentTarget.style.background = A.rowHover)}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
             <ChevronRight size={18} />
-          </button>
+            </button>
+            <HelpTooltip text="Показать следующий месяц." />
+          </span>
         </div>
         <div className="p-5">
           {/* Day names */}
@@ -98,7 +114,8 @@ export default function AdminCalendar({ state }: Props) {
       </div>
 
       {/* Events list */}
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="p-5">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative p-5">
+        <CardHelp text="Список мероприятий на выбранную дату. Если дата не выбрана, список не отображается." />
         <h3 style={{ color: A.textPrimary }} className="text-sm font-semibold mb-4">
           {selectedDate ? `События: ${selectedDate}` : "Выберите дату"}
         </h3>

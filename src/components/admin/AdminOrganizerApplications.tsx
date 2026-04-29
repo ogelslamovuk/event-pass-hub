@@ -6,6 +6,22 @@ import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props { state: AppState; onUpdate: (s: AppState) => void; }
 
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
+
+const statusLabel: Record<string, string> = {
+  draft: "Черновик",
+  submitted: "Отправлена",
+  approved: "Одобрена",
+  rejected: "Отклонена",
+  needs_rework: "На доработке",
+};
+
 export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
   const [comment, setComment] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,9 +51,9 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
     <div className="space-y-4">
       <div className="flex items-center gap-1.5">
         <h2 className="text-sm" style={{ color: A.textSecondary }}>Заявки организаторов</h2>
-        <HelpTooltip text="Перед отклонением или возвратом на доработку добавьте комментарий с причиной." />
       </div>
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 12 }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 12 }} className="relative overflow-hidden">
+        <CardHelp text="Список заявок организаций на включение в реестр организаторов мероприятий. Решение принимается по каждой заявке отдельно." />
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: A.tableHeaderBg }}>
@@ -64,10 +80,11 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
                 <td className="py-2 px-3">{r.data.registrationNumber}</td>
                 <td className="py-2 px-3">{r.data.director.fullName}</td>
                 <td className="py-2 px-3">{r.data.documents.length + r.data.pastMaterials.length}</td>
-                <td className="py-2 px-3">{r.status}</td>
+                <td className="py-2 px-3">{statusLabel[r.status] || r.status}</td>
                 <td className="py-2 px-3 space-y-2">
-                  <textarea
-                    className="w-full min-h-16 rounded px-2 py-1 text-xs"
+                  <div className="relative">
+                    <textarea
+                    className="w-full min-h-16 rounded px-2 py-1 pr-9 text-xs"
                     placeholder="Комментарий (обязателен при отклонении и возврате на доработку)"
                     value={comment[r.organizerApplicationId] || ""}
                     onChange={(e) => {
@@ -76,22 +93,35 @@ export default function AdminOrganizerApplications({ state, onUpdate }: Props) {
                     }}
                     style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
                   />
+                    <div className="absolute right-2 top-3">
+                      <HelpTooltip text="Комментарий обязателен при отклонении заявки или возврате на доработку." />
+                    </div>
+                  </div>
                   {errors[r.organizerApplicationId] && (
                     <div className="text-xs" style={{ color: A.statusError }}>
                       {errors[r.organizerApplicationId]}
                     </div>
                   )}
                   <div className="flex gap-2 flex-wrap">
-                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.organizerApplicationId, "approved")}>Одобрить</button>
-                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.organizerApplicationId, "needs_rework")}>Вернуть на доработку</button>
-                    <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.organizerApplicationId, "rejected")}>Отклонить</button>
+                    <span className="inline-flex items-center gap-1">
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusOkBg, color: A.statusOk }} onClick={() => applyDecision(r.organizerApplicationId, "approved")}>Одобрить</button>
+                      <HelpTooltip text="Одобрить заявку организатора и включить организацию в реестр." />
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusWarnBg, color: A.statusWarn }} onClick={() => applyDecision(r.organizerApplicationId, "needs_rework")}>Вернуть на доработку</button>
+                      <HelpTooltip text="Вернуть заявку организатору на доработку с комментарием." />
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <button disabled={r.status !== "submitted"} className="px-2 py-1 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: A.statusErrorBg, color: A.statusError }} onClick={() => applyDecision(r.organizerApplicationId, "rejected")}>Отклонить</button>
+                      <HelpTooltip text="Отклонить заявку организатора с указанием причины." />
+                    </span>
                   </div>
                 </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td className="py-6 px-3 text-center" colSpan={8} style={{ color: A.textMuted }}>Пока нет organizer applications</td>
+                <td className="py-6 px-3 text-center" colSpan={8} style={{ color: A.textMuted }}>Пока нет заявок организаторов</td>
               </tr>
             )}
           </tbody>
