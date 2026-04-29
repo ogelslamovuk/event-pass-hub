@@ -142,7 +142,10 @@ export default function OrganizerEventCompliancePage() {
             <h1 className="text-2xl font-bold mb-2">Заявка на согласование мероприятия</h1>
             <p className="text-sm" style={{ color: "rgba(245,247,250,0.72)" }}>Надстройка над существующим процессом. После одобрения заявка уйдёт в основной конвейер.</p>
           </div>
-          <Link to="/organizer" className="px-3 h-9 inline-flex items-center rounded border">Назад в кабинет</Link>
+          <div className="inline-flex items-center gap-1">
+            <Link to="/organizer" className="px-3 h-9 inline-flex items-center rounded border">Назад в кабинет</Link>
+            <HelpTooltip text="Вернуться в кабинет организатора." />
+          </div>
         </div>
 
         <section className="space-y-3">
@@ -150,59 +153,81 @@ export default function OrganizerEventCompliancePage() {
           <div className="grid md:grid-cols-2 gap-3">
             <div className="relative">
               <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Наименование" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите официальное название мероприятия для рассмотрения." /></div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите название мероприятия." /></div>
             </div>
             <div className="relative">
               <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Тип мероприятия" value={form.eventType} onChange={(e) => setForm((p) => ({ ...p, eventType: e.target.value }))} />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Например: концерт, спектакль, фестиваль или выставка." /></div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Выберите тип мероприятия из списка." /></div>
             </div>
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="datetime-local" value={normalizeDateTimeLocal(form.dateSlots[0])} onChange={(e) => setForm((p) => ({ ...p, dateSlots: [normalizeDateTimeLocal(e.target.value), ...p.dateSlots.slice(1)] }))} />
+            <div className="relative">
+              <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" type="datetime-local" value={normalizeDateTimeLocal(form.dateSlots[0])} onChange={(e) => setForm((p) => ({ ...p, dateSlots: [normalizeDateTimeLocal(e.target.value), ...p.dateSlots.slice(1)] }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Выберите дату и время начала мероприятия." /></div>
+            </div>
             <div className="relative">
               <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Место проведения" value={form.venueName} onChange={(e) => setForm((p) => ({ ...p, venueName: e.target.value }))} />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите название площадки, как в договоре или уведомлении." /></div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите название площадки, где будет проходить мероприятие." /></div>
             </div>
           </div>
           <div className="relative">
             <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Адрес площадки" value={form.venueAddress} onChange={(e) => setForm((p) => ({ ...p, venueAddress: e.target.value }))} />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите фактический адрес проведения, включая город и улицу." /></div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите адрес площадки: город, улица, дом." /></div>
           </div>
-          <textarea className="w-full min-h-20 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Краткое описание" value={form.shortDescription} onChange={(e) => setForm((p) => ({ ...p, shortDescription: e.target.value }))} />
-          <textarea className="w-full min-h-20 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Программа" value={form.program} onChange={(e) => setForm((p) => ({ ...p, program: e.target.value }))} />
+          <div className="relative">
+            <textarea className="w-full min-h-20 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Краткое описание" value={form.shortDescription} onChange={(e) => setForm((p) => ({ ...p, shortDescription: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Краткое описание мероприятия для согласования." /></div>
+          </div>
+          <div className="relative">
+            <textarea className="w-full min-h-20 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Программа" value={form.program} onChange={(e) => setForm((p) => ({ ...p, program: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Опишите программу мероприятия." /></div>
+          </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Исполнители</h2>
           <div className="flex gap-5 text-sm">
-            <label className="flex items-center gap-2"><input type="checkbox" checked={form.onlyBelarusianPerformers} onChange={(e) => setForm((p) => ({ ...p, onlyBelarusianPerformers: e.target.checked }))} /> Только белорусские исполнители</label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={form.hasForeignPerformers} onChange={(e) => setForm((p) => ({ ...p, hasForeignPerformers: e.target.checked }))} /> Есть зарубежные исполнители</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={form.onlyBelarusianPerformers} onChange={(e) => setForm((p) => ({ ...p, onlyBelarusianPerformers: e.target.checked }))} /> Только белорусские исполнители <HelpTooltip text="Отметьте, если среди исполнителей нет иностранных граждан." /></label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={form.hasForeignPerformers} onChange={(e) => setForm((p) => ({ ...p, hasForeignPerformers: e.target.checked }))} /> Есть зарубежные исполнители <HelpTooltip text="Отметьте, если в мероприятии участвуют исполнители из других стран." /></label>
           </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Площадка и вместимость</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Тип площадки" value={form.venueType} onChange={(e) => setForm((p) => ({ ...p, venueType: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" type="number" placeholder="Проектная вместимость" value={form.projectedCapacity ?? ""} onChange={(e) => setForm((p) => ({ ...p, projectedCapacity: e.target.value ? Number(e.target.value) : null }))} />
+            <div className="relative">
+              <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Тип площадки" value={form.venueType} onChange={(e) => setForm((p) => ({ ...p, venueType: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите тип площадки." /></div>
+            </div>
+            <div className="relative">
+              <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" type="number" placeholder="Проектная вместимость" value={form.projectedCapacity ?? ""} onChange={(e) => setForm((p) => ({ ...p, projectedCapacity: e.target.value ? Number(e.target.value) : null }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите максимальное количество зрителей, которое может принять площадка." /></div>
+            </div>
           </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Тарифы билетов</h2>
-          <p className="text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Количество билетов и стоимость задаются по каждому тарифу отдельно.</p>
+          <div className="inline-flex items-center gap-1">
+            <p className="text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Количество билетов и стоимость задаются по каждому тарифу отдельно.</p>
+            <HelpTooltip text="Расчёт показывает, сколько билетов заявлено по тарифам относительно вместимости площадки." />
+          </div>
           <div className="space-y-2">
             {form.ticketTiers.map((tier, idx) => {
               const hasError = tierErrors.includes(idx);
               return (
                 <div key={idx} className="grid md:grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-center">
-                  <input
-                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                  <div className="relative">
+                    <input
+                    className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border"
                     style={hasError ? { borderColor: "#f87171" } : undefined}
                     placeholder="Тариф"
                     value={tier.name}
                     onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, name: e.target.value } : row) }))}
                   />
-                  <input
-                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите название ценовой категории билетов." /></div>
+                  </div>
+                  <div className="relative">
+                    <input
+                    className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border"
                     style={hasError ? { borderColor: "#f87171" } : undefined}
                     type="number"
                     min={0}
@@ -211,8 +236,11 @@ export default function OrganizerEventCompliancePage() {
                     onFocus={(e) => e.currentTarget.select()}
                     onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, quantity: e.target.value ? Number(e.target.value) : 0 } : row) }))}
                   />
-                  <input
-                    className="h-10 rounded px-3 bg-[#0F1620] border"
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Количество билетов, доступное по данному тарифу." /></div>
+                  </div>
+                  <div className="relative">
+                    <input
+                    className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border"
                     style={hasError ? { borderColor: "#f87171" } : undefined}
                     type="number"
                     min={0}
@@ -221,89 +249,115 @@ export default function OrganizerEventCompliancePage() {
                     onFocus={(e) => e.currentTarget.select()}
                     onChange={(e) => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.map((row, rowIdx) => rowIdx === idx ? { ...row, price: e.target.value ? Number(e.target.value) : 0 } : row) }))}
                   />
-                  <button
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Цена одного билета по этому тарифу." /></div>
+                  </div>
+                  <div className="inline-flex items-center gap-1">
+                    <button
                     className="h-10 px-3 rounded bg-[#1d2a3b] disabled:opacity-50"
                     disabled={form.ticketTiers.length <= 1}
                     onClick={() => setForm((p) => ({ ...p, ticketTiers: p.ticketTiers.filter((_, rowIdx) => rowIdx !== idx) }))}
                   >
                     Удалить
                   </button>
+                    <HelpTooltip text="Удалить эту ценовую категорию из заявки." />
+                  </div>
                 </div>
               );
             })}
           </div>
           <div className="flex items-center justify-between gap-3">
-            <button
+            <div className="inline-flex items-center gap-1">
+              <button
               className="px-3 h-9 rounded bg-[#1d2a3b]"
               onClick={() => setForm((p) => ({ ...p, ticketTiers: [...p.ticketTiers, { name: "", quantity: 0, price: 0 }] }))}
             >
               Добавить тариф
             </button>
-            <div className="text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Итого планируемых билетов: {totalPlannedTickets}</div>
+              <HelpTooltip text="Добавить ещё одну ценовую категорию." />
+            </div>
+            <div className="inline-flex items-center gap-1 text-xs" style={{ color: "rgba(245,247,250,0.72)" }}>Итого планируемых билетов: {totalPlannedTickets}<HelpTooltip text="Общее количество билетов, заявленных по всем тарифам." /></div>
           </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Возрастная категория и режим согласования</h2>
           <div className="grid md:grid-cols-2 gap-3">
-            <select className="h-10 rounded px-3 bg-[#0F1620] border" value={form.ageCategory} onChange={(e) => setForm((p) => ({ ...p, ageCategory: e.target.value as "0+" | "6+" | "12+" | "16+" | "18+" }))}>
+            <div className="relative">
+              <select className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" value={form.ageCategory} onChange={(e) => setForm((p) => ({ ...p, ageCategory: e.target.value as "0+" | "6+" | "12+" | "16+" | "18+" }))}>
               <option value="0+">0+</option><option value="6+">6+</option><option value="12+">12+</option><option value="16+">16+</option><option value="18+">18+</option>
-            </select>
-            <select className="h-10 rounded px-3 bg-[#0F1620] border" value={form.approvalMode} onChange={(e) => setForm((p) => ({ ...p, approvalMode: e.target.value as "certificate_required" | "notice_only" | "certificate_not_required" }))}>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Выберите минимальный возраст зрителей." /></div>
+            </div>
+            <div className="relative">
+              <select className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" value={form.approvalMode} onChange={(e) => setForm((p) => ({ ...p, approvalMode: e.target.value as "certificate_required" | "notice_only" | "certificate_not_required" }))}>
               <option value="certificate_required">Требуется удостоверение</option>
               <option value="notice_only">Требуется только уведомление</option>
               <option value="certificate_not_required">Удостоверение не требуется</option>
-            </select>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Выберите порядок согласования мероприятия." /></div>
+            </div>
           </div>
-          <textarea className="w-full min-h-16 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Основание / комментарий" value={form.approvalBasis} onChange={(e) => setForm((p) => ({ ...p, approvalBasis: e.target.value }))} />
+          <div className="relative">
+            <textarea className="w-full min-h-16 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Основание / комментарий" value={form.approvalBasis} onChange={(e) => setForm((p) => ({ ...p, approvalBasis: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Укажите основание или комментарий к выбранному режиму согласования." /></div>
+          </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Документы по мероприятию</h2>
           <div className="flex gap-2 flex-wrap">
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("program", "eventDocuments")}>Программа (тест)</button>
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("venue-right", "eventDocuments")}>Право на площадку (тест)</button>
-            <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("performer-agreement", "eventDocuments")}>Договорённости с исполнителями (тест)</button>
-            <button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button>
+            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("program", "eventDocuments")}>Программа (тестовый файл)</button><HelpTooltip text="Загрузите программу мероприятия." /></div>
+            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("venue-right", "eventDocuments")}>Право на площадку (тестовый файл)</button><HelpTooltip text="Прикрепите подтверждение права на площадку." /></div>
+            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("performer-agreement", "eventDocuments")}>Договорённости с исполнителями (тестовый файл)</button><HelpTooltip text="Загрузите договорённости между сторонами." /></div>
+            <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addMockAttachment("sample", "eventDocuments", true)}>Скачать образец</button><HelpTooltip text="Скачать образец документа для заполнения." /></div>
           </div>
           {form.hasForeignPerformers && (
-            <p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей обязательно: документ на площадку и подтверждение договорённостей.</p>
+            <div className="inline-flex items-center gap-1"><p className="text-xs" style={{ color: "#F2C94C" }}>Для зарубежных исполнителей обязательно: документ на площадку и подтверждение договорённостей.</p><HelpTooltip text="При участии зарубежных исполнителей нужны документы на площадку и подтверждение договорённостей с исполнителями." /></div>
           )}
         </section>
 
         <section className="space-y-3">
           <h2 className="font-semibold">Сроки и госпошлина</h2>
-          <input className="h-10 w-full rounded px-3 bg-[#0F1620] border" type="date" value={form.salesStartDate} onChange={(e) => setForm((p) => ({ ...p, salesStartDate: e.target.value }))} />
-          <p className="text-xs" style={{ color: "#F2C94C" }}>Документы на удостоверение должны быть поданы заранее, не позднее чем за 10 рабочих дней до начала реализации билетов.</p>
+          <div className="relative">
+            <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" type="date" value={form.salesStartDate} onChange={(e) => setForm((p) => ({ ...p, salesStartDate: e.target.value }))} />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите дату начала реализации билетов." /></div>
+          </div>
+          <div className="inline-flex items-center gap-1"><p className="text-xs" style={{ color: "#F2C94C" }}>Документы на удостоверение должны быть поданы заранее, не позднее чем за 10 рабочих дней до начала реализации билетов.</p><HelpTooltip text="Срок подачи нужен для проверки соблюдения регламентного срока до старта продаж." /></div>
           {form.approvalMode === "certificate_required" && (
             <div className="rounded-xl border p-4 space-y-2" style={{ borderColor: "rgba(255,255,255,0.12)", background: "#0F1620" }}>
-              <div>Расчёт пошлины: <b>{fee} БВ</b></div>
-              <label className="flex items-center gap-2"><input type="checkbox" checked={form.feeExempt} onChange={(e) => setForm((p) => ({ ...p, feeExempt: e.target.checked }))} /> Освобождён от пошлины</label>
-              <input className="h-10 w-full rounded px-3 bg-[#111A24] border" placeholder="Основание освобождения" value={form.feeExemptReason} onChange={(e) => setForm((p) => ({ ...p, feeExemptReason: e.target.value }))} />
-              <label className="flex items-center gap-2"><input type="checkbox" checked={form.feePaid} onChange={(e) => setForm((p) => ({ ...p, feePaid: e.target.checked }))} /> Пошлина оплачена</label>
-              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("payment-order", "paymentAttachments")}>Платёжка (тест)</button>
+              <div className="inline-flex items-center gap-1">Расчёт пошлины: <b>{fee} БВ</b><HelpTooltip text="Расчёт госпошлины основан на вместимости площадки и количестве заявленных билетов." /></div>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={form.feeExempt} onChange={(e) => setForm((p) => ({ ...p, feeExempt: e.target.checked }))} /> Освобождён от пошлины <HelpTooltip text="Отметьте, если госпошлина не требуется по закону." /></label>
+              <div className="relative">
+                <input className="h-10 w-full rounded px-3 pr-9 bg-[#111A24] border" placeholder="Основание освобождения" value={form.feeExemptReason} onChange={(e) => setForm((p) => ({ ...p, feeExemptReason: e.target.value }))} />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите основание освобождения от госпошлины." /></div>
+              </div>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={form.feePaid} onChange={(e) => setForm((p) => ({ ...p, feePaid: e.target.checked }))} /> Пошлина оплачена <HelpTooltip text="Отметьте, если пошлина уже оплачена." /></label>
+              <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("payment-order", "paymentAttachments")}>Платёжка (тестовый файл)</button><HelpTooltip text="Прикрепите платёжный документ." /></div>
             </div>
           )}
         </section>
 
         <section className="space-y-2 text-sm">
-          <label className="flex items-center gap-2"><input title="Отметьте, что реклама не будет размещаться до получения удостоверения." type="checkbox" checked={form.adRestrictionConfirmed} onChange={(e) => setForm((p) => ({ ...p, adRestrictionConfirmed: e.target.checked }))} /> Подтверждаю ограничение на рекламу до получения удостоверения</label>
-          <label className="flex items-center gap-2"><input title="Отметьте, если мероприятие отменено." type="checkbox" checked={form.cancelled} onChange={(e) => setForm((p) => ({ ...p, cancelled: e.target.checked }))} /> Мероприятие отменено</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={form.changesDeclared} onChange={(e) => setForm((p) => ({ ...p, changesDeclared: e.target.checked }))} /> Изменены дата / место / состав участников</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={form.executiveCommitteeNotified} onChange={(e) => setForm((p) => ({ ...p, executiveCommitteeNotified: e.target.checked }))} /> Исполком уведомлён</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={form.citizensNotified} onChange={(e) => setForm((p) => ({ ...p, citizensNotified: e.target.checked }))} /> Граждане уведомлены</label>
-          <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("notify-proof", "notificationsAttachment")}>Подтверждение уведомления (тест)</button>
-          <textarea className="w-full min-h-16 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Комментарий" value={form.cancellationComment} onChange={(e) => setForm((p) => ({ ...p, cancellationComment: e.target.value }))} />
+          <label className="flex items-center gap-2"><input type="checkbox" checked={form.adRestrictionConfirmed} onChange={(e) => setForm((p) => ({ ...p, adRestrictionConfirmed: e.target.checked }))} /> Подтверждаю ограничение на рекламу до получения удостоверения <HelpTooltip text="Отметьте, что реклама не будет размещаться до получения удостоверения." /></label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={form.cancelled} onChange={(e) => setForm((p) => ({ ...p, cancelled: e.target.checked }))} /> Мероприятие отменено <HelpTooltip text="Отметьте, если мероприятие отменено." /></label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={form.changesDeclared} onChange={(e) => setForm((p) => ({ ...p, changesDeclared: e.target.checked }))} /> Изменены дата / место / состав участников <HelpTooltip text="Отметьте, если параметры мероприятия были изменены." /></label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={form.executiveCommitteeNotified} onChange={(e) => setForm((p) => ({ ...p, executiveCommitteeNotified: e.target.checked }))} /> Исполком уведомлён <HelpTooltip text="Отметьте, если исполком уведомлён об изменениях." /></label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={form.citizensNotified} onChange={(e) => setForm((p) => ({ ...p, citizensNotified: e.target.checked }))} /> Граждане уведомлены <HelpTooltip text="Отметьте, если граждане уведомлены об изменениях." /></label>
+          <div className="inline-flex items-center gap-1"><button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addMockAttachment("notify-proof", "notificationsAttachment")}>Подтверждение уведомления (тестовый файл)</button><HelpTooltip text="Загрузите подтверждение уведомления." /></div>
+          <div className="relative">
+            <textarea className="w-full min-h-16 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Комментарий" value={form.cancellationComment} onChange={(e) => setForm((p) => ({ ...p, cancellationComment: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Укажите комментарий по изменениям или отмене мероприятия." /></div>
+          </div>
         </section>
 
         <div className="flex gap-3">
           <div className="inline-flex items-center gap-1">
             <button className="px-4 h-10 rounded bg-[#2b3f57]" onClick={() => save(false)}>Сохранить черновик</button>
-            <HelpTooltip text="Сохранит заполненные поля без отправки в регуляторный контур." />
+            <HelpTooltip text="Сохранить текущую заявку без отправки на рассмотрение." />
           </div>
           <div className="inline-flex items-center gap-1">
             <button className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
-            <HelpTooltip text="Отправит заявку с текущими данными и приложениями на рассмотрение." />
+            <HelpTooltip text="Отправить заполненную заявку на согласование." />
           </div>
         </div>
 
@@ -319,7 +373,8 @@ export default function OrganizerEventCompliancePage() {
                     {!!app.adminComment && <div className="text-xs mt-1"><span className="opacity-70">Комментарий администратора:</span> {app.adminComment}</div>}
                   </div>
                   {(app.status === "needs_rework" || app.status === "draft") && (
-                    <button
+                    <div className="inline-flex items-center gap-1">
+                      <button
                       className="px-3 py-2 rounded bg-[#1d2a3b]"
                       onClick={() => {
                         setEditingId(app.eventComplianceApplicationId);
@@ -331,7 +386,9 @@ export default function OrganizerEventCompliancePage() {
                       }}
                     >
                       {app.status === "draft" ? "Продолжить" : "Доработать"}
-                    </button>
+                      </button>
+                      <HelpTooltip text={app.status === "draft" ? "Продолжить редактирование черновика заявки." : "Внести правки по замечаниям администратора."} />
+                    </div>
                   )}
                 </div>
               ))}
