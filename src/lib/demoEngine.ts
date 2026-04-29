@@ -1,8 +1,16 @@
-import type { AppState, OrganizerAccount, PriceTier } from "@/lib/store";
+import type {
+  AppState,
+  EventComplianceApplicationRecord,
+  OrganizerAccount,
+  OrganizerApplicationData,
+  OrganizerApplicationRecord,
+  PriceTier,
+} from "@/lib/store";
 import {
   approveApplication,
   createApplication,
   createDemoPurchaseTicket,
+  loadState,
   defaultState,
   issueMarks,
   publishEvent,
@@ -144,7 +152,7 @@ function toDateTime(daysOffset: number, time: string): string {
 }
 
 function buildBaselineState(): AppState {
-  return defaultState();
+  return loadState();
 }
 
 function todayYmd(): string {
@@ -199,13 +207,375 @@ export function resetDemoData(): AppState {
 }
 
 export function generateDemoData(): AppState {
-  resetState();
   const state = buildBaselineState();
-  return seedDemoCatalog(state);
+  enrichDemoData(state);
+  saveState(state);
+  return state;
+}
+
+function enrichDemoData(state: AppState): void {
+  ensureDemoOrganizers(state);
+  ensureOrganizerRegistry(state);
+  ensureSeedPublishedEvents(state);
+  ensureOrganizerApplications(state);
+  ensureEventComplianceApplications(state);
+  ensureCertificatesForPublishedEvents(state);
+  ensureTicketsForPublishedEvents(state);
+}
+
+function ensureDemoOrganizers(state: AppState): void {
+  for (const demo of DEMO_ORGANIZERS) {
+    const existing = state.organizers.find((o) => o.organizerId === demo.organizerId || o.login === demo.login);
+    if (!existing) {
+      state.organizers.push({ ...demo });
+      continue;
+    }
+    existing.name ||= demo.name;
+    existing.fullName ||= demo.fullName;
+    existing.unp ||= demo.unp;
+    existing.registryStatus ||= demo.registryStatus;
+    existing.registryRegisteredAt ||= demo.registryRegisteredAt;
+    existing.director ||= demo.director;
+    existing.email ||= demo.email;
+    existing.phone ||= demo.phone;
+    existing.accountStatus ||= demo.accountStatus;
+    existing.feesStatus ||= demo.feesStatus;
+  }
+}
+
+function ensureOrganizerRegistry(state: AppState): void {
+  for (const [index, organizer] of DEMO_ORGANIZERS.entries()) {
+    const existing = state.organizerRegistry.find((r) => r.organizerId === organizer.organizerId);
+    if (existing) {
+      existing.internalNumber ||= index === 0 ? "DEMO-REG-001" : "DEMO-REG-002";
+      existing.includedAt ||= organizer.registryRegisteredAt || todayYmd();
+      continue;
+    }
+    state.organizerRegistry.push({
+      organizerRegistryId: `DEMO-ORGREG-${index + 1}`,
+      organizerId: organizer.organizerId,
+      internalNumber: index === 0 ? "DEMO-REG-001" : "DEMO-REG-002",
+      includedAt: organizer.registryRegisteredAt || todayYmd(),
+    });
+  }
+}
+
+function ensureSeedPublishedEvents(state: AppState): void {
+  for (const seed of DEMO_APPS) {
+    const existingEvent = state.events.find((event) => event.organizerId === seed.organizerId && event.title === seed.title);
+    if (existingEvent) continue;
+    const app = createApplication(
+      state,
+      {
+        title: seed.title,
+        venue: seed.venue,
+        dateTime: toDateTime(seed.daysOffset, seed.time),
+        capacity: seed.tiers.reduce((acc, tier) => acc + tier.quantity, 0),
+        tiers: seed.tiers,
+        city: seed.city,
+        category: seed.category,
+        description: seed.description,
+        poster: seed.poster,
+      },
+      true,
+      seed.organizerId,
+    );
+    const approved = approveApplication(state, app.appId);
+    if (!approved) continue;
+    publishEvent(state, approved.eventId);
+    issueMarks(state, approved.eventId);
+  }
+}
+
+function ensureOrganizerApplications(state: AppState): void {
+  const seeds: Array<{ id: string; organizerId: string; submittedAt: string; data: OrganizerApplicationData }> = [
+    {
+      id: "organizerApplication001",
+      organizerId: "pending_org_application_001",
+      submittedAt: "2026-04-21T09:00:00",
+      data: {
+        legalName: "ООО «Городская сцена»",
+        registrationNumber: "193847261",
+        postalCode: "220030",
+        region: "г. Минск",
+        locality: "Минск",
+        street: "ул. Интернациональная",
+        houseNumber: "14",
+        roomTypeAndNumber: "",
+        addressExtra: "",
+        contactPhone: "+375 29 111-22-33",
+        website: "",
+        email: "info@gorod-stage.by",
+        ownershipType: "private",
+        director: { fullName: "Анна Ковальчук", docType: "", docNumber: "", issueDate: "", issueAuthority: "" },
+        workers: [],
+        founders: [],
+        activities: ["Концерты"],
+        activityOther: "",
+        pastEventsDescription: "",
+        pastMaterials: [],
+        documents: [],
+        confirmations: { isAccurate: true, adminReviewConsent: true },
+        accountCredentials: { login: "", password: "" },
+      },
+    },
+    {
+      id: "organizerApplication002",
+      organizerId: "pending_org_application_002",
+      submittedAt: "2026-04-22T09:00:00",
+      data: {
+        legalName: "ООО «Северный звук»",
+        registrationNumber: "193847262",
+        postalCode: "210015",
+        region: "г. Витебск",
+        locality: "Витебск",
+        street: "пр-т Фрунзе",
+        houseNumber: "22",
+        roomTypeAndNumber: "",
+        addressExtra: "",
+        contactPhone: "+375 29 444-55-66",
+        website: "",
+        email: "office@nord-sound.by",
+        ownershipType: "private",
+        director: { fullName: "Павел Лисовский", docType: "", docNumber: "", issueDate: "", issueAuthority: "" },
+        workers: [],
+        founders: [],
+        activities: ["Концерты"],
+        activityOther: "",
+        pastEventsDescription: "",
+        pastMaterials: [],
+        documents: [],
+        confirmations: { isAccurate: true, adminReviewConsent: true },
+        accountCredentials: { login: "", password: "" },
+      },
+    },
+  ];
+
+  for (const seed of seeds) {
+    const existing = findOrganizerApplication(state, seed.id, seed.data.registrationNumber);
+    if (!existing) {
+      const now = new Date().toISOString();
+      state.organizerApplications.push({
+        organizerApplicationId: seed.id,
+        organizerId: seed.organizerId,
+        status: "submitted",
+        submittedAt: seed.submittedAt,
+        reviewedAt: null,
+        adminComment: "",
+        data: seed.data,
+        createdAt: seed.submittedAt,
+        updatedAt: now,
+      });
+      continue;
+    }
+    mergeOrganizerApplication(existing, seed);
+  }
+}
+
+function findOrganizerApplication(state: AppState, appId: string, registrationNumber: string): OrganizerApplicationRecord | undefined {
+  return state.organizerApplications.find((row) => row.organizerApplicationId === appId || row.data.registrationNumber === registrationNumber);
+}
+
+function mergeOrganizerApplication(target: OrganizerApplicationRecord, seed: { organizerId: string; submittedAt: string; data: OrganizerApplicationData }): void {
+  target.organizerId ||= seed.organizerId;
+  target.submittedAt ||= seed.submittedAt;
+  target.status = target.status === "draft" ? "submitted" : target.status;
+  target.data.legalName ||= seed.data.legalName;
+  target.data.registrationNumber ||= seed.data.registrationNumber;
+  target.data.contactPhone ||= seed.data.contactPhone;
+  target.data.email ||= seed.data.email;
+  target.data.postalCode ||= seed.data.postalCode;
+  target.data.region ||= seed.data.region;
+  target.data.locality ||= seed.data.locality;
+  target.data.street ||= seed.data.street;
+  target.data.houseNumber ||= seed.data.houseNumber;
+  target.data.director.fullName ||= seed.data.director.fullName;
+}
+
+function ensureEventComplianceApplications(state: AppState): void {
+  const seeds: Array<{ id: string; organizerId: string; submittedAt: string; title: string; dateTime: string; venue: string; category: string; city: string; age: "6+" | "12+"; price: number; limit: number; description: string }> = [
+    {
+      id: "eventApplication001",
+      organizerId: "demo_org_1",
+      submittedAt: "2026-04-24T09:00:00",
+      title: "Весенний концерт City Lights",
+      dateTime: "2026-05-20T19:00",
+      venue: "Prime Hall",
+      category: "Концерты",
+      city: "Минск",
+      age: "12+",
+      price: 65,
+      limit: 1200,
+      description: "Концертная программа с участием белорусских исполнителей.",
+    },
+    {
+      id: "eventApplication002",
+      organizerId: "demo_org_2",
+      submittedAt: "2026-04-25T09:00:00",
+      title: "Семейное шоу «Планета чудес»",
+      dateTime: "2026-05-24T16:00",
+      venue: "Гомельский городской центр культуры",
+      category: "Шоу",
+      city: "Гомель",
+      age: "6+",
+      price: 40,
+      limit: 700,
+      description: "Семейное культурно-зрелищное шоу для детей и родителей.",
+    },
+  ];
+
+  for (const seed of seeds) {
+    let row = state.eventComplianceApplications.find((r) => r.eventComplianceApplicationId === seed.id);
+    if (!row) {
+      row = state.eventComplianceApplications.find((r) => r.organizerId === seed.organizerId && r.data.title === seed.title && r.status === "submitted");
+    }
+    if (!row) {
+      const now = new Date().toISOString();
+      const rec: EventComplianceApplicationRecord = {
+        eventComplianceApplicationId: seed.id,
+        organizerId: seed.organizerId,
+        status: "submitted",
+        submittedAt: seed.submittedAt,
+        reviewedAt: null,
+        adminComment: "",
+        feePaymentConfirmedByAdmin: false,
+        certificateNumber: "",
+        certificateDate: "",
+        linkedLegacyAppId: null,
+        linkedEventId: null,
+        data: {
+          title: seed.title,
+          eventType: seed.category,
+          shortDescription: seed.description,
+          program: "",
+          dateSlots: [seed.dateTime],
+          venueName: seed.venue,
+          venueAddress: seed.city,
+          performers: [],
+          onlyBelarusianPerformers: true,
+          hasForeignPerformers: false,
+          venueType: "",
+          projectedCapacity: seed.limit,
+          plannedTicketsForSale: seed.limit,
+          ticketTiers: [{ name: "Стандарт", price: seed.price, quantity: seed.limit }],
+          ageCategory: seed.age,
+          ageComment: "",
+          approvalMode: "certificate_required",
+          approvalBasis: "",
+          eventDocuments: [],
+          salesStartDate: "",
+          feeExempt: false,
+          feeExemptReason: "",
+          feePaid: false,
+          paymentAttachments: [],
+          paymentComment: "",
+          adRestrictionConfirmed: false,
+          cancelled: false,
+          changesDeclared: false,
+          executiveCommitteeNotified: false,
+          citizensNotified: false,
+          notificationsAttachment: [],
+          cancellationComment: "",
+        },
+        createdAt: seed.submittedAt,
+        updatedAt: now,
+      };
+      state.eventComplianceApplications.push(rec);
+      continue;
+    }
+    row.organizerId ||= seed.organizerId;
+    row.submittedAt ||= seed.submittedAt;
+    row.status = row.status === "draft" ? "submitted" : row.status;
+    row.data.title ||= seed.title;
+    row.data.eventType ||= seed.category;
+    row.data.shortDescription ||= seed.description;
+    if (!row.data.dateSlots?.length) row.data.dateSlots = [seed.dateTime];
+    row.data.venueName ||= seed.venue;
+    row.data.venueAddress ||= seed.city;
+    row.data.projectedCapacity = row.data.projectedCapacity || seed.limit;
+    row.data.plannedTicketsForSale = row.data.plannedTicketsForSale || seed.limit;
+    if (!row.data.ticketTiers?.length || row.data.ticketTiers.every((tier) => (tier.quantity || 0) === 0)) {
+      row.data.ticketTiers = [{ name: "Стандарт", price: seed.price, quantity: seed.limit }];
+    }
+    row.data.ageCategory ||= seed.age;
+  }
+}
+
+function ensureCertificatesForPublishedEvents(state: AppState): void {
+  const publishedOrApproved = state.events.filter((event) => event.status === "published" || event.status === "approved");
+  for (let i = 0; i < publishedOrApproved.length; i++) {
+    const event = publishedOrApproved[i];
+    const certificateNumber = i === 0 ? "certificate001" : i === 1 ? "certificate002" : `certificate${String(i + 1).padStart(3, "0")}`;
+    const certificateDate = i === 0 ? "2026-04-18" : i === 1 ? "2026-04-19" : event.createdAt.slice(0, 10);
+    let compliance = state.eventComplianceApplications.find((app) => app.linkedEventId === event.eventId);
+    if (!compliance) {
+      compliance = {
+        eventComplianceApplicationId: `mock-cert-${event.eventId}`,
+        organizerId: event.organizerId,
+        status: "approved",
+        submittedAt: event.createdAt,
+        reviewedAt: event.updatedAt,
+        adminComment: "",
+        feePaymentConfirmedByAdmin: true,
+        certificateNumber: "",
+        certificateDate: "",
+        linkedLegacyAppId: event.appId,
+        linkedEventId: event.eventId,
+        data: {
+          title: event.title,
+          eventType: event.category || "Иное",
+          shortDescription: event.description || "",
+          program: "",
+          dateSlots: [event.dateTime],
+          venueName: event.venue,
+          venueAddress: event.city || "",
+          performers: [],
+          onlyBelarusianPerformers: true,
+          hasForeignPerformers: false,
+          venueType: "",
+          projectedCapacity: event.capacity,
+          plannedTicketsForSale: event.capacity,
+          ticketTiers: event.tiers,
+          ageCategory: "12+",
+          ageComment: "",
+          approvalMode: "certificate_required",
+          approvalBasis: "",
+          eventDocuments: [],
+          salesStartDate: "",
+          feeExempt: false,
+          feeExemptReason: "",
+          feePaid: true,
+          paymentAttachments: [],
+          paymentComment: "",
+          adRestrictionConfirmed: false,
+          cancelled: false,
+          changesDeclared: false,
+          executiveCommitteeNotified: false,
+          citizensNotified: false,
+          notificationsAttachment: [],
+          cancellationComment: "",
+        },
+        createdAt: event.createdAt,
+        updatedAt: event.updatedAt,
+      };
+      state.eventComplianceApplications.push(compliance);
+    }
+    compliance.certificateNumber ||= certificateNumber;
+    compliance.certificateDate ||= certificateDate;
+    event.complianceApplicationId ||= compliance.eventComplianceApplicationId;
+  }
+}
+
+function ensureTicketsForPublishedEvents(state: AppState): void {
+  for (const event of state.events) {
+    if (event.status !== "published") continue;
+    const hasTickets = state.tickets.some((ticket) => ticket.eventId === event.eventId);
+    if (!hasTickets) issueMarks(state, event.eventId);
+  }
 }
 
 export function runDemoScenario(): AppState {
-  const state = generateDemoData();
+  const state = seedDemoCatalog(resetDemoData());
   const published = state.events
     .filter((event) => event.status === "published")
     .slice(0, 3);
