@@ -93,6 +93,14 @@ function sortDir(next: boolean): SortDirection {
   return next ? "asc" : "desc";
 }
 
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
+
 export default function OrganizerPage() {
   const navigate = useNavigate();
   const { state, update } = useStorageSync();
@@ -225,13 +233,16 @@ export default function OrganizerPage() {
           style: { background: T.cardBg, border: `1px solid ${T.border}`, color: T.textPrimary },
         }}
       />
-      <button
-        onClick={() => navigate("/organizer/compliance")}
-        title="Создать новую заявку на согласование мероприятия." className="fixed right-5 bottom-5 z-20 px-4 h-10 rounded-xl text-sm font-semibold shadow-lg"
-        style={{ background: T.gold, color: "#111" }}
-      >
-        Новая заявка
-      </button>
+      <div className="fixed right-5 bottom-5 z-20 inline-flex items-center gap-1">
+        <button
+          onClick={() => navigate("/organizer/compliance")}
+          className="px-4 h-10 rounded-xl text-sm font-semibold shadow-lg"
+          style={{ background: T.gold, color: "#111" }}
+        >
+          Новая заявка
+        </button>
+        <HelpTooltip text="Создать новую заявку на согласование мероприятия." />
+      </div>
 
       <aside className="w-60 min-h-screen border-r flex-shrink-0 flex flex-col" style={{ background: T.sidebarBg, borderColor: T.border }}>
         <div className="px-5 py-5 border-b" style={{ borderColor: T.border }}>
@@ -246,7 +257,7 @@ export default function OrganizerPage() {
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                title={item.label === "Дашборд" ? "Панель с показателями и последними событиями." : item.label === "Заявки" ? "Список заявок на согласование мероприятий." : item.label === "Мероприятия" ? "Перечень одобренных мероприятий." : item.label === "Продажи и билеты" ? "Сводка продаж и списка билетов." : item.label === "Отчетность" ? "Финансовые показатели и отчёты." : item.label === "Маркетинг" ? "Раздел маркетинга в демонстрационном режиме." : item.label === "Документы" ? "Реестр документов и удостоверений организатора." : "Контакты службы поддержки платформы."} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors relative"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors relative"
                 style={{ color: active ? T.textPrimary : T.textSecondary, background: active ? "rgba(242,201,76,0.10)" : "transparent" }}
               >
                 {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" style={{ background: T.gold }} />}
@@ -338,11 +349,10 @@ export default function OrganizerPage() {
                       { label: "Одобрено", value: kpi.approved, icon: CheckCircle, filter: "approved" as const },
                       { label: "Отклонено", value: kpi.rejected, icon: XCircle, filter: "rejected" as const },
                     ].map((k) => (
+                    <div key={k.label} className="relative">
                     <button
-                      key={k.label}
                       onClick={() => openFilteredApplications(k.filter)}
-                      title={k.label === "Черновики" ? "Количество черновиков заявок. Нажмите, чтобы отфильтровать заявки по статусу «Черновик»." : k.label === "На рассмотрении" ? "Заявки, ожидающие рассмотрения. Нажмите, чтобы отфильтровать заявки со статусом «На рассмотрении»." : k.label === "На доработке" ? "Заявки с замечаниями администратора. Нажмите, чтобы открыть заявки, требующие доработки." : k.label === "Одобрено" ? "Количество заявок, одобренных регулятором. Нажмите, чтобы посмотреть одобренные заявки." : "Заявки, отклонённые регулятором. Нажмите, чтобы увидеть отклонённые заявки."}
-                      className="rounded-[18px] border p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
+                      className="rounded-[18px] border p-5 text-left transition-all duration-200 hover:-translate-y-0.5 w-full"
                       style={{ background: T.cardBg, backgroundImage: T.cardGradient, borderColor: T.border, boxShadow: T.cardShadow }}
                     >
                       <div className="flex items-center justify-between mb-3">
@@ -353,11 +363,14 @@ export default function OrganizerPage() {
                       <div className="text-[28px] font-bold" style={{ color: T.textPrimary }}>{k.value}</div>
                       <div className="text-[13px] mt-1" style={{ color: T.textSecondary }}>{k.label}</div>
                     </button>
+                    <CardHelp text={k.label === "Черновики" ? "Количество черновиков заявок. Нажмите, чтобы отфильтровать заявки по статусу «Черновик»." : k.label === "На рассмотрении" ? "Заявки, ожидающие рассмотрения. Нажмите, чтобы отфильтровать заявки со статусом «На рассмотрении»." : k.label === "На доработке" ? "Заявки с замечаниями администратора. Нажмите, чтобы открыть заявки, требующие доработки." : k.label === "Одобрено" ? "Количество заявок, одобренных регулятором. Нажмите, чтобы посмотреть одобренные заявки." : "Заявки, отклонённые регулятором. Нажмите, чтобы увидеть отклонённые заявки."} />
+                    </div>
                   ))}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                  <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                    <CardHelp text="Показывает регистрационные данные организатора, статус в реестре, состояние пошлин и количество заявок." />
                     <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Статус организатора</h2>
                     <dl className="space-y-3 text-[13px]">
                       <Row dt="УНП" dd={organizer.unp} />
@@ -368,7 +381,8 @@ export default function OrganizerPage() {
                     </dl>
                   </div>
 
-                  <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                  <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                    <CardHelp text="Показывает последние операции по мероприятиям и билетам организатора." />
                     <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Последние действия</h2>
                     {recentOps.length === 0 ? (
                       <p className="text-[13px]" style={{ color: T.textSecondary }}>Пока нет действий.</p>
@@ -389,7 +403,8 @@ export default function OrganizerPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+                  <CardHelp text="Показывает ближайшие одобренные мероприятия организатора." />
                   <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Ближайшие мероприятия</h2>
                   <EventsTable rows={upcomingEvents} compact />
                 </div>
@@ -398,11 +413,10 @@ export default function OrganizerPage() {
                   <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Разделы</h2>
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     {sectionTiles.map((tile) => (
+                      <div key={tile.label} className="relative">
                       <button
-                        key={tile.label}
                         onClick={() => tile.id === "applications" && tile.label === "Новая заявка" ? navigate("/organizer/compliance") : setActiveSection(tile.id)}
-                        title={tile.label === "Новая заявка" ? "Создать заявку на согласование мероприятия." : tile.label === "Мои заявки" ? "Перейти к списку всех отправленных и черновых заявок." : tile.label === "Отчетность" ? "Просмотреть отчёты и финансовые показатели." : tile.label === "Маркетинг" ? "Раздел временно недоступен и будет расширен позже." : tile.label === "Документы" ? "Перейти к реестру документов и удостоверений." : "Контакты и каналы связи со службой поддержки."}
-                        className="rounded-[18px] border p-5 text-left transition-all duration-200 hover:-translate-y-0.5 group"
+                        className="rounded-[18px] border p-5 text-left transition-all duration-200 hover:-translate-y-0.5 group w-full"
                         style={{ background: T.cardBg, borderColor: T.border }}
                       >
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: T.goldBg }}>
@@ -411,6 +425,8 @@ export default function OrganizerPage() {
                         <div className="text-[14px] font-semibold mb-1">{tile.label}</div>
                         <div className="text-[12px]" style={{ color: T.textSecondary }}>{tile.desc}</div>
                       </button>
+                      <CardHelp text={tile.label === "Новая заявка" ? "Создать новую заявку на согласование мероприятия." : tile.label === "Мои заявки" ? "Перейти к списку всех отправленных и черновых заявок." : tile.label === "Отчетность" ? "Просмотреть отчёты и финансовые показатели." : tile.label === "Маркетинг" ? "Раздел временно недоступен и будет расширен позже." : tile.label === "Документы" ? "Перейти к реестру документов и удостоверений." : "Контакты и каналы связи со службой поддержки."} />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -453,7 +469,7 @@ export default function OrganizerPage() {
             )}
 
             {activeSection === "marketing" && (
-              <SimpleCard title="Маркетинг" text="Раздел будет расширен в следующих версиях демо-кабинета." />
+              <SimpleCard title="Маркетинг" text="Раздел будет расширен в следующих версиях демо-кабинета." tooltipText="Раздел маркетинга в демонстрационном режиме. Будет расширен позже." />
             )}
           </div>
         </main>
@@ -531,24 +547,29 @@ function ApplicationsTable({
   };
 
   return (
-    <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+    <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <CardHelp text="Список заявок на согласование мероприятий и их текущих статусов." />
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Мои заявки</h2>
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: T.textMuted }} />
             <input
-              className="border rounded-xl pl-9 pr-3 py-2 text-[13px] w-56"
+              className="border rounded-xl pl-9 pr-9 py-2 text-[13px] w-56"
               style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
-              placeholder="Поиск" title="Введите ID заявки, название, площадку или комментарий для поиска."
+              placeholder="Поиск"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <HelpTooltip text="Введите ID заявки, название, площадку или комментарий для поиска." />
+            </div>
           </div>
+          <div className="relative w-full">
           <select
             value={appFilter}
             onChange={(e) => setAppFilter(e.target.value as AppFilter)}
-            title="Выберите статус для фильтрации списка." className="border rounded-xl px-3 py-2 text-[13px]"
+            className="border rounded-xl px-3 py-2 text-[13px] pr-9 w-full"
             style={{ borderColor: T.btnSecondaryBorder, background: T.sidebarBg, color: T.textPrimary }}
           >
             <option value="all">Все статусы</option>
@@ -558,10 +579,16 @@ function ApplicationsTable({
             <option value="approved">Одобрено</option>
             <option value="rejected">Отклонено</option>
           </select>
-          <HelpTooltip text="Фильтр применяет статусы заявок из таблицы. KPI-карточки выше используют ту же логику." />
-          <button title="Создать новую заявку на согласование мероприятия." onClick={onCreateNew} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <HelpTooltip text="Выберите статус для фильтрации списка." />
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1">
+          <button onClick={onCreateNew} className="h-9 px-4 rounded-xl text-[13px] font-semibold flex items-center gap-2 org-btn-primary" style={{ background: "#111111", color: "#FFF" }}>
             <Plus size={14} /> Создать
           </button>
+          <HelpTooltip text="Создать новую заявку на согласование мероприятия." />
+          </div>
         </div>
       </div>
 
@@ -593,11 +620,17 @@ function ApplicationsTable({
                   </td>
                   <td className="py-2.5 px-3 text-xs" style={{ color: T.textSecondary }}>{a.adminComment || "—"}</td>
                   <td className="py-2.5 px-3 space-x-2 whitespace-nowrap">
-                    <button title="Открыть карточку заявки для просмотра подробностей." onClick={() => onOpen(null)} className="h-7 px-3 rounded-lg border text-[12px]" style={{ borderColor: T.btnSecondaryBorder, color: T.textSecondary }}>Просмотр</button>
+                    <span className="inline-flex items-center gap-1">
+                      <button onClick={() => onOpen(null)} className="h-7 px-3 rounded-lg border text-[12px]" style={{ borderColor: T.btnSecondaryBorder, color: T.textSecondary }}>Просмотр</button>
+                      <HelpTooltip text="Открыть карточку заявки для просмотра подробностей." />
+                    </span>
                     {(a.status === "draft" || a.status === "needs_rework") && (
-                      <button title={a.status === "draft" ? "Продолжить редактирование черновика заявки." : "Внести правки по замечаниям администратора."} onClick={() => onEdit(a.eventComplianceApplicationId)} className="h-7 px-3 rounded-lg text-[12px]" style={{ background: "#111111", color: "#FFF" }}>
+                      <span className="inline-flex items-center gap-1">
+                      <button onClick={() => onEdit(a.eventComplianceApplicationId)} className="h-7 px-3 rounded-lg text-[12px]" style={{ background: "#111111", color: "#FFF" }}>
                         {a.status === "draft" ? "Продолжить" : "Доработать"}
                       </button>
+                      <HelpTooltip text={a.status === "draft" ? "Продолжить редактирование черновика заявки." : "Внести правки по замечаниям администратора."} />
+                    </span>
                     )}
                   </td>
                 </tr>
@@ -624,7 +657,8 @@ function EventsSection({ rows, sort, setSort }: {
   };
 
   return (
-    <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+    <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <CardHelp text="Перечень мероприятий, которые прошли согласование и доступны в системе." />
       <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Мои мероприятия</h2>
       {rows.length === 0 ? (
         <SimpleEmpty title="Нет одобренных мероприятий" desc="Одобренные заявки автоматически появляются в этом разделе." />
@@ -700,7 +734,8 @@ function EventsTable({ rows, compact = false }: { rows: EventRecord[]; compact?:
 
 function SalesSection({ rows }: { rows: OrganizerSaleRecord[] }) {
   return (
-    <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+    <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <CardHelp text="Сводка продаж и билетов по мероприятиям организатора." />
       <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Продажи и билеты</h2>
       {rows.length === 0 ? (
         <SimpleEmpty title="Пока нет продаж" desc="Продажи появляются после покупок на розничной витрине по вашим мероприятиям." />
@@ -744,7 +779,8 @@ function ReportsSection({ rows, totals }: {
 }) {
   return (
     <div className="space-y-4">
-      <div title="В демонстрационном режиме расчёт НДС и стоимости упрощён и приведён для примера." className="rounded-[18px] border p-4" style={{ background: T.cardBg, borderColor: T.border }}>
+      <div className="rounded-[18px] border p-4 relative" style={{ background: T.cardBg, borderColor: T.border }}>
+        <CardHelp text="В демонстрационном режиме расчёт НДС и стоимости упрощён и приведён для примера." />
         <div className="text-sm" style={{ color: T.textSecondary }}>
           Демонстрационное правило расчёта: цена билета берётся из тарифа мероприятия, сумма продажи = цена × количество,
           НДС = {Math.round(DEMO_VAT_RATE * 100)}% от суммы продажи.
@@ -759,7 +795,8 @@ function ReportsSection({ rows, totals }: {
         <KpiCard title="Чистая выручка" value={`${totals.net.toFixed(2)} BYN`} cardTitle="Сумма выручки за вычетом НДС." />
       </div>
 
-      <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+        <CardHelp text="Таблица отчётности по продажам, билетам, НДС и чистой выручке." />
         <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Таблица отчетности</h2>
         {rows.length === 0 ? (
           <SimpleEmpty title="Нет данных для отчета" desc="Когда на розничной витрине появятся продажи, они автоматически попадут в отчетность." />
@@ -800,7 +837,8 @@ function ReportsSection({ rows, totals }: {
 
 function KpiCard({ title, value, cardTitle }: { title: string; value: string; cardTitle?: string }) {
   return (
-    <div title={cardTitle} className="rounded-[18px] border p-5" style={{ background: T.cardBg, borderColor: T.border }}>
+    <div className="rounded-[18px] border p-5 relative" style={{ background: T.cardBg, borderColor: T.border }}>
+      {cardTitle && <CardHelp text={cardTitle} />}
       <div className="text-[13px]" style={{ color: T.textSecondary }}>{title}</div>
       <div className="text-[22px] font-bold mt-1" style={{ color: T.textPrimary }}>{value}</div>
     </div>
@@ -828,6 +866,7 @@ function DocumentsSection({ rows, complianceRows }: { rows: OrganizerDocument[];
                     Событие: {item.linkedEventId} · № удостоверения: {item.certificateNumber} · дата: {item.certificateDate || "—"}
                   </div>
                 </div>
+                <div className="inline-flex items-center gap-1">
                 <button
                   className="h-9 px-4 rounded-lg text-sm font-semibold"
                   style={{ background: "#111", color: "#FFF" }}
@@ -836,12 +875,14 @@ function DocumentsSection({ rows, complianceRows }: { rows: OrganizerDocument[];
                   Скачать удостоверение
                 </button>
                 <HelpTooltip text="Скачать удостоверение по одобренному мероприятию." />
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
-      <div className="rounded-[18px] border p-6" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <div className="rounded-[18px] border p-6 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+        <CardHelp text="Удостоверения и документы, связанные с одобренными мероприятиями." />
         <h2 className="text-lg font-semibold mb-4" style={{ color: T.textPrimary }}>Документы организатора</h2>
         {rows.length === 0 ? (
           <SimpleEmpty title="Нет документов" desc="Документы появятся после добавления в профиль организатора." />
@@ -880,7 +921,8 @@ function SupportSection() {
 
   return (
     <>
-      <div title="Раздел для обращений, контактов и связи со службой поддержки." className="rounded-[18px] border p-6 space-y-4" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      <div className="rounded-[18px] border p-6 space-y-4 relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+        <CardHelp text="Раздел для обращений, контактов и связи со службой поддержки." />
         <h2 className="text-lg font-semibold" style={{ color: T.textPrimary }}>Поддержка платформы</h2>
         <div className="text-sm" style={{ color: T.textSecondary }}>
           Электронная почта: support@tickethub.by<br />
@@ -888,15 +930,24 @@ function SupportSection() {
           Средняя скорость ответа: до 15 минут в рабочее время.
         </div>
         <div className="flex flex-wrap gap-3">
-          <button title="Открыть форму обращения в службу поддержки." onClick={() => setMessageOpen(true)} className="h-9 px-4 rounded-lg text-sm" style={{ background: "#111", color: "#FFF" }}>
-            Написать в поддержку
-          </button>
-          <button title="Создать обращение в службу поддержки." onClick={() => toast.success("Форма обращения будет добавлена в следующем релизе.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
-            Оставить обращение
-          </button>
-          <button title="Открывает цифрового помощника для консультаций по работе с платформой." onClick={() => toast.success("ИИ-помощник откроется в отдельном виджете.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
-            Открыть ИИ-помощника
-          </button>
+          <div className="inline-flex items-center gap-1">
+            <button onClick={() => setMessageOpen(true)} className="h-9 px-4 rounded-lg text-sm" style={{ background: "#111", color: "#FFF" }}>
+              Написать в поддержку
+            </button>
+            <HelpTooltip text="Открыть форму обращения в службу поддержки." />
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <button onClick={() => toast.success("Форма обращения будет добавлена в следующем релизе.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
+              Оставить обращение
+            </button>
+            <HelpTooltip text="Создать обращение в службу поддержки." />
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <button onClick={() => toast.success("ИИ-помощник откроется в отдельном виджете.")} className="h-9 px-4 rounded-lg border text-sm" style={{ borderColor: T.btnSecondaryBorder, color: T.textPrimary, background: "rgba(255,255,255,0.03)" }}>
+              Открыть ИИ-помощника
+            </button>
+            <HelpTooltip text="Открывает цифрового помощника для консультаций по работе с платформой." />
+          </div>
         </div>
       </div>
       {messageOpen && (
@@ -915,9 +966,10 @@ function SupportSection() {
   );
 }
 
-function SimpleCard({ title, text }: { title: string; text: string }) {
+function SimpleCard({ title, text, tooltipText }: { title: string; text: string; tooltipText?: string }) {
   return (
-    <div className="rounded-[18px] border p-10 text-center" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+    <div className="rounded-[18px] border p-10 text-center relative" style={{ background: T.cardBg, borderColor: T.border, boxShadow: T.cardShadow }}>
+      {tooltipText && <CardHelp text={tooltipText} />}
       <h2 className="text-lg font-semibold mb-1" style={{ color: T.textPrimary }}>{title}</h2>
       <p className="text-[13px]" style={{ color: T.textSecondary }}>{text}</p>
     </div>
