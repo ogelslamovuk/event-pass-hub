@@ -124,12 +124,30 @@ export default function OrganizerRegistrationStubPage() {
               <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("registrationNumber") ? "border-[#EF4444]" : ""}`} placeholder="Регистрационный номер *" value={form.registrationNumber} onChange={(e) => setForm((p) => ({ ...p, registrationNumber: e.target.value }))} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите номер госрегистрации или УНП, как в регистрационных документах." /></div>
             </div>
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("postalCode"))} placeholder="Почтовый индекс *" value={form.postalCode} onChange={(e) => setForm((p) => ({ ...p, postalCode: e.target.value }))} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("region"))} placeholder="Область *" value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("locality"))} placeholder="Населённый пункт *" value={form.locality} onChange={(e) => setForm((p) => ({ ...p, locality: e.target.value }))} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("street"))} placeholder="Улица / проспект *" value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("houseNumber"))} placeholder="Номер дома *" value={form.houseNumber} onChange={(e) => setForm((p) => ({ ...p, houseNumber: e.target.value }))} />
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Помещение" value={form.roomTypeAndNumber} onChange={(e) => setForm((p) => ({ ...p, roomTypeAndNumber: e.target.value }))} />
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("postalCode"))} w-full pr-9`} placeholder="Почтовый индекс *" value={form.postalCode} onChange={(e) => setForm((p) => ({ ...p, postalCode: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите шестизначный почтовый индекс юридического адреса." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("region"))} w-full pr-9`} placeholder="Область *" value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите область юридического адреса." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("locality"))} w-full pr-9`} placeholder="Населённый пункт *" value={form.locality} onChange={(e) => setForm((p) => ({ ...p, locality: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите город или населённый пункт." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("street"))} w-full pr-9`} placeholder="Улица / проспект *" value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите название улицы или проспекта." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("houseNumber"))} w-full pr-9`} placeholder="Номер дома *" value={form.houseNumber} onChange={(e) => setForm((p) => ({ ...p, houseNumber: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите номер дома по юридическому адресу." /></div>
+            </div>
+            <div className="relative">
+              <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Помещение" value={form.roomTypeAndNumber} onChange={(e) => setForm((p) => ({ ...p, roomTypeAndNumber: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите номер офиса или помещения." /></div>
+            </div>
             <div className="relative">
               <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("contactPhone") ? "border-[#EF4444]" : ""}`} placeholder="Контактный телефон *" value={form.contactPhone} onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите телефон для связи по доработкам и статусу заявки." /></div>
@@ -138,14 +156,23 @@ export default function OrganizerRegistrationStubPage() {
               <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("email") ? "border-[#EF4444]" : ""}`} placeholder="Электронная почта *" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите электронный адрес для получения уведомлений." /></div>
             </div>
-            <input className="h-10 rounded px-3 bg-[#0F1620] border" placeholder="Интернет-сайт" title="Укажите официальный веб-сайт организации." value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
-            <select className="h-10 rounded px-3 bg-[#0F1620] border" title="Выберите форму собственности организации." value={form.ownershipType} onChange={(e) => setForm((p) => ({ ...p, ownershipType: e.target.value as "private" | "state" | "mixed" }))}>
+            <div className="relative">
+              <input className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" placeholder="Интернет-сайт" value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите официальный веб-сайт организации." /></div>
+            </div>
+            <div className="relative">
+            <select className="h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border" value={form.ownershipType} onChange={(e) => setForm((p) => ({ ...p, ownershipType: e.target.value as "private" | "state" | "mixed" }))}>
               <option value="private">Частная</option>
               <option value="state">Государственная</option>
               <option value="mixed">Смешанная</option>
             </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Выберите форму собственности организации." /></div>
+            </div>
           </div>
-          <textarea className="w-full min-h-20 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Дополнительные сведения об адресе" title="Укажите корпус, этаж или другую дополнительную информацию по адресу." value={form.addressExtra} onChange={(e) => setForm((p) => ({ ...p, addressExtra: e.target.value }))} />
+          <div className="relative">
+            <textarea className="w-full min-h-20 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Дополнительные сведения об адресе" value={form.addressExtra} onChange={(e) => setForm((p) => ({ ...p, addressExtra: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Укажите корпус, этаж или другую дополнительную информацию по адресу." /></div>
+          </div>
         </section>
 
         <section className="space-y-3">
@@ -155,18 +182,36 @@ export default function OrganizerRegistrationStubPage() {
               <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("director.fullName") ? "border-[#EF4444]" : ""}`} placeholder="ФИО руководителя *" value={form.director.fullName} onChange={(e) => updateDirector({ fullName: e.target.value })} />
               <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите ФИО руководителя точно как в удостоверяющем документе." /></div>
             </div>
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("director.docType"))} placeholder="Вид документа *" title="Введите тип документа, удостоверяющего личность." value={form.director.docType} onChange={(e) => updateDirector({ docType: e.target.value })} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("director.docNumber"))} placeholder="Серия / номер документа *" title="Введите серию и номер удостоверяющего документа." value={form.director.docNumber} onChange={(e) => updateDirector({ docNumber: e.target.value })} />
-            <input className={fieldClass(submitAttempted && missingRequiredFields.includes("director.issueDate"))} type="date" title="Введите дату выдачи документа." value={form.director.issueDate} onChange={(e) => updateDirector({ issueDate: e.target.value })} />
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("director.docType"))} w-full pr-9`} placeholder="Вид документа *" value={form.director.docType} onChange={(e) => updateDirector({ docType: e.target.value })} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите тип документа, удостоверяющего личность." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("director.docNumber"))} w-full pr-9`} placeholder="Серия / номер документа *" value={form.director.docNumber} onChange={(e) => updateDirector({ docNumber: e.target.value })} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите серию и номер удостоверяющего документа." /></div>
+            </div>
+            <div className="relative">
+              <input className={`${fieldClass(submitAttempted && missingRequiredFields.includes("director.issueDate"))} w-full pr-9`} type="date" value={form.director.issueDate} onChange={(e) => updateDirector({ issueDate: e.target.value })} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите дату выдачи документа." /></div>
+            </div>
           </div>
-          <input className={`h-10 w-full rounded px-3 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("director.issueAuthority") ? "border-[#EF4444]" : ""}`} placeholder="Орган выдачи *" title="Укажите орган, выдавший документ." value={form.director.issueAuthority} onChange={(e) => updateDirector({ issueAuthority: e.target.value })} />
+          <div className="relative">
+            <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("director.issueAuthority") ? "border-[#EF4444]" : ""}`} placeholder="Орган выдачи *" value={form.director.issueAuthority} onChange={(e) => updateDirector({ issueAuthority: e.target.value })} />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Укажите орган, выдавший документ." /></div>
+          </div>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-semibold">Работники и учредители</h2>
           <div className="flex gap-2 flex-wrap">
-            <button title="Добавить нового работника в заявку." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, workers: [...p.workers, emptyPerson()] }))}>+ Добавить сотрудника</button>
-            <button title="Добавить учредителя в заявку." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, founders: [...p.founders, emptyPerson()] }))}>+ Добавить учредителя</button>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, workers: [...p.workers, emptyPerson()] }))}>+ Добавить сотрудника</button>
+              <HelpTooltip text="Добавить нового работника в заявку." />
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => setForm((p) => ({ ...p, founders: [...p.founders, emptyPerson()] }))}>+ Добавить учредителя</button>
+              <HelpTooltip text="Добавить учредителя в заявку." />
+            </div>
           </div>
           <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Демонстрационный блок. Для подачи заявки в демонстрационном режиме заполнение не требуется.</p>
         </section>
@@ -182,7 +227,6 @@ export default function OrganizerRegistrationStubPage() {
             ].map((item) => (
               <label key={item} className="flex items-center gap-2">
                 <input
-                  title={item === "Концерты" ? "Выберите, если организатор проводит концерты." : item === "Фестивали" ? "Выберите, если организатор проводит фестивали." : item === "Театр" ? "Выберите, если организатор проводит театральные постановки." : "Выберите, если организатор проводит выставки."}
                   type="checkbox"
                   checked={form.activities.includes(item)}
                   onChange={() =>
@@ -193,19 +237,35 @@ export default function OrganizerRegistrationStubPage() {
                   }
                 />
                 {item}
+                <HelpTooltip text={item === "Концерты" ? "Выберите, если организатор проводит концерты." : item === "Фестивали" ? "Выберите, если организатор проводит фестивали." : item === "Театр" ? "Выберите, если организатор проводит театральные постановки." : "Выберите, если организатор проводит выставки."} />
               </label>
             ))}
           </div>
-          <input className={`h-10 w-full rounded px-3 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("activities") ? "border-[#EF4444]" : ""}`} placeholder="Иное" title="Введите другой вид деятельности, если он не перечислен выше." value={form.activityOther} onChange={(e) => setForm((p) => ({ ...p, activityOther: e.target.value }))} />
+          <div className="relative">
+            <input className={`h-10 w-full rounded px-3 pr-9 bg-[#0F1620] border ${submitAttempted && missingRequiredFields.includes("activities") ? "border-[#EF4444]" : ""}`} placeholder="Иное" value={form.activityOther} onChange={(e) => setForm((p) => ({ ...p, activityOther: e.target.value }))} />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2"><HelpTooltip text="Введите другой вид деятельности, если он не перечислен выше." /></div>
+          </div>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-semibold">Ранее проведённые мероприятия</h2>
-          <textarea className="w-full min-h-24 rounded px-3 py-2 bg-[#0F1620] border" placeholder="Описание" title="Опишите прошлые мероприятия, проведённые организатором." value={form.pastEventsDescription} onChange={(e) => setForm((p) => ({ ...p, pastEventsDescription: e.target.value }))} />
+          <div className="relative">
+            <textarea className="w-full min-h-24 rounded px-3 py-2 pr-9 bg-[#0F1620] border" placeholder="Описание" value={form.pastEventsDescription} onChange={(e) => setForm((p) => ({ ...p, pastEventsDescription: e.target.value }))} />
+            <div className="absolute right-2 top-3"><HelpTooltip text="Опишите прошлые мероприятия, проведённые организатором." /></div>
+          </div>
           <div className="flex gap-2 flex-wrap">
-            <button title="Добавить видеофайл с прошедшего мероприятия." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-video")}>Загрузить видео (тестовый файл)</button>
-            <button title="Добавить аудиозапись с прошедшего мероприятия." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-audio")}>Загрузить аудио (тестовый файл)</button>
-            <button title="Добавить сценарий прошедшего мероприятия." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-script")}>Загрузить сценарий (тестовый файл)</button>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-video")}>Загрузить видео (тестовый файл)</button>
+              <HelpTooltip text="Добавить видеофайл с прошедшего мероприятия." />
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-audio")}>Загрузить аудио (тестовый файл)</button>
+              <HelpTooltip text="Добавить аудиозапись с прошедшего мероприятия." />
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("past-script")}>Загрузить сценарий (тестовый файл)</button>
+              <HelpTooltip text="Добавить сценарий прошедшего мероприятия." />
+            </div>
           </div>
           <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Демонстрационный блок. Для подачи заявки в демонстрационном режиме заполнение не требуется.</p>
         </section>
@@ -213,9 +273,18 @@ export default function OrganizerRegistrationStubPage() {
         <section className="space-y-2">
           <h2 className="font-semibold">Документы</h2>
           <div className="flex gap-2 flex-wrap">
-            <button title="Прикрепить заявление для включения в реестр." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("registry-statement")}>Загрузить заявление (тестовый файл)</button>
-            <button title="Прикрепить приложение к заявлению." className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("registry-appendix")}>Загрузить приложение (тестовый файл)</button>
-            <button title="Скачать образец заявления для заполнения." className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addAttachment("sample-registry", true)}>Скачать образец</button>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("registry-statement")}>Загрузить заявление (тестовый файл)</button>
+              <HelpTooltip text="Прикрепить заявление для включения в реестр." />
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#1d2a3b]" onClick={() => addAttachment("registry-appendix")}>Загрузить приложение (тестовый файл)</button>
+              <HelpTooltip text="Прикрепить приложение к заявлению." />
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button className="px-3 py-2 rounded bg-[#2b3f57]" onClick={() => addAttachment("sample-registry", true)}>Скачать образец</button>
+              <HelpTooltip text="Скачать образец заявления для заполнения." />
+            </div>
           </div>
           <p className="text-xs" style={{ color: "rgba(245,247,250,0.65)" }}>Демонстрационный блок. Для подачи заявки в демонстрационном режиме заполнение не требуется.</p>
         </section>
@@ -236,12 +305,14 @@ export default function OrganizerRegistrationStubPage() {
 
         <section className="space-y-2 text-sm">
           <label className={`flex items-center gap-2 ${submitAttempted && !form.confirmations.isAccurate ? "text-[#FCA5A5]" : ""}`}>
-            <input type="checkbox" title="Отметьте, что предоставленные сведения верны." checked={form.confirmations.isAccurate} onChange={(e) => setForm((p) => ({ ...p, confirmations: { ...p.confirmations, isAccurate: e.target.checked } }))} />
+            <input type="checkbox" checked={form.confirmations.isAccurate} onChange={(e) => setForm((p) => ({ ...p, confirmations: { ...p.confirmations, isAccurate: e.target.checked } }))} />
             Подтверждаю достоверность сведений *
+            <HelpTooltip text="Отметьте, что предоставленные сведения верны." />
           </label>
           <label className={`flex items-center gap-2 ${submitAttempted && !form.confirmations.adminReviewConsent ? "text-[#FCA5A5]" : ""}`}>
-            <input type="checkbox" title="Отметьте, что согласны на обработку и проверку заявки администраторами." checked={form.confirmations.adminReviewConsent} onChange={(e) => setForm((p) => ({ ...p, confirmations: { ...p.confirmations, adminReviewConsent: e.target.checked } }))} />
+            <input type="checkbox" checked={form.confirmations.adminReviewConsent} onChange={(e) => setForm((p) => ({ ...p, confirmations: { ...p.confirmations, adminReviewConsent: e.target.checked } }))} />
             Согласен на рассмотрение заявки администратором *
+            <HelpTooltip text="Отметьте, что согласны на обработку и проверку заявки администраторами." />
           </label>
         </section>
 
@@ -254,7 +325,10 @@ export default function OrganizerRegistrationStubPage() {
             <button className="px-4 h-10 rounded font-semibold" style={{ background: "#F2C94C", color: "#111" }} onClick={() => save(true)}>Отправить заявку</button>
             <HelpTooltip text="Отправить текущую версию заявки в администрацию на проверку." />
           </div>
-          <Link to="/organizer/login" title="Вернуться на страницу входа организатора." className="px-4 h-10 inline-flex items-center rounded border">Вернуться ко входу</Link>
+          <div className="inline-flex items-center gap-1">
+            <Link to="/organizer/login" className="px-4 h-10 inline-flex items-center rounded border">Вернуться ко входу</Link>
+            <HelpTooltip text="Вернуться на страницу входа организатора." />
+          </div>
         </div>
       </div>
     </div>
