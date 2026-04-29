@@ -49,7 +49,7 @@ const sidebarSections: { label?: string; items: { key: AdminTab; label: string; 
     ],
   },
   {
-    label: "TicketHub",
+    label: "by Cinemalab",
     items: [
       { key: "events", label: "События", icon: Globe },
       { key: "tickets", label: "Билеты", icon: Ticket },
@@ -105,8 +105,8 @@ export default function AdminPage() {
               <Zap size={14} style={{ color: A.cyan }} />
             </div>
             <div>
-              <div className="text-sm font-bold tracking-tight" style={{ color: A.textPrimary, letterSpacing: '-0.2px' }}>Admin Console</div>
-              <div className="text-[10px]" style={{ color: A.textMuted }}>TicketHub Platform</div>
+              <div className="text-sm font-bold tracking-tight" style={{ color: A.textPrimary, letterSpacing: '-0.2px' }}>Центр Управления</div>
+              <div className="text-[10px]" style={{ color: A.textMuted }}>by Cinemalab</div>
             </div>
           </div>
         </div>
