@@ -503,12 +503,10 @@ function ensureEventComplianceApplications(state: AppState): void {
 
 function ensureCertificatesForPublishedEvents(state: AppState): void {
   const publishedOrApproved = state.events.filter((event) => event.status === "published" || event.status === "approved");
-  const seeds = [
-    { number: "certificate001", date: "2026-04-18" },
-    { number: "certificate002", date: "2026-04-19" },
-  ];
-  for (let i = 0; i < Math.min(2, publishedOrApproved.length); i++) {
+  for (let i = 0; i < publishedOrApproved.length; i++) {
     const event = publishedOrApproved[i];
+    const certificateNumber = i === 0 ? "certificate001" : i === 1 ? "certificate002" : `certificate${String(i + 1).padStart(3, "0")}`;
+    const certificateDate = i === 0 ? "2026-04-18" : i === 1 ? "2026-04-19" : event.createdAt.slice(0, 10);
     let compliance = state.eventComplianceApplications.find((app) => app.linkedEventId === event.eventId);
     if (!compliance) {
       compliance = {
@@ -562,8 +560,9 @@ function ensureCertificatesForPublishedEvents(state: AppState): void {
       };
       state.eventComplianceApplications.push(compliance);
     }
-    compliance.certificateNumber ||= seeds[i].number;
-    compliance.certificateDate ||= seeds[i].date;
+    compliance.certificateNumber ||= certificateNumber;
+    compliance.certificateDate ||= certificateDate;
+    event.complianceApplicationId ||= compliance.eventComplianceApplicationId;
   }
 }
 
