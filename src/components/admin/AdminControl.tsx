@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState } from "@/lib/store";
 import { A, statusChip } from "./adminStyles";
 import { ShieldAlert, X } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Flag {
   id: string;
@@ -16,12 +17,26 @@ interface Flag {
 
 interface Props { state: AppState; }
 
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
+
 const priorityChip = (p: string) => {
   switch (p) {
     case 'high': return statusChip('error');
     case 'medium': return statusChip('warn');
     default: return statusChip('neutral');
   }
+};
+
+const priorityLabel: Record<Flag['priority'], string> = {
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
 };
 
 export default function AdminControl({ state }: Props) {
@@ -32,7 +47,7 @@ export default function AdminControl({ state }: Props) {
     // Error ops → flags
     state.ops.filter(o => o.result === "error").forEach(o => {
       let flagType = "Ошибка операции";
-      if (o.reason?.includes("погашен")) flagType = "Повторный redeem";
+      if (o.reason?.includes("погашен")) flagType = "Повторное погашение";
       else if (o.reason?.includes("возвращён")) flagType = "Операция над возвратом";
       else if (o.reason?.includes("Нет доступных")) flagType = "Превышение лимита";
       result.push({
@@ -40,7 +55,7 @@ export default function AdminControl({ state }: Props) {
         object: o.type,
         objectId: o.ticketId || o.eventId,
         type: flagType,
-        priority: flagType === "Повторный redeem" ? 'high' : 'medium',
+        priority: flagType === "Повторное погашение" ? 'high' : 'medium',
         status: "Открыт",
         reason: o.reason || "",
         ts: o.ts,
@@ -66,7 +81,8 @@ export default function AdminControl({ state }: Props) {
 
   return (
     <div className="space-y-5">
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative overflow-hidden">
+        <CardHelp text="Контроль автоматически показывает подозрительные операции и системные флаги по данным демо-состояния." />
         {flags.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <ShieldAlert size={28} style={{ color: A.textMuted }} className="mb-2" />
@@ -95,7 +111,7 @@ export default function AdminControl({ state }: Props) {
                       <td className="py-3 px-4" style={{ color: A.textSecondary }}>{f.objectId}</td>
                       <td className="py-3 px-4" style={{ color: A.textPrimary }}>{f.type}</td>
                       <td className="py-3 px-4">
-                        <span style={{ background: pChip.bg, color: pChip.color, borderRadius: 999 }} className="text-xs px-2.5 py-0.5 font-medium">{f.priority.toUpperCase()}</span>
+                        <span style={{ background: pChip.bg, color: pChip.color, borderRadius: 999 }} className="text-xs px-2.5 py-0.5 font-medium">{priorityLabel[f.priority]}</span>
                       </td>
                       <td className="py-3 px-4" style={{ color: A.textSecondary }}>{f.status}</td>
                       <td className="py-3 px-4 text-xs max-w-[200px] truncate" style={{ color: A.textMuted }}>{f.reason}</td>
@@ -117,10 +133,13 @@ export default function AdminControl({ state }: Props) {
             onClick={e => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between p-5" style={{ background: A.topbarBg, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${A.border}` }}>
               <h3 style={{ color: A.textPrimary }} className="text-base font-semibold">{drawer.id}</h3>
-              <button onClick={() => setDrawer(null)} style={{ color: A.textMuted }}><X size={18} /></button>
+              <span className="inline-flex items-center gap-1">
+  <button onClick={() => setDrawer(null)} style={{ color: A.textMuted }}><X size={18} /></button>
+  <HelpTooltip text="Закрыть карточку нарушения и вернуться к списку контрольных флагов." />
+</span>
             </div>
             <div className="p-5 space-y-4">
-              {([["Тип", drawer.type], ["Объект", drawer.objectId], ["Приоритет", drawer.priority.toUpperCase()], ["Статус", drawer.status], ["Основание", drawer.reason], ["Время", drawer.ts?.replace("T", " ").slice(0, 19)]] as [string, string][]).map(([k, v]) => (
+              {([["Тип", drawer.type], ["Объект", drawer.objectId], ["Приоритет", priorityLabel[drawer.priority]], ["Статус", drawer.status], ["Основание", drawer.reason], ["Время", drawer.ts?.replace("T", " ").slice(0, 19)]] as [string, string][]).map(([k, v]) => (
                 <div key={k}>
                   <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
                   <div style={{ color: A.textPrimary }} className="text-sm">{v}</div>
