@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import type { AppState } from "@/lib/store";
 import { A, statusChip } from "./adminStyles";
 import { BookOpen } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Decision {
   ts: string;
@@ -13,12 +14,20 @@ interface Decision {
 
 interface Props { state: AppState; }
 
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
+
 export default function AdminDecisionLog({ state }: Props) {
   const decisions = useMemo<Decision[]>(() => {
     const result: Decision[] = [];
     state.applications.forEach(a => {
       if (a.status === "approved") {
-        result.push({ ts: a.updatedAt, object: a.appId, decision: "Одобрена", basis: "УНП OK, пошлина оплачена", executor: "Инспектор" });
+        result.push({ ts: a.updatedAt, object: a.appId, decision: "Одобрена", basis: "УНП проверен, пошлина оплачена", executor: "Инспектор" });
       }
       if (a.status === "rejected") {
         result.push({ ts: a.updatedAt, object: a.appId, decision: "Отклонена", basis: "Ручное решение", executor: "Инспектор" });
@@ -40,7 +49,8 @@ export default function AdminDecisionLog({ state }: Props) {
 
   return (
     <div className="space-y-5">
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative overflow-hidden">
+        <CardHelp text="Журнал решений фиксирует действия по заявкам и событиям: одобрения, отклонения и автоматические публикации." />
         {decisions.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <BookOpen size={28} style={{ color: A.textMuted }} className="mb-2" />

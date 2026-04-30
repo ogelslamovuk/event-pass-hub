@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { AppState, EventRecord } from "@/lib/store";
 import { A, statusChip } from "./adminStyles";
 import { Calendar, Search, X } from "lucide-react";
+import HelpTooltip from "@/components/ui/help-tooltip";
 
 interface Props {
   state: AppState;
@@ -9,6 +10,14 @@ interface Props {
 }
 
 const evtStatusLabel: Record<string, string> = { approved: "Одобрено", published: "Опубликовано" };
+
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
 
 export default function AdminRegistryEvents({ state }: Props) {
   const [search, setSearch] = useState("");
@@ -57,13 +66,17 @@ export default function AdminRegistryEvents({ state }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Поиск мероприятий..."
-            className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none"
+            className="w-full h-9 pl-9 pr-9 rounded-lg text-sm outline-none"
             style={{ background: A.surfaceBg, border: `1px solid ${A.border}`, color: A.textPrimary }}
           />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <HelpTooltip text="Поиск работает по EventID, названию мероприятия и площадке." />
+          </div>
         </div>
       </div>
 
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative overflow-hidden">
+        <CardHelp text="Реестр показывает мероприятия, допущенные к продаже или опубликованные в системе." />
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <Calendar size={28} style={{ color: A.textMuted }} className="mb-2" />
@@ -155,7 +168,7 @@ export default function AdminRegistryEvents({ state }: Props) {
                       ["Статус", evtStatusLabel[drawer.status] || drawer.status],
                       ["Номер удостоверения", compliance?.certificateNumber || "—"],
                       ["Дата удостоверения", compliance?.certificateDate || "—"],
-                      ["Compliance Application", drawer.complianceApplicationId || compliance?.eventComplianceApplicationId || "—"],
+                      ["Заявка на согласование", drawer.complianceApplicationId || compliance?.eventComplianceApplicationId || "—"],
                     ] as [string, string][]).map(([k, v]) => (
                       <div key={k}>
                         <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
