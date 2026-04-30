@@ -4,6 +4,20 @@ import { A, statusChip } from "./adminStyles";
 import { Building2, MapPin, X } from "lucide-react";
 import HelpTooltip from "@/components/ui/help-tooltip";
 
+function CardHelp({ text }: { text: string }) {
+  return (
+    <div className="absolute right-4 top-4 z-10">
+      <HelpTooltip text={text} />
+    </div>
+  );
+}
+
+const riskLabel: Record<string, string> = {
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
+};
+
 // Organizer Registry
 export function AdminOrgRegistry({ state }: { state: AppState }) {
   const [drawer, setDrawer] = useState<any>(null);
@@ -57,7 +71,8 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
         <span className="text-xs" style={{ color: A.textSecondary }}>Реестр организаторов</span>
         <HelpTooltip text="Нажмите на строку, чтобы открыть карточку организатора с деталями и риском." />
       </div>
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative overflow-hidden">
+        <CardHelp text="Реестр показывает утверждённых организаторов, их активность, количество мероприятий и риск по операциям." />
         {orgs.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <Building2 size={28} style={{ color: A.textMuted }} className="mb-2" />
@@ -88,7 +103,7 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
                       <td className="py-3 px-4" style={{ color: A.textPrimary }}>{o.events}</td>
                       <td className="py-3 px-4" style={{ color: A.textPrimary }}>{o.violations}</td>
                       <td className="py-3 px-4">
-                        <span style={{ background: rc.bg, color: rc.color, borderRadius: 999 }} className="text-xs px-2.5 py-0.5 font-medium">{o.risk.toUpperCase()}</span>
+                        <span style={{ background: rc.bg, color: rc.color, borderRadius: 999 }} className="text-xs px-2.5 py-0.5 font-medium">{riskLabel[o.risk] || o.risk}</span>
                       </td>
                       <td className="py-3 px-4 text-xs" style={{ color: A.textMuted }}>{o.lastActivity?.replace("T", " ").slice(0, 16)}</td>
                     </tr>
@@ -111,7 +126,7 @@ export function AdminOrgRegistry({ state }: { state: AppState }) {
               <button onClick={() => setDrawer(null)} style={{ color: A.textMuted }}><X size={18} /></button>
             </div>
             <div className="p-5 space-y-4">
-              {([["Полное наименование", drawer.latestOrganizerApplication?.data?.legalName || drawer.name || "—"], ["Регистрационный номер", drawer.latestOrganizerApplication?.data?.registrationNumber || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.unp || "—"], ["Контактный телефон", drawer.latestOrganizerApplication?.data?.contactPhone || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.phone || "—"], ["Email", drawer.latestOrganizerApplication?.data?.email || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.email || "—"], ["ФИО руководителя", drawer.latestOrganizerApplication?.data?.director?.fullName || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.director || "—"], ["Адрес", [drawer.latestOrganizerApplication?.data?.postalCode, drawer.latestOrganizerApplication?.data?.region, drawer.latestOrganizerApplication?.data?.locality, drawer.latestOrganizerApplication?.data?.street, drawer.latestOrganizerApplication?.data?.houseNumber, drawer.latestOrganizerApplication?.data?.roomTypeAndNumber, drawer.latestOrganizerApplication?.data?.addressExtra].filter((part: string | undefined) => Boolean(part && part.trim())).join(", ") || organizerMetaFallback[drawer.id]?.address || "—"], ["Вид деятельности / выбранные категории", [Array.isArray(drawer.latestOrganizerApplication?.data?.activities) ? drawer.latestOrganizerApplication.data.activities.join(", ") : "", drawer.latestOrganizerApplication?.data?.activityOther || ""].filter(Boolean).join(", ") || organizerMetaFallback[drawer.id]?.activities || "—"], ["Реестровый номер", drawer.registryNumber], ["Последняя активность", drawer.lastActivity?.replace("T", " ").slice(0, 16) || "—"]] as [string, string][]).map(([k, v]) => (
+              {([["Полное наименование", drawer.latestOrganizerApplication?.data?.legalName || drawer.name || "—"], ["Регистрационный номер", drawer.latestOrganizerApplication?.data?.registrationNumber || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.unp || "—"], ["Контактный телефон", drawer.latestOrganizerApplication?.data?.contactPhone || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.phone || "—"], ["Электронная почта", drawer.latestOrganizerApplication?.data?.email || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.email || "—"], ["ФИО руководителя", drawer.latestOrganizerApplication?.data?.director?.fullName || state.organizers.find((organizer) => organizer.organizerId === drawer.id)?.director || "—"], ["Адрес", [drawer.latestOrganizerApplication?.data?.postalCode, drawer.latestOrganizerApplication?.data?.region, drawer.latestOrganizerApplication?.data?.locality, drawer.latestOrganizerApplication?.data?.street, drawer.latestOrganizerApplication?.data?.houseNumber, drawer.latestOrganizerApplication?.data?.roomTypeAndNumber, drawer.latestOrganizerApplication?.data?.addressExtra].filter((part: string | undefined) => Boolean(part && part.trim())).join(", ") || organizerMetaFallback[drawer.id]?.address || "—"], ["Вид деятельности / выбранные категории", [Array.isArray(drawer.latestOrganizerApplication?.data?.activities) ? drawer.latestOrganizerApplication.data.activities.join(", ") : "", drawer.latestOrganizerApplication?.data?.activityOther || ""].filter(Boolean).join(", ") || organizerMetaFallback[drawer.id]?.activities || "—"], ["Реестровый номер", drawer.registryNumber], ["Последняя активность", drawer.lastActivity?.replace("T", " ").slice(0, 16) || "—"]] as [string, string][]).map(([k, v]) => (
                 <div key={k}>
                   <div style={{ color: A.textMuted }} className="text-xs font-medium mb-1">{k}</div>
                   <div style={{ color: A.textPrimary }} className="text-sm">{v}</div>
@@ -157,7 +172,8 @@ export function AdminVenueRegistry({ state }: { state: AppState }) {
         <span className="text-xs" style={{ color: A.textSecondary }}>Реестр площадок</span>
         <HelpTooltip text="Нажмите на строку площадки, чтобы открыть подробные сведения в боковой панели." />
       </div>
-      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="overflow-hidden">
+      <div style={{ background: A.cardBg, border: `1px solid ${A.border}`, borderRadius: 16, boxShadow: A.cardShadow }} className="relative overflow-hidden">
+        <CardHelp text="Реестр показывает площадки, связанные с заявками и опубликованными мероприятиями." />
         {venues.length === 0 ? (
           <div className="flex flex-col items-center py-12">
             <MapPin size={28} style={{ color: A.textMuted }} className="mb-2" />
